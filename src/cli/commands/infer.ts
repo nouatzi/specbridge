@@ -8,7 +8,6 @@ import { join } from 'node:path';
 import { createInferenceEngine, getAnalyzerIds } from '../../inference/index.js';
 import { loadConfig } from '../../config/loader.js';
 import { writeTextFile, getInferredDir, pathExists, getSpecBridgeDir } from '../../utils/fs.js';
-import { stringifyYaml } from '../../utils/yaml.js';
 import { NotInitializedError } from '../../core/errors/index.js';
 import type { Pattern } from '../../core/types/index.js';
 

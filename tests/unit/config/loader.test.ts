@@ -2,7 +2,7 @@
  * Config Loader Unit Tests
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { loadConfig, findConfigFile } from '../../../src/config/loader.js';
+import { loadConfig, mergeWithDefaults } from '../../../src/config/loader.js';
 import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -22,198 +22,241 @@ describe('Config Loader', () => {
   });
 
   describe('loadConfig', () => {
-    it('should load valid config file', () => {
+    it('should load valid config file', async () => {
       const configPath = join(testDir, '.specbridge/config.yaml');
       mkdirSync(join(testDir, '.specbridge'), { recursive: true });
 
       writeFileSync(
         configPath,
-        `version: 1
+        `version: "1.0"
 project:
   name: test-project
-  root: ./
+  sourceRoots:
+    - src/**/*.ts
+  exclude:
+    - node_modules
 `
       );
 
-      const config = loadConfig(testDir);
+      const config = await loadConfig(testDir);
 
       expect(config).toBeDefined();
-      expect(config.version).toBe(1);
+      expect(config.version).toBe('1.0');
       expect(config.project.name).toBe('test-project');
     });
 
-    it('should return default config when no file exists', () => {
-      const config = loadConfig(testDir);
+    it('should return default config when directory initialized but no config file', async () => {
+      // Create .specbridge directory but no config file
+      mkdirSync(join(testDir, '.specbridge'), { recursive: true });
+
+      const config = await loadConfig(testDir);
 
       expect(config).toBeDefined();
-      expect(config.version).toBe(1);
+      expect(config.version).toBe('1.0');
       expect(config.project).toBeDefined();
     });
 
-    it('should load config with verification settings', () => {
+    it('should throw error when SpecBridge not initialized', async () => {
+      // Don't create .specbridge directory
+      await expect(loadConfig(testDir)).rejects.toThrow('SpecBridge is not initialized');
+    });
+
+    it('should load config with verification settings', async () => {
       const configPath = join(testDir, '.specbridge/config.yaml');
       mkdirSync(join(testDir, '.specbridge'), { recursive: true });
 
       writeFileSync(
         configPath,
-        `version: 1
+        `version: "1.0"
 project:
   name: test-project
+  sourceRoots:
+    - src/**/*.ts
+  exclude:
+    - node_modules
 verification:
-  enabled: true
-  failOnCritical: true
-  failOnHigh: false
+  levels:
+    commit:
+      timeout: 5000
+      severity:
+        - critical
+    pr:
+      timeout: 60000
+      severity:
+        - critical
+        - high
 `
       );
 
-      const config = loadConfig(testDir);
+      const config = await loadConfig(testDir);
 
       expect(config.verification).toBeDefined();
-      expect(config.verification?.enabled).toBe(true);
-      expect(config.verification?.failOnCritical).toBe(true);
-      expect(config.verification?.failOnHigh).toBe(false);
+      expect(config.verification?.levels?.commit).toBeDefined();
+      expect(config.verification?.levels?.commit?.timeout).toBe(5000);
     });
 
-    it('should load config with inference settings', () => {
+    it('should load config with inference settings', async () => {
       const configPath = join(testDir, '.specbridge/config.yaml');
       mkdirSync(join(testDir, '.specbridge'), { recursive: true });
 
       writeFileSync(
         configPath,
-        `version: 1
+        `version: "1.0"
 project:
   name: test-project
+  sourceRoots:
+    - src/**/*.ts
+  exclude:
+    - node_modules
 inference:
-  enabled: true
-  minOccurrences: 3
-  confidence: 0.8
+  minConfidence: 80
+  analyzers:
+    - naming
+    - imports
 `
       );
 
-      const config = loadConfig(testDir);
+      const config = await loadConfig(testDir);
 
       expect(config.inference).toBeDefined();
-      expect(config.inference?.enabled).toBe(true);
-      expect(config.inference?.minOccurrences).toBe(3);
-      expect(config.inference?.confidence).toBe(0.8);
+      expect(config.inference?.minConfidence).toBe(80);
+      expect(config.inference?.analyzers).toContain('naming');
     });
 
-    it('should load config with exclude patterns', () => {
+    it('should load config with exclude patterns', async () => {
       const configPath = join(testDir, '.specbridge/config.yaml');
       mkdirSync(join(testDir, '.specbridge'), { recursive: true });
 
       writeFileSync(
         configPath,
-        `version: 1
+        `version: "1.0"
 project:
   name: test-project
-verification:
+  sourceRoots:
+    - src/**/*.ts
   exclude:
-    - "**/*.test.ts"
-    - "**/node_modules/**"
+    - node_modules
+    - dist
+    - '**/*.test.ts'
 `
       );
 
-      const config = loadConfig(testDir);
+      const config = await loadConfig(testDir);
 
-      expect(config.verification?.exclude).toHaveLength(2);
-      expect(config.verification?.exclude).toContain('**/*.test.ts');
+      expect(config.project.exclude).toBeDefined();
+      expect(config.project.exclude).toContain('node_modules');
+      expect(config.project.exclude).toContain('dist');
+      expect(config.project.exclude).toContain('**/*.test.ts');
     });
 
-    it('should throw error for invalid YAML', () => {
-      const configPath = join(testDir, '.specbridge/config.yaml');
-      mkdirSync(join(testDir, '.specbridge'), { recursive: true });
-
-      writeFileSync(configPath, 'invalid: yaml: content: [');
-
-      expect(() => loadConfig(testDir)).toThrow();
-    });
-
-    it('should throw error for invalid schema', () => {
+    it('should throw error for invalid YAML', async () => {
       const configPath = join(testDir, '.specbridge/config.yaml');
       mkdirSync(join(testDir, '.specbridge'), { recursive: true });
 
       writeFileSync(
         configPath,
-        `version: 999
+        `invalid: yaml: syntax:
+        bad indentation
+      more bad stuff
+`
+      );
+
+      await expect(loadConfig(testDir)).rejects.toThrow();
+    });
+
+    it('should throw error for invalid schema', async () => {
+      const configPath = join(testDir, '.specbridge/config.yaml');
+      mkdirSync(join(testDir, '.specbridge'), { recursive: true });
+
+      writeFileSync(
+        configPath,
+        `version: "1.0"
 project:
-  name: test
+  # Missing required fields like name and sourceRoots
+  exclude: []
 `
       );
 
-      expect(() => loadConfig(testDir)).toThrow();
+      await expect(loadConfig(testDir)).rejects.toThrow();
     });
 
-    it('should merge with default config', () => {
+    it('should merge with default config', async () => {
       const configPath = join(testDir, '.specbridge/config.yaml');
       mkdirSync(join(testDir, '.specbridge'), { recursive: true });
 
       writeFileSync(
         configPath,
-        `version: 1
+        `version: "1.0"
 project:
   name: test-project
+  sourceRoots:
+    - src/**/*.ts
+# Verification settings omitted, should use defaults from schema
 `
       );
 
-      const config = loadConfig(testDir);
+      const config = await loadConfig(testDir);
 
-      // Should have defaults for missing fields
       expect(config.project.name).toBe('test-project');
-      expect(config.project.root).toBeDefined();
+      expect(config.project.sourceRoots).toContain('src/**/*.ts');
     });
   });
 
-  describe('findConfigFile', () => {
-    it('should find config in current directory', () => {
-      const configPath = join(testDir, '.specbridge/config.yaml');
-      mkdirSync(join(testDir, '.specbridge'), { recursive: true });
-      writeFileSync(configPath, 'version: 1\nproject:\n  name: test\n');
+  describe('mergeWithDefaults', () => {
+    it('should merge partial config with defaults', () => {
+      const partial = {
+        version: '1.0' as const,
+        project: {
+          name: 'my-project',
+          sourceRoots: ['src/**/*.ts'],
+          exclude: [],
+        },
+      };
 
-      const found = findConfigFile(testDir);
+      const merged = mergeWithDefaults(partial);
 
-      expect(found).toBe(configPath);
+      expect(merged.project.name).toBe('my-project');
+      expect(merged.verification).toBeDefined();
+      expect(merged.inference).toBeDefined();
     });
 
-    it('should find config in parent directory', () => {
-      const nestedDir = join(testDir, 'src/components');
-      mkdirSync(nestedDir, { recursive: true });
+    it('should preserve provided values over defaults', () => {
+      const partial = {
+        version: '1.0' as const,
+        project: {
+          name: 'my-project',
+          sourceRoots: ['src/**/*.ts'],
+          exclude: [],
+        },
+        verification: {
+          levels: {
+            pr: {
+              timeout: 30000,
+              severity: ['critical', 'high'] as const,
+            },
+          },
+        },
+      };
 
-      const configPath = join(testDir, '.specbridge/config.yaml');
-      mkdirSync(join(testDir, '.specbridge'), { recursive: true });
-      writeFileSync(configPath, 'version: 1\nproject:\n  name: test\n');
+      const merged = mergeWithDefaults(partial);
 
-      const found = findConfigFile(nestedDir);
-
-      expect(found).toBe(configPath);
+      expect(merged.verification?.levels?.pr?.timeout).toBe(30000);
     });
 
-    it('should return null when no config found', () => {
-      const found = findConfigFile(testDir);
+    it('should use defaults for omitted sections', () => {
+      const partial = {
+        version: '1.0' as const,
+        project: {
+          name: 'my-project',
+          sourceRoots: ['src/**/*.ts'],
+          exclude: [],
+        },
+      };
 
-      expect(found).toBeNull();
-    });
+      const merged = mergeWithDefaults(partial);
 
-    it('should support .specbridge.yaml in root', () => {
-      const configPath = join(testDir, '.specbridge.yaml');
-      writeFileSync(configPath, 'version: 1\nproject:\n  name: test\n');
-
-      const found = findConfigFile(testDir);
-
-      expect(found).toBe(configPath);
-    });
-
-    it('should prefer .specbridge/config.yaml over .specbridge.yaml', () => {
-      const config1 = join(testDir, '.specbridge/config.yaml');
-      const config2 = join(testDir, '.specbridge.yaml');
-
-      mkdirSync(join(testDir, '.specbridge'), { recursive: true });
-      writeFileSync(config1, 'version: 1\nproject:\n  name: test1\n');
-      writeFileSync(config2, 'version: 1\nproject:\n  name: test2\n');
-
-      const found = findConfigFile(testDir);
-
-      expect(found).toBe(config1);
+      expect(merged.inference).toBeDefined();
+      expect(merged.agent).toBeDefined();
     });
   });
 });

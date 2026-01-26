@@ -167,3 +167,128 @@ export async function generateFormattedContext(
       return formatContextAsMarkdown(context);
   }
 }
+
+/**
+ * AgentContextGenerator class for test compatibility
+ */
+export class AgentContextGenerator {
+  /**
+   * Generate context from decisions
+   */
+  generateContext(options: {
+    decisions: any[];
+    filePattern?: string;
+    format?: 'markdown' | 'plain' | 'json';
+    concise?: boolean;
+    minSeverity?: string;
+    includeExamples?: boolean;
+  }): string {
+    const { decisions, filePattern, format = 'markdown', concise = false, minSeverity } = options;
+
+    // Filter deprecated decisions
+    const activeDecisions = decisions.filter(d => d.metadata.status !== 'deprecated');
+
+    // Filter by file pattern if provided
+    let filteredDecisions = activeDecisions;
+    if (filePattern) {
+      filteredDecisions = activeDecisions.filter(d =>
+        d.constraints.some((c: any) => matchesPattern(filePattern, c.scope))
+      );
+    }
+
+    // Filter by severity if provided
+    if (minSeverity) {
+      const severityOrder = { low: 0, medium: 1, high: 2, critical: 3 };
+      const minLevel = severityOrder[minSeverity as keyof typeof severityOrder] || 0;
+
+      filteredDecisions = filteredDecisions.map(d => ({
+        ...d,
+        constraints: d.constraints.filter((c: any) => {
+          const level = severityOrder[c.severity as keyof typeof severityOrder] || 0;
+          return level >= minLevel;
+        }),
+      })).filter(d => d.constraints.length > 0);
+    }
+
+    // Format output
+    if (filteredDecisions.length === 0) {
+      return 'No architectural decisions apply.';
+    }
+
+    if (format === 'json') {
+      return JSON.stringify({ decisions: filteredDecisions }, null, 2);
+    }
+
+    const lines: string[] = [];
+
+    if (format === 'markdown') {
+      lines.push('# Architectural Decisions\n');
+      for (const decision of filteredDecisions) {
+        lines.push(`## ${decision.metadata.title}`);
+        if (!concise && decision.decision.summary) {
+          lines.push(`\n${decision.decision.summary}\n`);
+        }
+        lines.push('### Constraints\n');
+        for (const constraint of decision.constraints) {
+          lines.push(`- **[${constraint.severity.toUpperCase()}]** ${constraint.rule}`);
+        }
+        lines.push('');
+      }
+    } else {
+      // Plain text format
+      for (const decision of filteredDecisions) {
+        lines.push(`${decision.metadata.title}`);
+        if (!concise && decision.decision.summary) {
+          lines.push(`${decision.decision.summary}`);
+        }
+        for (const constraint of decision.constraints) {
+          lines.push(`  - ${constraint.rule}`);
+        }
+        lines.push('');
+      }
+    }
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Generate prompt suffix for AI agents
+   */
+  generatePromptSuffix(options: { decisions: any[] }): string {
+    const { decisions } = options;
+
+    if (decisions.length === 0) {
+      return 'No architectural decisions to follow.';
+    }
+
+    const lines: string[] = [];
+    lines.push('Please follow these architectural decisions and constraints:');
+    lines.push('');
+
+    for (const decision of decisions) {
+      lines.push(`- ${decision.metadata.title}`);
+      for (const constraint of decision.constraints) {
+        lines.push(`  - ${constraint.rule}`);
+      }
+    }
+
+    lines.push('');
+    lines.push('Ensure your code complies with all constraints listed above.');
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Extract relevant decisions for a specific file
+   */
+  extractRelevantDecisions(options: {
+    decisions: any[];
+    filePath: string;
+  }): any[] {
+    const { decisions, filePath } = options;
+
+    return decisions.filter(d =>
+      d.constraints.some((c: any) => matchesPattern(filePath, c.scope))
+    );
+  }
+}

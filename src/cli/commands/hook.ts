@@ -5,11 +5,10 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { join } from 'node:path';
-import { simpleGit } from 'simple-git';
 import { createVerificationEngine } from '../../verification/engine.js';
 import { loadConfig } from '../../config/loader.js';
 import { pathExists, writeTextFile, readTextFile, getSpecBridgeDir } from '../../utils/fs.js';
-import { NotInitializedError, HookError } from '../../core/errors/index.js';
+import { NotInitializedError } from '../../core/errors/index.js';
 import type { VerificationLevel } from '../../core/types/index.js';
 
 const HOOK_SCRIPT = `#!/bin/sh

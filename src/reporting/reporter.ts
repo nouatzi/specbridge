@@ -133,3 +133,200 @@ export function checkDegradation(
 
   return { degraded, details };
 }
+
+/**
+ * Reporter class for formatting verification results
+ */
+export class Reporter {
+  /**
+   * Generate formatted report from verification result
+   */
+  generate(
+    result: any,
+    options: {
+      format?: 'table' | 'json' | 'markdown';
+      includePassedChecks?: boolean;
+      groupBy?: 'severity' | 'file';
+      colorize?: boolean;
+    } = {}
+  ): string {
+    const { format = 'table', groupBy } = options;
+
+    switch (format) {
+      case 'json':
+        return JSON.stringify(result, null, 2);
+
+      case 'markdown':
+        return this.formatAsMarkdown(result);
+
+      case 'table':
+      default:
+        return groupBy ? this.formatAsTableGrouped(result, groupBy) : this.formatAsTable(result);
+    }
+  }
+
+  /**
+   * Generate compliance overview from multiple results
+   */
+  generateComplianceReport(results: any[]): string {
+    const lines: string[] = [];
+    lines.push('# Compliance Report\n');
+
+    if (results.length === 0) {
+      lines.push('No results to report.\n');
+      return lines.join('\n');
+    }
+
+    // Calculate overall stats
+    const totalViolations = results.reduce(
+      (sum, r) => sum + (r.summary?.totalViolations || r.violations?.length || 0),
+      0
+    );
+    const avgViolations = totalViolations / results.length;
+
+    lines.push(`## Overall Statistics\n`);
+    lines.push(`- Total Results: ${results.length}`);
+    lines.push(`- Total Violations: ${totalViolations}`);
+    lines.push(`- Average Violations per Result: ${avgViolations.toFixed(1)}`);
+
+    // Calculate compliance percentage (simplified)
+    const complianceRate = results.length > 0
+      ? ((results.filter(r => (r.violations?.length || 0) === 0).length / results.length) * 100)
+      : 100;
+    lines.push(`- Compliance Rate: ${complianceRate.toFixed(1)}%\n`);
+
+    return lines.join('\n');
+  }
+
+  private formatAsTable(result: any): string {
+    const lines: string[] = [];
+
+    lines.push('Verification Report');
+    lines.push('='.repeat(50));
+    lines.push('');
+
+    // Summary
+    if (result.summary) {
+      lines.push('Summary:');
+      lines.push(`  Decisions Checked: ${result.summary.decisionsChecked || 0}`);
+      lines.push(`  Files Checked: ${result.summary.filesChecked || 0}`);
+      lines.push(`  Total Violations: ${result.summary.totalViolations || result.violations?.length || 0}`);
+      lines.push(`  Critical: ${result.summary.critical || 0}`);
+      lines.push(`  High: ${result.summary.high || 0}`);
+      lines.push(`  Medium: ${result.summary.medium || 0}`);
+      lines.push(`  Low: ${result.summary.low || 0}`);
+      lines.push(`  Duration: ${result.summary.duration || 0}ms`);
+      lines.push('');
+    }
+
+    // Violations
+    const totalViolations = result.summary?.totalViolations ?? result.violations?.length ?? 0;
+    if (totalViolations > 0 && result.violations && result.violations.length > 0) {
+      lines.push('Violations:');
+      lines.push('-'.repeat(50));
+
+      result.violations.forEach((v: any) => {
+        const severity = v.severity.toLowerCase();
+        lines.push(`  [${v.severity.toUpperCase()}] ${v.decisionId} - ${v.constraintId} (${severity})`);
+        lines.push(`    ${v.message}`);
+        lines.push(`    Location: ${v.location?.file || v.file}:${v.location?.line || 0}:${v.location?.column || 0}`);
+        lines.push('');
+      });
+    } else {
+      lines.push('No violations found.');
+      lines.push('');
+    }
+
+    return lines.join('\n');
+  }
+
+  private formatAsTableGrouped(result: any, groupBy: 'severity' | 'file'): string {
+    const lines: string[] = [];
+
+    lines.push('Verification Report');
+    lines.push('='.repeat(50));
+    lines.push('');
+
+    // Summary
+    if (result.summary) {
+      lines.push('Summary:');
+      lines.push(`  Total Violations: ${result.summary.totalViolations || result.violations?.length || 0}`);
+      lines.push('');
+    }
+
+    // Group violations
+    if (result.violations && result.violations.length > 0) {
+      if (groupBy === 'severity') {
+        const grouped = new Map<string, any[]>();
+        result.violations.forEach((v: any) => {
+          const key = v.severity;
+          if (!grouped.has(key)) grouped.set(key, []);
+          grouped.get(key)!.push(v);
+        });
+
+        for (const [severity, violations] of grouped.entries()) {
+          lines.push(`Severity: ${severity}`);
+          lines.push('-'.repeat(30));
+          violations.forEach(v => {
+            lines.push(`  ${v.decisionId} - ${v.message}`);
+          });
+          lines.push('');
+        }
+      } else if (groupBy === 'file') {
+        const grouped = new Map<string, any[]>();
+        result.violations.forEach((v: any) => {
+          const key = v.location?.file || v.file || 'unknown';
+          if (!grouped.has(key)) grouped.set(key, []);
+          grouped.get(key)!.push(v);
+        });
+
+        for (const [file, violations] of grouped.entries()) {
+          lines.push(`File: ${file}`);
+          lines.push('-'.repeat(30));
+          violations.forEach(v => {
+            lines.push(`  [${v.severity}] ${v.message}`);
+          });
+          lines.push('');
+        }
+      }
+    } else {
+      lines.push('No violations found.');
+      lines.push('');
+    }
+
+    return lines.join('\n');
+  }
+
+  private formatAsMarkdown(result: any): string {
+    const lines: string[] = [];
+
+    lines.push('## Verification Report\n');
+
+    // Summary
+    if (result.summary) {
+      lines.push('### Summary\n');
+      lines.push(`- **Decisions Checked:** ${result.summary.decisionsChecked || 0}`);
+      lines.push(`- **Files Checked:** ${result.summary.filesChecked || 0}`);
+      lines.push(`- **Total Violations:** ${result.summary.totalViolations || result.violations?.length || 0}`);
+      lines.push(`- **Critical:** ${result.summary.critical || 0}`);
+      lines.push(`- **High:** ${result.summary.high || 0}`);
+      lines.push(`- **Medium:** ${result.summary.medium || 0}`);
+      lines.push(`- **Low:** ${result.summary.low || 0}\n`);
+    }
+
+    // Violations
+    if (result.violations && result.violations.length > 0) {
+      lines.push('### Violations\n');
+
+      result.violations.forEach((v: any) => {
+        lines.push(`#### [${v.severity.toUpperCase()}] ${v.decisionId}`);
+        lines.push(`**Message:** ${v.message}`);
+        lines.push(`**Location:** \`${v.location?.file || v.file}:${v.location?.line || 0}\`\n`);
+      });
+    } else {
+      lines.push('No violations found.\n');
+    }
+
+    return lines.join('\n');
+  }
+}

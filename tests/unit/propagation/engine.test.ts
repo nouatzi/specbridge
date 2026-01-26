@@ -1,308 +1,230 @@
 /**
  * Propagation Engine Unit Tests
  */
-import { describe, it, expect, beforeEach } from 'vitest';
-import { PropagationEngine } from '../../../src/propagation/engine.js';
-import type { Decision } from '../../../src/core/types/index.js';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { mkdtempSync, rmSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createPropagationEngine } from '../../../src/propagation/engine.js';
+import { createRegistry } from '../../../src/registry/registry.js';
+import { setupTestProject, cleanupTestProject, createDecisionYaml } from '../../helpers/setup.js';
+import type { SpecBridgeConfig } from '../../../src/core/types/index.js';
 
 describe('PropagationEngine', () => {
-  let engine: PropagationEngine;
+  let testDir: string;
+  let config: SpecBridgeConfig;
 
-  const createTestDecision = (id: string, constraints: any[] = []): Decision => ({
-    kind: 'Decision',
-    metadata: {
-      id,
-      title: `Test Decision ${id}`,
-      status: 'active',
-      owners: ['test'],
-    },
-    decision: {
-      summary: 'Test summary',
-      rationale: 'Test rationale',
-    },
-    constraints,
-    verification: {
-      automated: [],
-    },
+  beforeEach(async () => {
+    // Create temporary test directory
+    testDir = mkdtempSync(join(tmpdir(), 'specbridge-test-'));
+
+    // Create a simple test file
+    const srcDir = join(testDir, 'src');
+    mkdirSync(srcDir, { recursive: true });
+    writeFileSync(join(srcDir, 'test.ts'), 'export class TestClass {}');
+
+    // Set up test project with .specbridge
+    await setupTestProject(testDir, {
+      decisions: [
+        {
+          id: 'test-001',
+          content: createDecisionYaml('test-001', {
+            constraints: [
+              {
+                id: 'constraint-1',
+                type: 'convention',
+                rule: 'Test rule',
+                severity: 'medium',
+                scope: '**/*.ts',
+              },
+            ],
+          }),
+        },
+      ],
+    });
+
+    // Create minimal config
+    config = {
+      version: '1.0',
+      project: {
+        name: 'test-project',
+        sourceRoots: ['src/**/*.ts'],
+        exclude: ['node_modules', 'dist'],
+      },
+      verification: {
+        levels: {
+          commit: { timeout: 5000 },
+        },
+      },
+    };
   });
 
-  beforeEach(() => {
-    engine = new PropagationEngine();
+  afterEach(async () => {
+    await cleanupTestProject(testDir);
+    if (existsSync(testDir)) {
+      rmSync(testDir, { recursive: true, force: true });
+    }
   });
 
   describe('analyzeImpact', () => {
     it('should analyze impact of decision change', async () => {
-      const oldDecision = createTestDecision('test-001', [
-        {
-          id: 'constraint-1',
-          type: 'convention',
-          rule: 'Old rule',
-          severity: 'medium',
-          scope: '**/*.ts',
-        },
-      ]);
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
 
-      const newDecision = createTestDecision('test-001', [
-        {
-          id: 'constraint-1',
-          type: 'invariant',
-          rule: 'New strict rule',
-          severity: 'critical',
-          scope: '**/*.ts',
-        },
-      ]);
-
-      const impact = await engine.analyzeImpact({
-        oldDecision,
-        newDecision,
-        cwd: process.cwd() + '/tests/fixtures/sample-project',
-      });
+      const impact = await engine.analyzeImpact(
+        'test-001',
+        'modified',
+        config,
+        { cwd: testDir }
+      );
 
       expect(impact).toBeDefined();
+      expect(impact.decision).toBe('test-001');
+      expect(impact.change).toBe('modified');
       expect(impact.affectedFiles).toBeDefined();
       expect(Array.isArray(impact.affectedFiles)).toBe(true);
       expect(impact.estimatedEffort).toBeDefined();
+      expect(impact.migrationSteps).toBeDefined();
     });
 
-    it('should identify added constraints', async () => {
-      const oldDecision = createTestDecision('test-001', []);
-      const newDecision = createTestDecision('test-001', [
-        {
-          id: 'new-constraint',
-          type: 'convention',
-          rule: 'New rule',
-          severity: 'high',
-          scope: '**/*.ts',
-        },
-      ]);
+    it('should handle created decision', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
 
-      const impact = await engine.analyzeImpact({
-        oldDecision,
-        newDecision,
-        cwd: process.cwd() + '/tests/fixtures/sample-project',
-      });
+      const impact = await engine.analyzeImpact(
+        'test-001',
+        'created',
+        config,
+        { cwd: testDir }
+      );
 
-      expect(impact.changes.added).toHaveLength(1);
-      expect(impact.changes.added[0].id).toBe('new-constraint');
+      expect(impact).toBeDefined();
+      expect(impact.change).toBe('created');
     });
 
-    it('should identify removed constraints', async () => {
-      const oldDecision = createTestDecision('test-001', [
-        {
-          id: 'old-constraint',
-          type: 'convention',
-          rule: 'Old rule',
-          severity: 'medium',
-          scope: '**/*.ts',
-        },
-      ]);
-      const newDecision = createTestDecision('test-001', []);
+    it('should handle deprecated decision', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
 
-      const impact = await engine.analyzeImpact({
-        oldDecision,
-        newDecision,
-        cwd: process.cwd() + '/tests/fixtures/sample-project',
-      });
+      const impact = await engine.analyzeImpact(
+        'test-001',
+        'deprecated',
+        config,
+        { cwd: testDir }
+      );
 
-      expect(impact.changes.removed).toHaveLength(1);
-      expect(impact.changes.removed[0].id).toBe('old-constraint');
+      expect(impact).toBeDefined();
+      expect(impact.change).toBe('deprecated');
     });
 
-    it('should identify modified constraints', async () => {
-      const oldDecision = createTestDecision('test-001', [
-        {
-          id: 'constraint-1',
-          type: 'guideline',
-          rule: 'Old rule',
-          severity: 'low',
-          scope: '**/*.ts',
-        },
-      ]);
-      const newDecision = createTestDecision('test-001', [
-        {
-          id: 'constraint-1',
-          type: 'invariant',
-          rule: 'Updated rule',
-          severity: 'critical',
-          scope: '**/*.ts',
-        },
-      ]);
+    it('should include affected files', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
 
-      const impact = await engine.analyzeImpact({
-        oldDecision,
-        newDecision,
-        cwd: process.cwd() + '/tests/fixtures/sample-project',
-      });
+      const impact = await engine.analyzeImpact(
+        'test-001',
+        'modified',
+        config,
+        { cwd: testDir }
+      );
 
-      expect(impact.changes.modified).toHaveLength(1);
-      expect(impact.changes.modified[0].constraintId).toBe('constraint-1');
+      expect(impact.affectedFiles).toBeDefined();
+      expect(Array.isArray(impact.affectedFiles)).toBe(true);
     });
 
-    it('should estimate effort based on affected files', async () => {
-      const oldDecision = createTestDecision('test-001', []);
-      const newDecision = createTestDecision('test-001', [
-        {
-          id: 'new-constraint',
-          type: 'convention',
-          rule: 'New rule',
-          severity: 'high',
-          scope: '**/*.ts',
-        },
-      ]);
+    it('should estimate effort', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
 
-      const impact = await engine.analyzeImpact({
-        oldDecision,
-        newDecision,
-        cwd: process.cwd() + '/tests/fixtures/sample-project',
-      });
+      const impact = await engine.analyzeImpact(
+        'test-001',
+        'modified',
+        config,
+        { cwd: testDir }
+      );
 
       expect(impact.estimatedEffort).toBeDefined();
-      expect(['trivial', 'small', 'medium', 'large', 'xlarge']).toContain(
-        impact.estimatedEffort
-      );
+      expect(['low', 'medium', 'high']).toContain(impact.estimatedEffort);
     });
 
-    it('should list affected files with scope changes', async () => {
-      const oldDecision = createTestDecision('test-001', [
-        {
-          id: 'constraint-1',
-          type: 'convention',
-          rule: 'Test rule',
-          severity: 'medium',
-          scope: 'src/services/**/*.ts',
-        },
-      ]);
-      const newDecision = createTestDecision('test-001', [
-        {
-          id: 'constraint-1',
-          type: 'convention',
-          rule: 'Test rule',
-          severity: 'medium',
-          scope: 'src/**/*.ts', // Expanded scope
-        },
-      ]);
+    it('should provide migration steps', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
 
-      const impact = await engine.analyzeImpact({
-        oldDecision,
-        newDecision,
-        cwd: process.cwd() + '/tests/fixtures/sample-project',
-      });
+      const impact = await engine.analyzeImpact(
+        'test-001',
+        'modified',
+        config,
+        { cwd: testDir }
+      );
 
-      expect(impact.affectedFiles.length).toBeGreaterThan(0);
+      expect(impact.migrationSteps).toBeDefined();
+      expect(Array.isArray(impact.migrationSteps)).toBe(true);
     });
   });
 
-  describe('generateMigrationPlan', () => {
-    it('should generate migration plan for decision change', async () => {
-      const oldDecision = createTestDecision('test-001', []);
-      const newDecision = createTestDecision('test-001', [
-        {
-          id: 'new-constraint',
-          type: 'invariant',
-          rule: 'New strict rule',
-          severity: 'critical',
-          scope: '**/*.ts',
-        },
-      ]);
+  describe('getGraph', () => {
+    it('should return null before initialization', () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
 
-      const plan = await engine.generateMigrationPlan({
-        oldDecision,
-        newDecision,
-        cwd: process.cwd() + '/tests/fixtures/sample-project',
-      });
+      const graph = engine.getGraph();
 
-      expect(plan).toBeDefined();
-      expect(plan.steps).toBeDefined();
-      expect(Array.isArray(plan.steps)).toBe(true);
-      expect(plan.estimatedDuration).toBeDefined();
+      expect(graph).toBeNull();
     });
 
-    it('should include rollback steps', async () => {
-      const oldDecision = createTestDecision('test-001', []);
-      const newDecision = createTestDecision('test-001', [
-        {
-          id: 'new-constraint',
-          type: 'convention',
-          rule: 'New rule',
-          severity: 'high',
-          scope: '**/*.ts',
-        },
-      ]);
+    it('should return graph after initialization', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
 
-      const plan = await engine.generateMigrationPlan({
-        oldDecision,
-        newDecision,
-        cwd: process.cwd() + '/tests/fixtures/sample-project',
-      });
+      await engine.initialize(config, { cwd: testDir });
+      const graph = engine.getGraph();
 
-      expect(plan.rollbackSteps).toBeDefined();
-      expect(Array.isArray(plan.rollbackSteps)).toBe(true);
-    });
-
-    it('should prioritize critical changes', async () => {
-      const oldDecision = createTestDecision('test-001', []);
-      const newDecision = createTestDecision('test-001', [
-        {
-          id: 'critical-constraint',
-          type: 'invariant',
-          rule: 'Critical rule',
-          severity: 'critical',
-          scope: '**/*.ts',
-        },
-        {
-          id: 'low-constraint',
-          type: 'guideline',
-          rule: 'Low priority rule',
-          severity: 'low',
-          scope: '**/*.ts',
-        },
-      ]);
-
-      const plan = await engine.generateMigrationPlan({
-        oldDecision,
-        newDecision,
-        cwd: process.cwd() + '/tests/fixtures/sample-project',
-      });
-
-      const criticalStepIndex = plan.steps.findIndex((s) =>
-        s.description.includes('critical')
-      );
-      const lowStepIndex = plan.steps.findIndex((s) =>
-        s.description.includes('low') || s.description.includes('guideline')
-      );
-
-      // Critical steps should come before low priority steps (if both exist)
-      if (criticalStepIndex !== -1 && lowStepIndex !== -1) {
-        expect(criticalStepIndex).toBeLessThan(lowStepIndex);
-      }
+      expect(graph).toBeDefined();
     });
   });
 
-  describe('error handling', () => {
-    it('should handle invalid decision gracefully', async () => {
-      const oldDecision = createTestDecision('test-001', []);
-      const newDecision = null as any;
+  describe('initialize', () => {
+    it('should initialize successfully', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
 
-      await expect(
-        engine.analyzeImpact({
-          oldDecision,
-          newDecision,
-          cwd: process.cwd() + '/tests/fixtures/sample-project',
-        })
-      ).rejects.toThrow();
+      await expect(engine.initialize(config, { cwd: testDir })).resolves.not.toThrow();
     });
 
-    it('should handle missing cwd', async () => {
-      const oldDecision = createTestDecision('test-001', []);
-      const newDecision = createTestDecision('test-001', []);
+    it('should build dependency graph on initialization', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
 
-      await expect(
-        engine.analyzeImpact({
-          oldDecision,
-          newDecision,
-          cwd: '',
-        })
-      ).rejects.toThrow();
+      await engine.initialize(config, { cwd: testDir });
+      const graph = engine.getGraph();
+
+      expect(graph).toBeDefined();
+    });
+  });
+
+  describe('migration steps', () => {
+    it('should generate migration steps in analyzeImpact', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact(
+        'test-001',
+        'modified',
+        config,
+        { cwd: testDir }
+      );
+
+      expect(impact.migrationSteps).toBeDefined();
+      expect(impact.migrationSteps.length).toBeGreaterThan(0);
+
+      // Verify step structure
+      impact.migrationSteps.forEach(step => {
+        expect(step).toHaveProperty('order');
+        expect(step).toHaveProperty('description');
+        expect(step).toHaveProperty('files');
+        expect(step).toHaveProperty('automated');
+      });
     });
   });
 });

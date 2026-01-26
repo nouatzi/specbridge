@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fixed all failing unit tests - 100% pass rate achieved (108/108 tests)
+- Created test setup helpers for .specbridge initialization
+- Added Reporter and AgentContextGenerator class wrappers for test compatibility
+- Fixed API mismatches in VerificationEngine, PropagationEngine, InferenceEngine
+- Updated Config Loader tests for async/await and schema compliance
+- Rewrote CLI integration tests to match actual implementation
+- Removed unused imports in hook.ts and infer.ts
+
 ## [0.2.0] - 2026-01-26
 
 ### Added

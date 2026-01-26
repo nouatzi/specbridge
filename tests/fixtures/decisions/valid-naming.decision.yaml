@@ -1,0 +1,30 @@
+kind: Decision
+metadata:
+  id: naming-001
+  title: Service Naming Convention
+  status: active
+  owners:
+    - architecture-team
+
+decision:
+  summary: All services must follow the *Service naming pattern
+  rationale: Consistent naming improves code discoverability and maintainability
+
+constraints:
+  - id: naming-001-service-suffix
+    type: convention
+    rule: Service classes must end with 'Service'
+    severity: medium
+    scope: "src/services/**/*.ts"
+
+  - id: naming-001-component-pattern
+    type: guideline
+    rule: Component classes should use PascalCase names
+    severity: low
+    scope: "src/components/**/*.ts"
+
+verification:
+  automated:
+    - check: naming-convention
+      target: "src/services/**/*.ts"
+      frequency: commit

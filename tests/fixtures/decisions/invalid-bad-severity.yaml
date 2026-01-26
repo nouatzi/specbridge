@@ -1,0 +1,16 @@
+kind: Decision
+metadata:
+  id: invalid-002
+  title: Invalid Severity
+  status: active
+
+decision:
+  summary: This decision has invalid severity value
+  rationale: Testing validation
+
+constraints:
+  - id: bad-severity
+    type: invariant
+    rule: Test rule
+    severity: super-critical
+    scope: "**/*.ts"

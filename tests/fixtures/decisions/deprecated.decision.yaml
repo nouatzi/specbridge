@@ -1,0 +1,17 @@
+kind: Decision
+metadata:
+  id: dep-001
+  title: Deprecated Pattern
+  status: deprecated
+  supersededBy: auth-001
+
+decision:
+  summary: Old authentication pattern (no longer enforced)
+  rationale: Replaced by JWT pattern
+
+constraints:
+  - id: dep-001-old-auth
+    type: guideline
+    rule: Use session-based authentication
+    severity: low
+    scope: "src/**/*.ts"

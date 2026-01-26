@@ -1,0 +1,35 @@
+kind: Decision
+metadata:
+  id: auth-001
+  title: JWT Authentication Pattern
+  status: active
+  owners:
+    - security-team
+
+decision:
+  summary: All authentication must use JWT tokens with RS256 signing
+  rationale: |
+    JWT with RS256 provides stateless authentication with strong security.
+    Allows microservices to validate tokens without shared state.
+
+constraints:
+  - id: auth-001-jwt-required
+    type: invariant
+    rule: All authentication endpoints must return JWT tokens
+    severity: critical
+    scope: "src/services/*Service.ts"
+
+  - id: auth-001-rs256
+    type: convention
+    rule: JWT tokens must be signed with RS256 algorithm
+    severity: high
+    scope: "src/auth/**/*.ts"
+
+verification:
+  automated:
+    - check: naming-convention
+      target: "src/services/*Service.ts"
+      frequency: commit
+    - check: structure-pattern
+      target: "src/auth/**/*.ts"
+      frequency: pr

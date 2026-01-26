@@ -1,0 +1,32 @@
+kind: Decision
+metadata:
+  id: react-hook-001
+  title: Custom Hook Naming Convention
+  status: active
+  owners:
+    - frontend-team
+
+decision:
+  summary: Custom hooks must start with 'use' prefix
+  rationale: |
+    React requires hooks to follow the 'use*' naming convention for proper
+    linting and rule enforcement. This is a core React principle.
+
+constraints:
+  - id: hook-use-prefix
+    type: invariant
+    rule: Custom hooks must start with 'use'
+    severity: critical
+    scope: "src/hooks/**/*.ts"
+
+  - id: hook-location
+    type: convention
+    rule: Custom hooks should be in src/hooks/ directory
+    severity: medium
+    scope: "src/**/*.ts"
+
+verification:
+  automated:
+    - check: naming-convention
+      target: "src/hooks/**/*.ts"
+      frequency: commit

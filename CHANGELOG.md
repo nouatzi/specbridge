@@ -7,6 +7,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-01-26
+
+### Added
+
+#### Testing Infrastructure
+- Comprehensive test suite with 150+ test cases across 8 test files
+- Test fixtures: sample TypeScript project, decision files, config files
+- Vitest coverage configuration with 80% thresholds (lines/functions, 75% branches)
+- Coverage reporting in text, HTML, JSON, and LCOV formats
+- `npm run test:coverage` and `npm run test:ui` scripts
+
+#### CI/CD Infrastructure
+- GitHub Actions workflow for continuous integration (`ci.yml`)
+  - Tests on Node.js 18.x, 20.x, and 22.x
+  - Automated test execution and coverage upload to Codecov
+  - Build validation and package artifact upload
+- GitHub Actions security workflow (`security.yml`)
+  - CodeQL security scanning
+  - npm audit for dependency vulnerabilities
+  - Weekly scheduled security checks
+- Dependabot configuration for automated dependency updates
+- ESLint configuration with TypeScript support
+- Prettier configuration for code formatting
+- `npm run lint`, `npm run lint:fix`, `npm run format`, `npm run format:check` scripts
+
+#### npm Publishing
+- MIT LICENSE file
+- Complete package.json metadata (repository, homepage, bugs URL, keywords)
+- `.npmignore` for clean package distribution
+- GitHub Actions publish workflow for automated npm releases
+- Version management scripts: `version:patch`, `version:minor`, `version:major`
+- `publishConfig` for public npm registry access
+
+#### Developer Experience
+- Husky pre-commit hooks for automated checks
+- Pre-commit hook runs type-check and tests before commit
+- GitHub issue templates:
+  - Bug report template
+  - Feature request template
+  - Question template
+- GitHub pull request template with comprehensive checklist
+- `CODE_OF_CONDUCT.md` for community guidelines
+- `SECURITY.md` for security policy and vulnerability reporting
+- Status badges in README (CI, npm version, license, Node.js version)
+
+#### Documentation & Examples
+- TypeDoc configuration for API documentation generation
+- `npm run docs` script to generate API documentation
+- **TypeScript API Example** (`examples/typescript-api/`)
+  - Complete Express.js REST API
+  - Service naming convention enforcement
+  - Centralized error handling pattern
+  - SpecBridge configuration and decision files
+- **React Application Example** (`examples/react-app/`)
+  - React + TypeScript component structure
+  - Custom hook naming conventions
+  - Props interface patterns
+  - SpecBridge configuration and decision files
+- Examples overview README with learning path
+
+### Changed
+- Updated `vitest.config.ts` with coverage thresholds
+- Enhanced `package.json` with new scripts and metadata
+- Improved README with status badges and better formatting
+
+### Infrastructure
+- 58+ new files created
+- Production-ready project structure
+- Professional open-source setup
+
 ## [0.1.0] - 2026-01-26
 
 ### Added
@@ -86,5 +156,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vitest for testing
 - tsup for building
 
-[Unreleased]: https://github.com/specbridge/specbridge/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/specbridge/specbridge/releases/tag/v0.1.0
+[Unreleased]: https://github.com/nouatzi/specbridge/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/nouatzi/specbridge/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/nouatzi/specbridge/releases/tag/v0.1.0

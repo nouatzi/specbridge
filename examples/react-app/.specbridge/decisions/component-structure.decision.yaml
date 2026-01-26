@@ -1,0 +1,38 @@
+kind: Decision
+metadata:
+  id: react-comp-001
+  title: Component File Structure
+  status: active
+  owners:
+    - frontend-team
+
+decision:
+  summary: One component per file, filename must match component name
+  rationale: |
+    Consistent file structure improves code navigation and makes it clear
+    where to find each component. This is a widely adopted React convention.
+
+constraints:
+  - id: one-component-per-file
+    type: convention
+    rule: Each file should export exactly one component
+    severity: high
+    scope: "src/components/**/*.tsx"
+
+  - id: filename-matches-component
+    type: convention
+    rule: Component filename must match the exported component name
+    severity: high
+    scope: "src/components/**/*.tsx"
+
+  - id: props-interface-naming
+    type: guideline
+    rule: Component props interfaces should end with 'Props'
+    severity: medium
+    scope: "src/components/**/*.tsx"
+
+verification:
+  automated:
+    - check: naming-convention
+      target: "src/components/**/*.tsx"
+      frequency: commit

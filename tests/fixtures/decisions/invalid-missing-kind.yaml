@@ -1,0 +1,15 @@
+metadata:
+  id: invalid-001
+  title: Missing Kind Field
+  status: active
+
+decision:
+  summary: This decision is missing the 'kind' field
+  rationale: Testing validation
+
+constraints:
+  - id: test-constraint
+    type: invariant
+    rule: Test rule
+    severity: critical
+    scope: "**/*.ts"

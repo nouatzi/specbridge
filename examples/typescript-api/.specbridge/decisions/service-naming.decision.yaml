@@ -1,0 +1,32 @@
+kind: Decision
+metadata:
+  id: api-service-001
+  title: Service Class Naming Convention
+  status: active
+  owners:
+    - backend-team
+
+decision:
+  summary: All business logic classes must follow the *Service naming pattern
+  rationale: |
+    Consistent naming improves code discoverability and makes it clear which
+    classes contain business logic vs. utilities, controllers, or data models.
+
+constraints:
+  - id: service-suffix-required
+    type: convention
+    rule: Service classes must end with 'Service'
+    severity: high
+    scope: "src/services/**/*.ts"
+
+  - id: service-location
+    type: guideline
+    rule: Service classes should be located in src/services/
+    severity: medium
+    scope: "src/**/*.ts"
+
+verification:
+  automated:
+    - check: naming-convention
+      target: "src/services/**/*.ts"
+      frequency: commit

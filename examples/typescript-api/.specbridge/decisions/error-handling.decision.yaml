@@ -1,0 +1,32 @@
+kind: Decision
+metadata:
+  id: api-error-001
+  title: Centralized Error Handling
+  status: active
+  owners:
+    - backend-team
+
+decision:
+  summary: All Express routes must use centralized error handling middleware
+  rationale: |
+    Centralized error handling ensures consistent error responses, proper logging,
+    and prevents error details from leaking in production.
+
+constraints:
+  - id: error-middleware-required
+    type: invariant
+    rule: All routes must pass errors to next() instead of handling directly
+    severity: critical
+    scope: "src/routes/**/*.ts"
+
+  - id: try-catch-required
+    type: convention
+    rule: All async route handlers must use try-catch blocks
+    severity: high
+    scope: "src/routes/**/*.ts"
+
+verification:
+  automated:
+    - check: structure-pattern
+      target: "src/routes/**/*.ts"
+      frequency: commit

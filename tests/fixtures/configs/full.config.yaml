@@ -1,0 +1,29 @@
+version: 1
+
+project:
+  name: full-test-project
+  root: ./
+  language: typescript
+
+verification:
+  enabled: true
+  failOnCritical: true
+  failOnHigh: false
+  exclude:
+    - "**/*.test.ts"
+    - "**/node_modules/**"
+
+inference:
+  enabled: true
+  minOccurrences: 3
+  confidence: 0.8
+  exclude:
+    - "**/*.spec.ts"
+
+reporting:
+  format: json
+  output: .specbridge/reports
+
+hooks:
+  preCommit: true
+  prePush: false

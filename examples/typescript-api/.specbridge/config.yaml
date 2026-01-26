@@ -1,0 +1,19 @@
+version: 1
+
+project:
+  name: typescript-api-example
+  root: ./
+  language: typescript
+
+verification:
+  enabled: true
+  failOnCritical: true
+  failOnHigh: false
+  exclude:
+    - "**/node_modules/**"
+    - "**/dist/**"
+
+inference:
+  enabled: true
+  minOccurrences: 2
+  confidence: 0.7

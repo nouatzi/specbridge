@@ -1,5 +1,10 @@
 # SpecBridge
 
+[![CI](https://github.com/nouatzi/specbridge/workflows/CI/badge.svg)](https://github.com/nouatzi/specbridge/actions)
+[![npm version](https://badge.fury.io/js/specbridge.svg)](https://www.npmjs.com/package/specbridge)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/node/v/specbridge)](https://nodejs.org)
+
 **Architecture Decision Runtime** - Transform architectural decisions into executable, verifiable constraints.
 
 SpecBridge creates a living integration layer between design intent and implementation, bridging the gap between specifications and code.

@@ -1,0 +1,40 @@
+# Source files
+src/
+tests/
+.github/
+
+# Build config
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+.eslintrc.json
+.prettierrc.json
+.eslintignore
+.prettierignore
+
+# Dev files
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test coverage
+coverage/
+
+# Claude Code
+.claude/
+
+# Git
+.git/
+.gitignore
+
+# Documentation (keep only README in package)
+docs/
+CONTRIBUTING.md
+CLAUDE.md
+
+# Examples and fixtures
+examples/
+tests/

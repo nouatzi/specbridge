@@ -1,6 +1,6 @@
 {
   "name": "specbridge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Architecture Decision Runtime - Transform architectural decisions into executable, verifiable constraints",
   "type": "module",
   "main": "./dist/index.js",
@@ -20,19 +20,53 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "test:ui": "vitest --ui",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "lint:check": "eslint . --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "type-check": "tsc --noEmit",
+    "version:patch": "npm version patch",
+    "version:minor": "npm version minor",
+    "version:major": "npm version major",
+    "docs": "typedoc --out docs/api src/index.ts",
+    "docs:serve": "npm run docs && npx http-server docs/api",
+    "prepare": "husky install",
+    "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
     "architecture",
-    "decisions",
     "adr",
-    "verification",
+    "architectural-decisions",
     "constraints",
-    "cli"
+    "verification",
+    "code-quality",
+    "cli",
+    "typescript",
+    "governance",
+    "decision-records"
   ],
-  "author": "",
+  "homepage": "https://github.com/nouatzi/specbridge#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nouatzi/specbridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nouatzi/specbridge/issues"
+  },
+  "author": "SpecBridge Contributors",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "engines": {
     "node": ">=18.0.0"
   },
@@ -53,7 +87,14 @@
   "devDependencies": {
     "@types/diff": "^5.0.0",
     "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "eslint": "^8.57.0",
+    "husky": "^9.0.0",
+    "prettier": "^3.2.0",
     "tsup": "^8.0.0",
+    "typedoc": "^0.25.0",
     "typescript": "^5.4.0",
     "vitest": "^2.0.0"
   }

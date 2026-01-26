@@ -1,0 +1,82 @@
+# SpecBridge Decision Template
+# Copy this file to .specbridge/decisions/<id>.decision.yaml
+
+kind: Decision
+
+metadata:
+  id: my-decision-001
+  title: "My Architectural Decision"
+  status: draft  # draft | active | deprecated | superseded
+  owners:
+    - team-name
+    - "@username"
+  tags:
+    - category
+    - domain
+  # createdAt: will be set automatically
+  # updatedAt: will be set automatically
+  # supersededBy: reference to new decision if deprecated
+
+decision:
+  summary: |
+    One-sentence summary of what this decision mandates.
+
+  rationale: |
+    Explain why this decision was made. What problem does it solve?
+    What alternatives were considered? Why was this approach chosen?
+
+  context: |
+    Optional background information. What was the situation that led
+    to this decision? Any relevant history or constraints?
+
+  consequences:
+    - Positive: Improved consistency across the codebase
+    - Positive: Easier onboarding for new developers
+    - Negative: May require refactoring existing code
+    - Trade-off: Slightly more verbose code but more explicit
+
+constraints:
+  # Invariant: Never to be violated - blocks merges
+  - id: invariant-example
+    type: invariant
+    rule: "Critical security boundaries must not be crossed"
+    severity: critical
+    scope: "src/security/**/*.ts"
+    # verifier: security-boundaries  # Optional: specific verifier to use
+    # autofix: false  # Optional: whether auto-fix is available
+
+  # Convention: Must be respected unless justified
+  - id: convention-example
+    type: convention
+    rule: "All API responses must follow the standard response format"
+    severity: high
+    scope: "src/api/**/*.ts"
+    exceptions:
+      - pattern: "src/api/legacy/**"
+        reason: "Legacy endpoints being phased out"
+        approvedBy: "@tech-lead"
+        # expiresAt: "2024-12-31T00:00:00Z"
+
+  # Guideline: Recommended - informational only
+  - id: guideline-example
+    type: guideline
+    rule: "Prefer composition over inheritance"
+    severity: low
+    scope: "src/**/*.ts"
+
+verification:
+  automated:
+    - check: api-response-format
+      target: "src/api/**/*.ts"
+      frequency: pr  # commit | pr | daily | weekly
+      timeout: 30000
+
+links:
+  related:
+    - other-decision-001
+    - architecture-002
+  supersedes:
+    - old-decision-001
+  references:
+    - https://example.com/architecture-docs
+    - https://example.com/related-rfc

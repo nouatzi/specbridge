@@ -1,7 +1,7 @@
 # SpecBridge
 
 [![CI](https://github.com/nouatzi/specbridge/workflows/CI/badge.svg)](https://github.com/nouatzi/specbridge/actions)
-[![npm version](https://badge.fury.io/js/%40nouatzi%2Fspecbridge.svg)](https://www.npmjs.com/package/@nouatzi/specbridge)
+[![npm version](https://badge.fury.io/js/%40nouatzi%2Fspecbridge.svg)](https://www.npmjs.com/package/@ipation/specbridge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/node/v/%40nouatzi%2Fspecbridge)](https://nodejs.org)
 
@@ -21,13 +21,13 @@ SpecBridge creates a living integration layer between design intent and implemen
 ## Installation
 
 ```bash
-npm install -g @nouatzi/specbridge
+npm install -g @ipation/specbridge
 ```
 
 Or use directly with npx:
 
 ```bash
-npx @nouatzi/specbridge init
+npx @ipation/specbridge init
 ```
 
 Once installed globally, you can use the `specbridge` command directly:

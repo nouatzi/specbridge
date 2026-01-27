@@ -1,5 +1,5 @@
 {
-  "name": "@nouatzi/specbridge",
+  "name": "@ipation/specbridge",
   "version": "0.2.1",
   "description": "Architecture Decision Runtime - Transform architectural decisions into executable, verifiable constraints",
   "type": "module",

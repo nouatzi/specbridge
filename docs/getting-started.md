@@ -12,13 +12,13 @@ This guide walks you through setting up SpecBridge in your project and creating 
 ### Global Installation
 
 ```bash
-npm install -g @nouatzi/specbridge
+npm install -g @ipation/specbridge
 ```
 
 ### Project-local Installation
 
 ```bash
-npm install --save-dev @nouatzi/specbridge
+npm install --save-dev @ipation/specbridge
 ```
 
 ### Using npx
@@ -26,7 +26,7 @@ npm install --save-dev @nouatzi/specbridge
 You can also use SpecBridge without installation:
 
 ```bash
-npx @nouatzi/specbridge init
+npx @ipation/specbridge init
 ```
 
 Once installed globally, you can use the `specbridge` command directly.

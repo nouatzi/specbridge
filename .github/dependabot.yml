@@ -1,4 +1,5 @@
 version: 2
+# Last manual trigger: 2026-01-27
 updates:
   # Enable version updates for npm
   - package-ecosystem: "npm"

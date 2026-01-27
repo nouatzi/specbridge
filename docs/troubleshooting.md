@@ -52,7 +52,7 @@ specbridge init
 **Solution**:
 ```bash
 # Install SpecBridge locally
-npm install --save-dev specbridge
+npm install --save-dev @nouatzi/specbridge
 
 # Or use npx
 npx specbridge init
@@ -450,7 +450,7 @@ If you're still stuck:
    mkdir specbridge-repro
    cd specbridge-repro
    npm init -y
-   npm install specbridge
+   npm install @nouatzi/specbridge
    specbridge init
    # Add minimal code that reproduces the issue
    ```

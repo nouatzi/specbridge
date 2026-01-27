@@ -1,9 +1,9 @@
 # SpecBridge
 
 [![CI](https://github.com/nouatzi/specbridge/workflows/CI/badge.svg)](https://github.com/nouatzi/specbridge/actions)
-[![npm version](https://badge.fury.io/js/specbridge.svg)](https://www.npmjs.com/package/specbridge)
+[![npm version](https://badge.fury.io/js/%40nouatzi%2Fspecbridge.svg)](https://www.npmjs.com/package/@nouatzi/specbridge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/node/v/specbridge)](https://nodejs.org)
+[![Node.js Version](https://img.shields.io/node/v/%40nouatzi%2Fspecbridge)](https://nodejs.org)
 
 **Architecture Decision Runtime** - Transform architectural decisions into executable, verifiable constraints.
 
@@ -21,13 +21,19 @@ SpecBridge creates a living integration layer between design intent and implemen
 ## Installation
 
 ```bash
-npm install -g specbridge
+npm install -g @nouatzi/specbridge
 ```
 
 Or use directly with npx:
 
 ```bash
-npx specbridge init
+npx @nouatzi/specbridge init
+```
+
+Once installed globally, you can use the `specbridge` command directly:
+
+```bash
+specbridge init
 ```
 
 ## Quick Start

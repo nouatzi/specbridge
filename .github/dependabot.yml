@@ -1,5 +1,6 @@
 version: 2
 # Last manual trigger: 2026-01-27
+# Post-v0.2.1: Ignoring major version updates for stability
 updates:
   # Enable version updates for npm
   - package-ecosystem: "npm"
@@ -13,6 +14,10 @@ updates:
     labels:
       - "dependencies"
       - "automated"
+    ignore:
+      # Ignore major version updates to maintain stability
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"

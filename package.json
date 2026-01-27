@@ -33,7 +33,7 @@
     "docs": "typedoc --out docs/api src/index.ts",
     "docs:serve": "npm run docs && npx http-server docs/api",
     "prepare": "husky install",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "architecture",

@@ -76,7 +76,7 @@
     "cosmiconfig": "^9.0.0",
     "diff": "^5.2.0",
     "fast-glob": "^3.3.0",
-    "minimatch": "^9.0.0",
+    "minimatch": "^10.1.1",
     "ora": "^8.0.0",
     "simple-git": "^3.22.0",
     "table": "^6.8.0",

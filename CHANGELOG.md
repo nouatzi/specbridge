@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-01-26
+
 ### Fixed
 - Fixed all failing unit tests - 100% pass rate achieved (108/108 tests)
 - Created test setup helpers for .specbridge initialization
@@ -165,6 +167,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vitest for testing
 - tsup for building
 
-[Unreleased]: https://github.com/nouatzi/specbridge/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/nouatzi/specbridge/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/nouatzi/specbridge/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/nouatzi/specbridge/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/nouatzi/specbridge/releases/tag/v0.1.0

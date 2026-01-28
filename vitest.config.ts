@@ -4,13 +4,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
-    pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    include: ['tests/unit/**/*.test.ts'],
+    exclude: ['tests/integration/**/*.test.ts'],
+    pool: 'threads',
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],

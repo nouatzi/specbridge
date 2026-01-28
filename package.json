@@ -19,6 +19,7 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:integration": "vitest run tests/integration/",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "lint": "eslint . --ext .ts",

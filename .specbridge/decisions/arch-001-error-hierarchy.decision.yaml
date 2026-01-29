@@ -1,0 +1,39 @@
+kind: Decision
+metadata:
+  id: arch-001
+  title: Custom Error Hierarchy Pattern
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - error-handling
+    - architecture
+
+decision:
+  summary: All custom error classes must extend SpecBridgeError base class for consistent error handling
+  rationale: |-
+    A consistent error hierarchy enables structured error codes for debugging,
+    uniform error details and context, type-safe error handling across the codebase,
+    and better error reporting in CLI output.
+  context: |-
+    SpecBridge uses a custom error hierarchy with SpecBridgeError as the base.
+    All domain-specific errors (ConfigError, RegistryError, etc.) extend this base.
+  consequences:
+    - New errors must extend SpecBridgeError
+    - All custom errors include error codes
+    - Consistent error formatting via formatError()
+
+constraints:
+  - id: extend-base-error
+    type: invariant
+    rule: Error classes must extend SpecBridgeError
+    severity: critical
+    scope: src/**/*.ts
+    verifier: errors
+    autofix: false
+
+verification:
+  automated:
+    - check: errors
+      target: src/**/*.ts
+      frequency: commit

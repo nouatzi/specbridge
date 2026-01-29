@@ -1,0 +1,40 @@
+kind: Decision
+metadata:
+  id: arch-002
+  title: ESM Import Convention
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - esm
+    - imports
+    - typescript
+
+decision:
+  summary: All local module imports must use explicit .js extensions for ESM compatibility
+  rationale: |-
+    TypeScript requires explicit .js extensions in import paths when using ESM.
+    Node.js ESM resolution requires explicit extensions, and TypeScript doesn't
+    automatically add extensions in ESM mode. This ensures compatibility with
+    modern module resolution.
+  context: |-
+    SpecBridge is configured as an ESM package (type: "module" in package.json).
+    TypeScript compiles to ESM with moduleResolution: "bundler".
+
+constraints:
+  - id: require-js-extension
+    type: convention
+    rule: must not contain /from ['"]\.\.?\/[^'"]*(?<!\.js)['"]/
+    severity: high
+    scope: src/**/*.ts
+    verifier: regex
+    exceptions:
+      - pattern: "**/*.test.ts"
+        reason: Test files may have different import patterns
+        approvedBy: core-team
+
+verification:
+  automated:
+    - check: regex
+      target: src/**/*.ts
+      frequency: commit

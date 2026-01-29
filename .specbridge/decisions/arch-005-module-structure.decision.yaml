@@ -1,0 +1,42 @@
+kind: Decision
+metadata:
+  id: arch-005
+  title: Domain-Driven Module Structure
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - architecture
+    - organization
+
+decision:
+  summary: Maintain domain-driven directory structure with clear module boundaries
+  rationale: |-
+    Clear module organization improves discoverability and maintainability.
+    Each domain (registry, verification, inference) has clear responsibilities
+    and boundaries.
+  context: |-
+    SpecBridge follows domain-driven architecture: core for shared types,
+    registry for decisions, verification for constraint checking,
+    inference for pattern detection.
+
+constraints:
+  - id: errors-location
+    type: convention
+    rule: Error classes must be in core/errors
+    severity: high
+    scope: src/**/*Error.ts
+    verifier: regex
+
+  - id: index-reexport-only
+    type: guideline
+    rule: Index files should only re-export
+    severity: low
+    scope: src/**/index.ts
+    verifier: regex
+
+verification:
+  automated:
+    - check: regex
+      target: src/**/*.ts
+      frequency: pr

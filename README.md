@@ -3,7 +3,7 @@
 [![CI](https://github.com/nouatzi/specbridge/workflows/CI/badge.svg)](https://github.com/nouatzi/specbridge/actions)
 [![npm version](https://badge.fury.io/js/%40ipation%2Fspecbridge.svg)](https://www.npmjs.com/package/@ipation/specbridge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/node/v/%40nouatzi%2Fspecbridge)](https://nodejs.org)
+[![Node.js Version](https://img.shields.io/node/v/%40ipation%2Fspecbridge)](https://nodejs.org)
 
 **Architecture Decision Runtime** - Transform architectural decisions into executable, verifiable constraints.
 
@@ -99,6 +99,18 @@ specbridge context src/api/auth.ts
 ```
 
 Generates architectural context in Markdown format for AI code assistants.
+
+## Dogfooding
+
+SpecBridge uses itself to enforce its own architectural decisions! We verify:
+
+- ✅ Error handling patterns (all errors extend SpecBridgeError)
+- ✅ ESM import conventions (.js extensions required)
+- ✅ Naming conventions (PascalCase/camelCase)
+- ✅ TypeScript strict mode settings
+- ✅ Domain-driven module structure
+
+See our [Dogfooding Guide](docs/dogfooding-guide.md) to learn how we use SpecBridge on itself, or explore our decision files in `.specbridge/decisions/` as real-world examples.
 
 ## Decision File Format
 

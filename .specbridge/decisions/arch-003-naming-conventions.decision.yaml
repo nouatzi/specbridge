@@ -1,0 +1,41 @@
+kind: Decision
+metadata:
+  id: arch-003
+  title: TypeScript Naming Conventions
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - naming
+    - code-style
+
+decision:
+  summary: Enforce consistent naming conventions across TypeScript code
+  rationale: |-
+    Consistent naming improves code readability and maintainability.
+    PascalCase for types and classes, camelCase for functions and variables,
+    UPPER_SNAKE_CASE for constants. These align with TypeScript community standards.
+  context: |-
+    Naming conventions were analyzed across the codebase and formalized
+    with 95%+ compliance already achieved.
+
+constraints:
+  - id: class-pascal-case
+    type: convention
+    rule: Classes should use PascalCase
+    severity: high
+    scope: src/**/*.ts
+    verifier: naming
+
+  - id: function-camel-case
+    type: guideline
+    rule: Functions should use camelCase
+    severity: medium
+    scope: src/**/*.ts
+    verifier: naming
+
+verification:
+  automated:
+    - check: naming
+      target: src/**/*.ts
+      frequency: pr

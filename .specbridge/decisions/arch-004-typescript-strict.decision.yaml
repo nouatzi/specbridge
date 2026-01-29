@@ -1,0 +1,42 @@
+kind: Decision
+metadata:
+  id: arch-004
+  title: Strict TypeScript Configuration
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - typescript
+    - configuration
+    - type-safety
+
+decision:
+  summary: Maintain strict TypeScript compiler settings for maximum type safety
+  rationale: |-
+    Strict TypeScript configuration catches errors at compile time.
+    Strict mode, noUncheckedIndexedAccess, and noUnusedLocals prevent
+    common bugs and keep code maintainable.
+  context: |-
+    SpecBridge uses TypeScript 5.4+ with strict mode enabled.
+    Configuration in tsconfig.json must remain strict for code quality.
+
+constraints:
+  - id: strict-mode-enabled
+    type: invariant
+    rule: 'Must contain "strict": true'
+    severity: critical
+    scope: tsconfig.json
+    verifier: regex
+
+  - id: no-unchecked-index
+    type: invariant
+    rule: 'Must contain "noUncheckedIndexedAccess": true'
+    severity: critical
+    scope: tsconfig.json
+    verifier: regex
+
+verification:
+  automated:
+    - check: regex
+      target: tsconfig.json
+      frequency: commit

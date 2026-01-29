@@ -4,6 +4,9 @@
  */
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { formatError } from '../core/errors/index.js';
 
 // Import commands
@@ -15,12 +18,19 @@ import { hookCommand } from './commands/hook.js';
 import { reportCommand } from './commands/report.js';
 import { contextCommand } from './commands/context.js';
 
+// Read version from package.json
+const __dirname = dirname(fileURLToPath(import.meta.url));
+// In development: src/cli/index.ts -> ../../package.json
+// In production: dist/cli.js -> ../package.json
+const packageJsonPath = join(__dirname, '../package.json');
+const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+
 const program = new Command();
 
 program
   .name('specbridge')
   .description('Architecture Decision Runtime - Transform architectural decisions into executable, verifiable constraints')
-  .version('0.1.0');
+  .version(packageJson.version);
 
 // Register commands
 program.addCommand(initCommand);

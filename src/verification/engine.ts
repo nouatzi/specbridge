@@ -100,7 +100,7 @@ export class VerificationEngine {
     let checked = 0;
     let passed = 0;
     let failed = 0;
-    let skipped = 0;
+    const skipped = 0;
 
     // Process files with timeout
     const timeoutPromise = new Promise<'timeout'>((resolve) =>
@@ -111,6 +111,7 @@ export class VerificationEngine {
       filesToVerify,
       decisions,
       severityFilter,
+      cwd,
       (violations) => {
         allViolations.push(...violations);
         checked++;
@@ -164,7 +165,8 @@ export class VerificationEngine {
   async verifyFile(
     filePath: string,
     decisions: Decision[],
-    severityFilter?: Severity[]
+    severityFilter?: Severity[],
+    cwd: string = process.cwd()
   ): Promise<Violation[]> {
     const violations: Violation[] = [];
 
@@ -183,7 +185,7 @@ export class VerificationEngine {
     for (const decision of decisions) {
       for (const constraint of decision.constraints) {
         // Check if file matches constraint scope
-        if (!matchesPattern(filePath, constraint.scope)) {
+        if (!matchesPattern(filePath, constraint.scope, { cwd })) {
           continue;
         }
 
@@ -193,7 +195,7 @@ export class VerificationEngine {
         }
 
         // Check for exceptions
-        if (this.isExcepted(filePath, constraint)) {
+        if (this.isExcepted(filePath, constraint, cwd)) {
           continue;
         }
 
@@ -230,10 +232,11 @@ export class VerificationEngine {
     files: string[],
     decisions: Decision[],
     severityFilter: Severity[] | undefined,
+    cwd: string,
     onFileVerified: (violations: Violation[]) => void
   ): Promise<void> {
     for (const file of files) {
-      const violations = await this.verifyFile(file, decisions, severityFilter);
+      const violations = await this.verifyFile(file, decisions, severityFilter, cwd);
       onFileVerified(violations);
     }
   }
@@ -241,7 +244,7 @@ export class VerificationEngine {
   /**
    * Check if file is excepted from constraint
    */
-  private isExcepted(filePath: string, constraint: Constraint): boolean {
+  private isExcepted(filePath: string, constraint: Constraint, cwd: string): boolean {
     if (!constraint.exceptions) return false;
 
     return constraint.exceptions.some(exception => {
@@ -253,7 +256,7 @@ export class VerificationEngine {
         }
       }
 
-      return matchesPattern(filePath, exception.pattern);
+      return matchesPattern(filePath, exception.pattern, { cwd });
     });
   }
 

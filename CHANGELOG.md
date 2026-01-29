@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-01-29
+
+### Improved
+
+#### Test Coverage
+- **Overall coverage**: 54.34% → **67.37%** (+24% improvement)
+- **Functions coverage**: 74.43% → **78.21%** (+5.08%)
+- **Branches coverage**: 71.07% → **81.95%** (+15.3%)
+- **Total tests**: 170 → **312** (+142 tests, +83.5% growth)
+
+#### Verification Verifiers (Critical)
+- **Module coverage**: 15.98% → **99.72%** 🎉
+- Added `naming.test.ts` - 27 tests, 0% → 100% coverage
+- Added `imports.test.ts` - 27 tests, 5.95% → 100% coverage
+- Added `errors.test.ts` - 31 tests, 4.8% → 99.03% coverage
+- Added `regex.test.ts` - 27 tests, 36.84% → 100% coverage
+
+#### Inference Analyzers
+- Added `base.test.ts` - 30 tests, 10% → 100% coverage
+- Tests for `createPattern()`, `calculateConfidence()`, `extractSnippet()` helpers
+
+#### Quality Metrics
+- ✅ **312 tests passing** (100% pass rate)
+- ✅ **67.37% test coverage** (exceeds 67% threshold)
+- ✅ **No type errors**
+- ✅ **Build succeeds**
+- ✅ **Pre-commit hooks pass**
+
+### Changed
+- Updated coverage thresholds in `vitest.config.ts`:
+  - Lines: 54% → 67%
+  - Functions: 65% → 78%
+  - Branches: 65% → 78%
+  - Statements: 54% → 67%
+
+## [1.0.1] - 2026-01-29
+
+### Fixed
+- Address 5 critical issues in v1.0.0 codebase
+- Self-dogfooding implementation
+
+### Added
+- Applied SpecBridge to itself for validation
+
 ## [1.0.0] - 2026-01-29
 
 ### 🎉 First Stable Release

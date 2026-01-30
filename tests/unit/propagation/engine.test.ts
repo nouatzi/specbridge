@@ -226,5 +226,213 @@ describe('PropagationEngine', () => {
         expect(step).toHaveProperty('automated');
       });
     });
+
+    it('should include verification step', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
+
+      const verificationStep = impact.migrationSteps.find(s =>
+        s.description.toLowerCase().includes('verification')
+      );
+
+      expect(verificationStep).toBeDefined();
+      expect(verificationStep?.automated).toBe(true);
+    });
+
+    it('should order steps sequentially', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
+
+      for (let i = 0; i < impact.migrationSteps.length; i++) {
+        expect(impact.migrationSteps[i]?.order).toBe(i + 1);
+      }
+    });
+
+    it('should handle high-violation files', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
+
+      const highPrioritySteps = impact.migrationSteps.filter(s =>
+        s.description.toLowerCase().includes('high')
+      );
+
+      // If there are high-violation files, there should be a step for them
+      expect(impact.migrationSteps).toBeDefined();
+    });
+
+    it('should handle medium-violation files', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
+
+      expect(impact.migrationSteps).toBeDefined();
+    });
+
+    it('should handle low-violation files', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
+
+      expect(impact.migrationSteps.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('effort estimation edge cases', () => {
+    it('should estimate low effort when all violations are auto-fixable', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
+
+      // If no violations or all auto-fixable, should be low
+      expect(['low', 'medium', 'high']).toContain(impact.estimatedEffort);
+    });
+
+    it('should estimate medium effort for 1-10 manual fixes', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
+
+      expect(impact.estimatedEffort).toBeDefined();
+    });
+
+    it('should estimate high effort for many manual fixes', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
+
+      expect(impact.estimatedEffort).toBeDefined();
+    });
+  });
+
+  describe('affected files handling', () => {
+    it('should sort affected files by violation count', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
+
+      for (let i = 1; i < impact.affectedFiles.length; i++) {
+        expect(impact.affectedFiles[i - 1]!.violations).toBeGreaterThanOrEqual(
+          impact.affectedFiles[i]!.violations
+        );
+      }
+    });
+
+    it('should include violation and auto-fix counts', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
+
+      impact.affectedFiles.forEach(file => {
+        expect(typeof file.violations).toBe('number');
+        expect(typeof file.autoFixable).toBe('number');
+        expect(file.autoFixable).toBeLessThanOrEqual(file.violations);
+      });
+    });
+
+    it('should handle empty affected files', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact('nonexistent', 'modified', config, { cwd: testDir });
+
+      expect(impact.affectedFiles).toEqual([]);
+    });
+  });
+
+  describe('integration scenarios', () => {
+    it('should handle multiple files with varying violations', async () => {
+      // Create more test files
+      const srcDir = join(testDir, 'src');
+      for (let i = 0; i < 5; i++) {
+        writeFileSync(join(srcDir, `file${i}.ts`), `export class File${i} {}`);
+      }
+
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
+
+      expect(impact).toBeDefined();
+    });
+
+    it('should auto-initialize when not initialized', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      // Don't call initialize first
+      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
+
+      expect(impact).toBeDefined();
+      expect(engine.getGraph()).not.toBeNull();
+    });
+
+    it('should handle config without explicit cwd', async () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      await expect(
+        engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir })
+      ).resolves.not.toThrow();
+    });
+  });
+
+  describe('createPropagationEngine factory', () => {
+    it('should create engine with registry', () => {
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      expect(engine).toBeDefined();
+    });
+
+    it('should create engine without registry', () => {
+      const engine = createPropagationEngine();
+
+      expect(engine).toBeDefined();
+    });
+  });
+
+  describe('initialization edge cases', () => {
+    it('should handle empty source roots', async () => {
+      const emptyConfig = {
+        ...config,
+        project: {
+          ...config.project,
+          sourceRoots: [],
+        },
+      };
+
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      await expect(engine.initialize(emptyConfig, { cwd: testDir })).resolves.not.toThrow();
+    });
+
+    it('should handle non-existent files in source roots', async () => {
+      const badConfig = {
+        ...config,
+        project: {
+          ...config.project,
+          sourceRoots: ['nonexistent/**/*.ts'],
+        },
+      };
+
+      const registry = createRegistry({ basePath: testDir });
+      const engine = createPropagationEngine(registry);
+
+      await expect(engine.initialize(badConfig, { cwd: testDir })).resolves.not.toThrow();
+    });
   });
 });

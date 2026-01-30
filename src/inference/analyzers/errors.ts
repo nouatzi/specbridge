@@ -39,9 +39,7 @@ export class ErrorsAnalyzer implements Analyzer {
 
     // Check if they extend a common base
     const files = scanner.getFiles();
-    let extendsError = 0;
-    let extendsCustomBase = 0;
-    let customBaseName: string | null = null;
+    const baseCount: Map<string, number> = new Map();
 
     for (const errorClass of errorClasses) {
       const file = files.find(f => f.path === errorClass.file);
@@ -53,24 +51,32 @@ export class ErrorsAnalyzer implements Analyzer {
       const extendClause = classDecl.getExtends();
       if (extendClause) {
         const baseName = extendClause.getText();
-        if (baseName === 'Error') {
-          extendsError++;
-        } else if (baseName.endsWith('Error')) {
-          extendsCustomBase++;
-          customBaseName = customBaseName || baseName;
+        if (baseName !== 'Error' && baseName.endsWith('Error')) {
+          baseCount.set(baseName, (baseCount.get(baseName) || 0) + 1);
         }
       }
     }
 
-    if (extendsCustomBase >= 2 && customBaseName) {
-      const confidence = calculateConfidence(extendsCustomBase, errorClasses.length);
+    // Find the custom base with the most extending classes
+    let customBaseName: string | null = null;
+    let maxCount = 0;
+    for (const [baseName, count] of baseCount.entries()) {
+      if (count > maxCount) {
+        maxCount = count;
+        customBaseName = baseName;
+      }
+    }
+
+    // Check for custom base pattern (requires >= 3 extending the same custom base)
+    if (maxCount >= 3 && customBaseName) {
+      const confidence = calculateConfidence(maxCount, errorClasses.length);
 
       return createPattern(this.id, {
         id: 'errors-custom-base',
         name: 'Custom Error Base Class',
         description: `Custom errors extend a common base class (${customBaseName})`,
         confidence,
-        occurrences: extendsCustomBase,
+        occurrences: maxCount,
         examples: errorClasses.slice(0, 3).map(c => ({
           file: c.file,
           line: c.line,
@@ -86,6 +92,7 @@ export class ErrorsAnalyzer implements Analyzer {
       });
     }
 
+    // Fall back to generic custom error classes pattern (requires >= 3 error classes)
     if (errorClasses.length >= 3) {
       const confidence = Math.min(100, 50 + errorClasses.length * 5);
 
@@ -167,10 +174,11 @@ export class ErrorsAnalyzer implements Analyzer {
             } else if (text.startsWith('new ') && text.includes('Error')) {
               throwCustom++;
               if (examples.length < 3) {
+                const snippet = text.length > 50 ? text.slice(0, 50) + '...' : text;
                 examples.push({
                   file: path,
                   line: node.getStartLineNumber(),
-                  snippet: `throw ${text.slice(0, 50)}${text.length > 50 ? '...' : ''}`,
+                  snippet: `throw ${snippet}`,
                 });
               }
             }

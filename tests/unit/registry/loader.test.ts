@@ -4,7 +4,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { join } from 'node:path';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
-import { loadDecisionFile, loadDecisionsFromDir } from '../../../src/registry/loader';
+import { loadDecisionFile, loadDecisionsFromDir, validateDecisionFile } from '../../../src/registry/loader';
 import { stringifyYaml } from '../../../src/utils/yaml';
 
 const TEST_DIR = join(process.cwd(), 'tests', 'fixtures', 'loader-test');
@@ -374,6 +374,304 @@ describe('Decision Loader', () => {
 
       expect(result.decisions).toHaveLength(0);
       expect(result.errors).toHaveLength(2);
+    });
+  });
+
+  describe('validateDecisionFile', () => {
+    it('should validate a valid decision file', async () => {
+      const decision = {
+        kind: 'Decision',
+        metadata: {
+          id: 'test-001',
+          title: 'Test Decision',
+          status: 'active',
+          owners: ['team'],
+        },
+        decision: {
+          summary: 'Test summary',
+          rationale: 'Test rationale',
+        },
+        constraints: [
+          {
+            id: 'c1',
+            type: 'convention',
+            rule: 'Test rule',
+            severity: 'medium',
+            scope: '**/*.ts',
+          },
+        ],
+      };
+
+      const filePath = join(TEST_DIR, 'valid.decision.yaml');
+      await writeFile(filePath, stringifyYaml(decision));
+
+      const result = await validateDecisionFile(filePath);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toEqual([]);
+    });
+
+    it('should return error for non-existent file', async () => {
+      const filePath = join(TEST_DIR, 'nonexistent.decision.yaml');
+
+      const result = await validateDecisionFile(filePath);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors[0]).toContain('not found');
+    });
+
+    it('should return errors for invalid YAML', async () => {
+      const filePath = join(TEST_DIR, 'invalid-yaml.decision.yaml');
+      await writeFile(filePath, 'invalid: yaml: {{{');
+
+      const result = await validateDecisionFile(filePath);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it('should return errors for invalid decision schema', async () => {
+      const invalidDecision = {
+        kind: 'Decision',
+        metadata: {
+          id: 'test-001',
+          // Missing required fields
+        },
+      };
+
+      const filePath = join(TEST_DIR, 'invalid-schema.decision.yaml');
+      await writeFile(filePath, stringifyYaml(invalidDecision));
+
+      const result = await validateDecisionFile(filePath);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it('should validate decision with all optional fields', async () => {
+      const decision = {
+        kind: 'Decision',
+        metadata: {
+          id: 'test-001',
+          title: 'Test Decision',
+          status: 'active',
+          owners: ['team'],
+          tags: ['api', 'security'],
+          supersededBy: 'new-001',
+        },
+        decision: {
+          summary: 'Test summary',
+          rationale: 'Test rationale',
+          context: 'Additional context',
+        },
+        constraints: [
+          {
+            id: 'c1',
+            type: 'invariant',
+            rule: 'Test rule',
+            severity: 'critical',
+            scope: '**/*.ts',
+            exceptions: [
+              {
+                pattern: 'legacy/**/*.ts',
+                reason: 'Legacy code',
+                expiresAt: '2025-12-31T23:59:59.000Z',
+              },
+            ],
+          },
+        ],
+        verification: {
+          automated: [
+            {
+              check: 'naming',
+              target: 'src/**/*.ts',
+              frequency: 'commit',
+            },
+          ],
+        },
+      };
+
+      const filePath = join(TEST_DIR, 'full.decision.yaml');
+      await writeFile(filePath, stringifyYaml(decision));
+
+      const result = await validateDecisionFile(filePath);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toEqual([]);
+    });
+
+    it('should validate decision with multiple constraints', async () => {
+      const decision = {
+        kind: 'Decision',
+        metadata: {
+          id: 'test-001',
+          title: 'Test',
+          status: 'active',
+          owners: ['team'],
+        },
+        decision: {
+          summary: 'Test',
+          rationale: 'Test',
+        },
+        constraints: [
+          {
+            id: 'c1',
+            type: 'invariant',
+            rule: 'Rule 1',
+            severity: 'critical',
+            scope: '**/*.ts',
+          },
+          {
+            id: 'c2',
+            type: 'convention',
+            rule: 'Rule 2',
+            severity: 'high',
+            scope: 'src/**/*.ts',
+          },
+        ],
+      };
+
+      const filePath = join(TEST_DIR, 'multi.decision.yaml');
+      await writeFile(filePath, stringifyYaml(decision));
+
+      const result = await validateDecisionFile(filePath);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should return specific validation errors', async () => {
+      const decision = {
+        kind: 'Decision',
+        metadata: {
+          id: 'test-001',
+          title: 'Test',
+          status: 'invalid-status', // Invalid status
+          owners: ['team'],
+        },
+        decision: {
+          summary: 'Test',
+          rationale: 'Test',
+        },
+        constraints: [
+          {
+            id: 'c1',
+            type: 'convention',
+            rule: 'Test',
+            severity: 'medium',
+            scope: '**/*.ts',
+          },
+        ],
+      };
+
+      const filePath = join(TEST_DIR, 'bad-status.decision.yaml');
+      await writeFile(filePath, stringifyYaml(decision));
+
+      const result = await validateDecisionFile(filePath);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it('should handle corrupted file content', async () => {
+      const filePath = join(TEST_DIR, 'corrupted.decision.yaml');
+      await writeFile(filePath, '\x00\x01\x02\x03');
+
+      const result = await validateDecisionFile(filePath);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it('should invalidate decision with no constraints', async () => {
+      const decision = {
+        kind: 'Decision',
+        metadata: {
+          id: 'test-001',
+          title: 'Test',
+          status: 'draft',
+          owners: ['team'],
+        },
+        decision: {
+          summary: 'Test',
+          rationale: 'Test',
+        },
+        constraints: [],
+      };
+
+      const filePath = join(TEST_DIR, 'no-constraints.decision.yaml');
+      await writeFile(filePath, stringifyYaml(decision));
+
+      const result = await validateDecisionFile(filePath);
+
+      // Decisions require at least 1 constraint
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it('should validate deprecated decision', async () => {
+      const decision = {
+        kind: 'Decision',
+        metadata: {
+          id: 'test-001',
+          title: 'Deprecated Decision',
+          status: 'deprecated',
+          owners: ['team'],
+        },
+        decision: {
+          summary: 'Old decision',
+          rationale: 'Superseded',
+        },
+        constraints: [
+          {
+            id: 'c1',
+            type: 'convention',
+            rule: 'Old rule',
+            severity: 'low',
+            scope: '**/*.ts',
+          },
+        ],
+      };
+
+      const filePath = join(TEST_DIR, 'deprecated.decision.yaml');
+      await writeFile(filePath, stringifyYaml(decision));
+
+      const result = await validateDecisionFile(filePath);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should catch constraint validation errors', async () => {
+      const decision = {
+        kind: 'Decision',
+        metadata: {
+          id: 'test-001',
+          title: 'Test',
+          status: 'active',
+          owners: ['team'],
+        },
+        decision: {
+          summary: 'Test',
+          rationale: 'Test',
+        },
+        constraints: [
+          {
+            id: 'c1',
+            type: 'invalid-type', // Invalid constraint type
+            rule: 'Test rule',
+            severity: 'medium',
+            scope: '**/*.ts',
+          },
+        ],
+      };
+
+      const filePath = join(TEST_DIR, 'bad-constraint.decision.yaml');
+      await writeFile(filePath, stringifyYaml(decision));
+
+      const result = await validateDecisionFile(filePath);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
     });
   });
 });

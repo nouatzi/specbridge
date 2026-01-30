@@ -1,9 +1,20 @@
 /**
  * Agent Context Generator Unit Tests
  */
-import { describe, it, expect, beforeEach } from 'vitest';
-import { AgentContextGenerator } from '../../../src/agent/context.generator.js';
-import type { Decision } from '../../../src/core/types/index.js';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { mkdtempSync, rmSync, existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import {
+  AgentContextGenerator,
+  generateContext,
+  formatContextAsMarkdown,
+  formatContextAsJson,
+  formatContextAsMcp,
+  generateFormattedContext,
+} from '../../../src/agent/context.generator.js';
+import type { Decision, AgentContext, SpecBridgeConfig } from '../../../src/core/types/index.js';
+import { setupTestProject, cleanupTestProject, createDecisionYaml } from '../../helpers/setup.js';
 
 describe('AgentContextGenerator', () => {
   let generator: AgentContextGenerator;
@@ -270,6 +281,498 @@ describe('AgentContextGenerator', () => {
       });
 
       expect(relevant).toHaveLength(0);
+    });
+  });
+
+  describe('standalone functions', () => {
+    let testDir: string;
+    let config: SpecBridgeConfig;
+
+    beforeEach(async () => {
+      testDir = mkdtempSync(join(tmpdir(), 'specbridge-agent-test-'));
+
+      await setupTestProject(testDir, {
+        decisions: [
+          {
+            id: 'auth-001',
+            content: createDecisionYaml('auth-001', {
+              title: 'Authentication Decision',
+              constraints: [
+                {
+                  id: 'auth-c1',
+                  type: 'invariant',
+                  rule: 'All authentication must use JWT',
+                  severity: 'critical',
+                  scope: 'src/auth/**/*.ts',
+                },
+              ],
+            }),
+          },
+          {
+            id: 'api-001',
+            content: createDecisionYaml('api-001', {
+              title: 'API Decision',
+              constraints: [
+                {
+                  id: 'api-c1',
+                  type: 'convention',
+                  rule: 'Use RESTful endpoints',
+                  severity: 'high',
+                  scope: 'src/api/**/*.ts',
+                },
+              ],
+            }),
+          },
+        ],
+      });
+
+      config = {
+        version: 1,
+        project: {
+          name: 'test-project',
+          root: testDir,
+          sourceRoots: ['src/**/*.ts'],
+          exclude: ['node_modules'],
+        },
+        agent: {
+          format: 'markdown',
+          includeRationale: true,
+        },
+      };
+    });
+
+    afterEach(async () => {
+      await cleanupTestProject(testDir);
+      if (existsSync(testDir)) {
+        rmSync(testDir, { recursive: true, force: true });
+      }
+    });
+
+    describe('generateContext', () => {
+      it('should generate context for file matching constraints', async () => {
+        const context = await generateContext('src/auth/login.ts', config, { cwd: testDir });
+
+        expect(context).toBeDefined();
+        expect(context.file).toBe('src/auth/login.ts');
+        expect(context.applicableDecisions.length).toBeGreaterThan(0);
+        expect(context.generatedAt).toBeDefined();
+      });
+
+      it('should include rationale when enabled', async () => {
+        const context = await generateContext('src/auth/login.ts', config, {
+          cwd: testDir,
+          includeRationale: true,
+        });
+
+        const decision = context.applicableDecisions[0];
+        expect(decision?.summary).toBeTruthy();
+      });
+
+      it('should exclude rationale when disabled', async () => {
+        const context = await generateContext('src/auth/login.ts', config, {
+          cwd: testDir,
+          includeRationale: false,
+        });
+
+        const decision = context.applicableDecisions[0];
+        expect(decision?.summary).toBe('');
+      });
+
+      it('should return empty decisions for non-matching file', async () => {
+        const context = await generateContext('src/other/file.ts', config, { cwd: testDir });
+
+        expect(context.applicableDecisions).toEqual([]);
+      });
+
+      it('should use config default for rationale', async () => {
+        const context = await generateContext('src/auth/login.ts', config, { cwd: testDir });
+
+        expect(context).toBeDefined();
+      });
+
+      it('should generate timestamp', async () => {
+        const context = await generateContext('src/auth/login.ts', config, { cwd: testDir });
+
+        expect(context.generatedAt).toBeDefined();
+        expect(new Date(context.generatedAt).getTime()).toBeGreaterThan(0);
+      });
+
+      it('should match multiple constraints from same decision', async () => {
+        await setupTestProject(testDir, {
+          decisions: [
+            {
+              id: 'multi-001',
+              content: createDecisionYaml('multi-001', {
+                constraints: [
+                  {
+                    id: 'c1',
+                    type: 'invariant',
+                    rule: 'Rule 1',
+                    severity: 'critical',
+                    scope: 'src/**/*.ts',
+                  },
+                  {
+                    id: 'c2',
+                    type: 'convention',
+                    rule: 'Rule 2',
+                    severity: 'high',
+                    scope: 'src/**/*.ts',
+                  },
+                ],
+              }),
+            },
+          ],
+        });
+
+        const context = await generateContext('src/test.ts', config, { cwd: testDir });
+
+        const decision = context.applicableDecisions.find(d => d.id === 'multi-001');
+        expect(decision?.constraints.length).toBeGreaterThanOrEqual(2);
+      });
+    });
+
+    describe('formatContextAsMarkdown', () => {
+      it('should format context as markdown', () => {
+        const context: AgentContext = {
+          file: 'src/auth/login.ts',
+          applicableDecisions: [
+            {
+              id: 'auth-001',
+              title: 'Authentication',
+              summary: 'Use JWT authentication',
+              constraints: [
+                {
+                  id: 'c1',
+                  type: 'invariant',
+                  rule: 'All auth must use JWT',
+                  severity: 'critical',
+                },
+              ],
+            },
+          ],
+          generatedAt: new Date().toISOString(),
+        };
+
+        const markdown = formatContextAsMarkdown(context);
+
+        expect(markdown).toContain('# Architectural Constraints');
+        expect(markdown).toContain('## Authentication');
+        expect(markdown).toContain('All auth must use JWT');
+        expect(markdown).toContain('[CRITICAL]');
+      });
+
+      it('should handle no applicable decisions', () => {
+        const context: AgentContext = {
+          file: 'src/other/file.ts',
+          applicableDecisions: [],
+          generatedAt: new Date().toISOString(),
+        };
+
+        const markdown = formatContextAsMarkdown(context);
+
+        expect(markdown).toContain('No specific architectural constraints');
+      });
+
+      it('should include file path', () => {
+        const context: AgentContext = {
+          file: 'src/test/example.ts',
+          applicableDecisions: [],
+          generatedAt: new Date().toISOString(),
+        };
+
+        const markdown = formatContextAsMarkdown(context);
+
+        expect(markdown).toContain('src/test/example.ts');
+      });
+
+      it('should format severity badges correctly', () => {
+        const context: AgentContext = {
+          file: 'test.ts',
+          applicableDecisions: [
+            {
+              id: 'test-001',
+              title: 'Test',
+              summary: '',
+              constraints: [
+                { id: 'c1', type: 'invariant', rule: 'Rule 1', severity: 'critical' },
+                { id: 'c2', type: 'convention', rule: 'Rule 2', severity: 'high' },
+                { id: 'c3', type: 'guideline', rule: 'Rule 3', severity: 'medium' },
+                { id: 'c4', type: 'guideline', rule: 'Rule 4', severity: 'low' },
+              ],
+            },
+          ],
+          generatedAt: new Date().toISOString(),
+        };
+
+        const markdown = formatContextAsMarkdown(context);
+
+        expect(markdown).toContain('[CRITICAL]');
+        expect(markdown).toContain('[HIGH]');
+        expect(markdown).toContain('[MEDIUM]');
+        expect(markdown).toContain('[LOW]');
+      });
+
+      it('should omit summary when empty', () => {
+        const context: AgentContext = {
+          file: 'test.ts',
+          applicableDecisions: [
+            {
+              id: 'test-001',
+              title: 'Test Decision',
+              summary: '',
+              constraints: [
+                { id: 'c1', type: 'invariant', rule: 'Test rule', severity: 'critical' },
+              ],
+            },
+          ],
+          generatedAt: new Date().toISOString(),
+        };
+
+        const markdown = formatContextAsMarkdown(context);
+
+        expect(markdown).toContain('## Test Decision');
+        expect(markdown).toContain('### Constraints');
+      });
+    });
+
+    describe('formatContextAsJson', () => {
+      it('should format context as valid JSON', () => {
+        const context: AgentContext = {
+          file: 'src/test.ts',
+          applicableDecisions: [
+            {
+              id: 'test-001',
+              title: 'Test',
+              summary: 'Summary',
+              constraints: [
+                { id: 'c1', type: 'invariant', rule: 'Rule', severity: 'critical' },
+              ],
+            },
+          ],
+          generatedAt: new Date().toISOString(),
+        };
+
+        const json = formatContextAsJson(context);
+
+        expect(() => JSON.parse(json)).not.toThrow();
+        const parsed = JSON.parse(json);
+        expect(parsed.file).toBe('src/test.ts');
+        expect(parsed.applicableDecisions).toHaveLength(1);
+      });
+
+      it('should preserve all context data', () => {
+        const context: AgentContext = {
+          file: 'src/test.ts',
+          applicableDecisions: [
+            {
+              id: 'test-001',
+              title: 'Test Decision',
+              summary: 'Test summary',
+              constraints: [
+                { id: 'c1', type: 'invariant', rule: 'Test rule', severity: 'critical' },
+              ],
+            },
+          ],
+          generatedAt: '2024-01-01T00:00:00.000Z',
+        };
+
+        const json = formatContextAsJson(context);
+        const parsed = JSON.parse(json);
+
+        expect(parsed).toEqual(context);
+      });
+
+      it('should format with indentation', () => {
+        const context: AgentContext = {
+          file: 'test.ts',
+          applicableDecisions: [],
+          generatedAt: new Date().toISOString(),
+        };
+
+        const json = formatContextAsJson(context);
+
+        expect(json).toContain('\n');
+        expect(json).toContain('  ');
+      });
+    });
+
+    describe('formatContextAsMcp', () => {
+      it('should format context for MCP protocol', () => {
+        const context: AgentContext = {
+          file: 'src/test.ts',
+          applicableDecisions: [
+            {
+              id: 'test-001',
+              title: 'Test Decision',
+              summary: 'Test summary',
+              constraints: [
+                { id: 'c1', type: 'invariant', rule: 'Test rule', severity: 'critical' },
+              ],
+            },
+          ],
+          generatedAt: '2024-01-01T00:00:00.000Z',
+        };
+
+        const mcp = formatContextAsMcp(context);
+
+        expect(mcp).toBeDefined();
+        expect(mcp).toHaveProperty('type', 'architectural_context');
+        expect(mcp).toHaveProperty('version', '1.0');
+        expect(mcp).toHaveProperty('file', 'src/test.ts');
+        expect(mcp).toHaveProperty('timestamp', '2024-01-01T00:00:00.000Z');
+        expect(mcp).toHaveProperty('decisions');
+      });
+
+      it('should include all decision fields in MCP format', () => {
+        const context: AgentContext = {
+          file: 'test.ts',
+          applicableDecisions: [
+            {
+              id: 'test-001',
+              title: 'Test',
+              summary: 'Summary',
+              constraints: [
+                { id: 'c1', type: 'invariant', rule: 'Rule', severity: 'critical' },
+              ],
+            },
+          ],
+          generatedAt: new Date().toISOString(),
+        };
+
+        const mcp = formatContextAsMcp(context) as any;
+
+        expect(mcp.decisions[0]).toHaveProperty('id', 'test-001');
+        expect(mcp.decisions[0]).toHaveProperty('title', 'Test');
+        expect(mcp.decisions[0]).toHaveProperty('summary', 'Summary');
+        expect(mcp.decisions[0].constraints[0]).toHaveProperty('id', 'c1');
+        expect(mcp.decisions[0].constraints[0]).toHaveProperty('type', 'invariant');
+        expect(mcp.decisions[0].constraints[0]).toHaveProperty('severity', 'critical');
+        expect(mcp.decisions[0].constraints[0]).toHaveProperty('rule', 'Rule');
+      });
+
+      it('should handle empty decisions', () => {
+        const context: AgentContext = {
+          file: 'test.ts',
+          applicableDecisions: [],
+          generatedAt: new Date().toISOString(),
+        };
+
+        const mcp = formatContextAsMcp(context) as any;
+
+        expect(mcp.decisions).toEqual([]);
+      });
+
+      it('should handle multiple decisions with multiple constraints', () => {
+        const context: AgentContext = {
+          file: 'test.ts',
+          applicableDecisions: [
+            {
+              id: 'd1',
+              title: 'Decision 1',
+              summary: 'S1',
+              constraints: [
+                { id: 'c1', type: 'invariant', rule: 'R1', severity: 'critical' },
+                { id: 'c2', type: 'convention', rule: 'R2', severity: 'high' },
+              ],
+            },
+            {
+              id: 'd2',
+              title: 'Decision 2',
+              summary: 'S2',
+              constraints: [
+                { id: 'c3', type: 'guideline', rule: 'R3', severity: 'low' },
+              ],
+            },
+          ],
+          generatedAt: new Date().toISOString(),
+        };
+
+        const mcp = formatContextAsMcp(context) as any;
+
+        expect(mcp.decisions).toHaveLength(2);
+        expect(mcp.decisions[0].constraints).toHaveLength(2);
+        expect(mcp.decisions[1].constraints).toHaveLength(1);
+      });
+    });
+
+    describe('generateFormattedContext', () => {
+      it('should generate markdown format by default', async () => {
+        const result = await generateFormattedContext('src/auth/login.ts', config, { cwd: testDir });
+
+        expect(result).toContain('# Architectural Constraints');
+      });
+
+      it('should generate JSON format when specified', async () => {
+        const result = await generateFormattedContext('src/auth/login.ts', config, {
+          cwd: testDir,
+          format: 'json',
+        });
+
+        expect(() => JSON.parse(result)).not.toThrow();
+      });
+
+      it('should generate MCP format when specified', async () => {
+        const result = await generateFormattedContext('src/auth/login.ts', config, {
+          cwd: testDir,
+          format: 'mcp',
+        });
+
+        expect(() => JSON.parse(result)).not.toThrow();
+        const parsed = JSON.parse(result);
+        expect(parsed.type).toBe('architectural_context');
+      });
+
+      it('should use config format when option not specified', async () => {
+        const jsonConfig = {
+          ...config,
+          agent: {
+            format: 'json' as const,
+            includeRationale: true,
+          },
+        };
+
+        const result = await generateFormattedContext('src/auth/login.ts', jsonConfig, {
+          cwd: testDir,
+        });
+
+        expect(() => JSON.parse(result)).not.toThrow();
+      });
+
+      it('should override config format with option', async () => {
+        const markdownConfig = {
+          ...config,
+          agent: {
+            format: 'markdown' as const,
+            includeRationale: true,
+          },
+        };
+
+        const result = await generateFormattedContext('src/auth/login.ts', markdownConfig, {
+          cwd: testDir,
+          format: 'json',
+        });
+
+        expect(() => JSON.parse(result)).not.toThrow();
+      });
+
+      it('should handle all three formats', async () => {
+        const markdown = await generateFormattedContext('src/auth/login.ts', config, {
+          cwd: testDir,
+          format: 'markdown',
+        });
+        const json = await generateFormattedContext('src/auth/login.ts', config, {
+          cwd: testDir,
+          format: 'json',
+        });
+        const mcp = await generateFormattedContext('src/auth/login.ts', config, {
+          cwd: testDir,
+          format: 'mcp',
+        });
+
+        expect(markdown).toContain('#');
+        expect(() => JSON.parse(json)).not.toThrow();
+        expect(() => JSON.parse(mcp)).not.toThrow();
+      });
     });
   });
 });

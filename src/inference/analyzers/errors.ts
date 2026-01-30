@@ -87,7 +87,7 @@ export class ErrorsAnalyzer implements Analyzer {
           rule: `Custom error classes should extend ${customBaseName}`,
           severity: 'medium',
           scope: 'src/**/*.ts',
-          verifier: 'error-hierarchy',
+          verifier: 'errors',
         },
       });
     }
@@ -202,7 +202,7 @@ export class ErrorsAnalyzer implements Analyzer {
           rule: 'Throw custom error classes instead of generic Error',
           severity: 'medium',
           scope: 'src/**/*.ts',
-          verifier: 'custom-errors-only',
+          verifier: 'errors',
         },
       });
     }

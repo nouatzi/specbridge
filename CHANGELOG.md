@@ -7,6 +7,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-01-30
+
+### Fixed
+
+#### Critical Fixes
+- **Verification Timeout Bug** (src/verification/engine.ts)
+  - Fixed event loop hanging issue where verification would wait for full 60-second timeout even after completing
+  - Added proper timeout handle cleanup with try-finally block
+  - Used `unref()` to prevent blocking process exit
+  - **Impact**: Integration tests now complete in ~97 seconds instead of hanging for 10+ minutes
+  - CLI verify command exits immediately (~600ms) instead of waiting 60 seconds
+
+#### Inference Issues
+- **Non-Existent Verifier References** (src/inference/analyzers/errors.ts)
+  - Fixed `error-hierarchy` verifier reference → `errors` (line 90)
+  - Fixed `custom-errors-only` verifier reference → `errors` (line 205)
+  - Updated corresponding unit tests to match
+  - **Impact**: Inferred constraints now reference valid verifiers that exist in the registry
+
+#### CLI Command Issues
+- **`infer --output` Bug** (src/cli/commands/infer.ts)
+  - Fixed early return preventing file save when no patterns detected
+  - Moved file saving logic before pattern check
+  - **Impact**: Output file is always created when `--output` flag is used, even with empty results
+
+#### Visual Formatting
+- **Empty Placeholder Characters** (src/reporting/formats/markdown.ts, src/agent/context.generator.ts)
+  - Added compliance emojis: ✅ (≥90%), ⚠️ (70-89%), ❌ (<70%)
+  - Added progress bar characters: █ (filled), ░ (empty)
+  - Added constraint type emojis: 🔒 (invariant), 📋 (convention), 💡 (guideline)
+  - **Impact**: Reports and agent context now display with proper visual indicators
+
+### Changed
+
+#### Documentation
+- **Version Consistency**
+  - Archived outdated `IMPLEMENTATION_STATUS.md` → `IMPLEMENTATION_STATUS_v0.2.2_ARCHIVED.md`
+  - Added archive notice indicating current version is 1.0.4
+  - **Impact**: No misleading version information
+
+- **GitHub URL Standardization**
+  - Standardized all repository references to `nouatzi/specbridge`
+  - Fixed docs/README.md, docs/troubleshooting.md, src/reporting/formats/markdown.ts
+  - Corrected wrong `anthropics/claude-code` reference in archived file
+  - **Impact**: Consistent repository URLs throughout documentation and code
+
+### Improved
+
+#### Test Suite
+- **Integration Tests** (tests/integration/cli.test.ts)
+  - Fixed `decision create` test syntax (positional argument instead of `--id` flag)
+  - Added valid constraints to manually created decision files (schema compliance)
+  - Fixed 3 previously failing CLI integration tests
+  - **Result**: All 30 integration tests now pass (100% success rate)
+  - **Duration**: Tests complete in ~97 seconds (down from 10+ minutes)
+
+### Test Results Summary
+- ✅ Type Checking: Passed
+- ✅ Unit Tests: 762/762 passed (24 test files)
+- ✅ Integration Tests: 30/30 passed (2 test files)
+- ✅ Total Duration: ~97 seconds
+
+### Files Modified
+- 9 source/test files updated
+- 2 documentation files updated
+- 1 file archived
+- All changes backward compatible (no breaking changes)
+
 ## [1.0.3] - 2026-01-30
 
 ### Improved

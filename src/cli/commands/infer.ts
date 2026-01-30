@@ -60,6 +60,13 @@ export const inferCommand = new Command('infer')
 
       spinner.succeed(`Scanned ${result.filesScanned} files in ${result.duration}ms`);
 
+      // Save results first (even if empty) if requested
+      if (options.save || options.output) {
+        const outputPath = options.output || join(getInferredDir(cwd), 'patterns.json');
+        await writeTextFile(outputPath, JSON.stringify(result, null, 2));
+        console.log(chalk.green(`\nResults saved to: ${outputPath}`));
+      }
+
       if (result.patterns.length === 0) {
         console.log(chalk.yellow('\nNo patterns detected above confidence threshold.'));
         console.log(chalk.dim(`Try lowering --min-confidence (current: ${minConfidence})`));
@@ -71,13 +78,6 @@ export const inferCommand = new Command('infer')
         console.log(JSON.stringify(result, null, 2));
       } else {
         printPatterns(result.patterns);
-      }
-
-      // Save results
-      if (options.save || options.output) {
-        const outputPath = options.output || join(getInferredDir(cwd), 'patterns.json');
-        await writeTextFile(outputPath, JSON.stringify(result, null, 2));
-        console.log(chalk.green(`\nResults saved to: ${outputPath}`));
       }
 
       // Show next steps

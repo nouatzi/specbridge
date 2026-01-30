@@ -65,7 +65,7 @@ describe('ErrorsAnalyzer', () => {
           type: 'convention',
           severity: 'medium',
           scope: 'src/**/*.ts',
-          verifier: 'error-hierarchy',
+          verifier: 'errors',
         });
         expect(pattern?.suggestedConstraint?.rule).toContain('AppError');
       });
@@ -624,7 +624,7 @@ describe('ErrorsAnalyzer', () => {
           type: 'convention',
           severity: 'medium',
           scope: 'src/**/*.ts',
-          verifier: 'custom-errors-only',
+          verifier: 'errors',
         });
       });
 

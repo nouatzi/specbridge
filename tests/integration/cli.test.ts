@@ -133,7 +133,12 @@ metadata:
 decision:
   summary: Test
   rationale: Test
-constraints: []
+constraints:
+  - id: test-001-c1
+    type: convention
+    rule: Test rule
+    severity: medium
+    scope: src/**/*.ts
 verification:
   automated: []
 `);
@@ -196,7 +201,7 @@ verification:
     });
 
     it('should create a new decision', () => {
-      const output = runCLI('decision create --id test-001 --title "Test Decision" --summary "Test" --rationale "Testing"');
+      const output = runCLI('decision create test-001 --title "Test Decision" --summary "Test"');
 
       const decisionPath = join(testDir, '.specbridge/decisions/test-001.decision.yaml');
       expect(existsSync(decisionPath)).toBe(true);
@@ -214,7 +219,12 @@ metadata:
 decision:
   summary: Test
   rationale: Test
-constraints: []
+constraints:
+  - id: test-001-c1
+    type: convention
+    rule: Test rule
+    severity: medium
+    scope: src/**/*.ts
 verification:
   automated: []
 `);
@@ -236,7 +246,12 @@ metadata:
 decision:
   summary: Test
   rationale: Test
-constraints: []
+constraints:
+  - id: test-001-c1
+    type: convention
+    rule: Test rule
+    severity: medium
+    scope: src/**/*.ts
 verification:
   automated: []
 `);

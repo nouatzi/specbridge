@@ -1,5 +1,7 @@
 # SpecBridge Implementation Status
 
+**ARCHIVED: This status report is from v0.2.2. Current version is 1.0.3 - see CHANGELOG.md for latest status.**
+
 **Version**: 0.2.2
 **Date**: 2026-01-29
 **Status**: Production-Ready MVP
@@ -318,7 +320,7 @@ coverage: {
 ## 📞 Support & Feedback
 
 ### For Users
-- **Issues**: https://github.com/anthropics/claude-code/issues (if applicable)
+- **Issues**: https://github.com/nouatzi/specbridge/issues (if applicable)
 - **Discussions**: Create GitHub Discussions for Q&A
 - **Email**: Provide support email if available
 

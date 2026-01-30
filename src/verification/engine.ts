@@ -103,9 +103,12 @@ export class VerificationEngine {
     const skipped = 0;
 
     // Process files with timeout
-    const timeoutPromise = new Promise<'timeout'>((resolve) =>
-      setTimeout(() => resolve('timeout'), timeout)
-    );
+    let timeoutHandle: NodeJS.Timeout | null = null;
+    const timeoutPromise = new Promise<'timeout'>((resolve) => {
+      timeoutHandle = setTimeout(() => resolve('timeout'), timeout);
+      // Use unref() so timeout doesn't prevent process exit if it's the only thing left
+      timeoutHandle.unref();
+    });
 
     const verificationPromise = this.verifyFiles(
       filesToVerify,
@@ -123,18 +126,27 @@ export class VerificationEngine {
       }
     );
 
-    const result = await Promise.race([verificationPromise, timeoutPromise]);
+    let result: void | 'timeout';
+    try {
+      result = await Promise.race([verificationPromise, timeoutPromise]);
 
-    if (result === 'timeout') {
-      return {
-        success: false,
-        violations: allViolations,
-        checked,
-        passed,
-        failed,
-        skipped: filesToVerify.length - checked,
-        duration: timeout,
-      };
+      if (result === 'timeout') {
+        return {
+          success: false,
+          violations: allViolations,
+          checked,
+          passed,
+          failed,
+          skipped: filesToVerify.length - checked,
+          duration: timeout,
+        };
+      }
+    } finally {
+      // Always clear the timeout to prevent event loop leak
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+        timeoutHandle = null;
+      }
     }
 
     // Determine success based on level

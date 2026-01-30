@@ -443,7 +443,7 @@ specbridge verify --verbose
 If you're still stuck:
 
 1. **Check existing issues**:
-   - https://github.com/specbridge/specbridge/issues
+   - https://github.com/nouatzi/specbridge/issues
 
 2. **Create a minimal reproduction**:
    ```bash

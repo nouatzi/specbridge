@@ -47,8 +47,8 @@ Architectural decisions are recorded choices about the design and implementation
 
 ## Quick Links
 
-- [GitHub Repository](https://github.com/specbridge/specbridge)
-- [Issue Tracker](https://github.com/specbridge/specbridge/issues)
+- [GitHub Repository](https://github.com/nouatzi/specbridge)
+- [Issue Tracker](https://github.com/nouatzi/specbridge/issues)
 - [Contributing Guide](../CONTRIBUTING.md)
 - [Changelog](../CHANGELOG.md)
 

@@ -99,8 +99,8 @@ export function formatContextAsMarkdown(context: AgentContext): string {
     lines.push('');
 
     for (const constraint of decision.constraints) {
-      const typeEmoji = constraint.type === 'invariant' ? '' :
-                       constraint.type === 'convention' ? '' : '';
+      const typeEmoji = constraint.type === 'invariant' ? '🔒' :
+                       constraint.type === 'convention' ? '📋' : '💡';
       const severityBadge = `[${constraint.severity.toUpperCase()}]`;
 
       lines.push(`- ${typeEmoji} **${severityBadge}** ${constraint.rule}`);

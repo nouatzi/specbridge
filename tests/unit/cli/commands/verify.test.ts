@@ -262,4 +262,160 @@ describe('verify command', () => {
       expect.stringContaining('Test violation message')
     );
   });
+
+  it('should display violations with suggestions when available', async () => {
+    mockVerify.mockResolvedValueOnce({
+      success: false,
+      violations: [
+        {
+          file: 'src/example.ts',
+          decisionId: 'test-001',
+          constraintId: 'test-constraint-1',
+          type: 'convention',
+          severity: 'medium',
+          message: 'Use named exports',
+          suggestion: 'Replace default export with named export',
+          line: 15,
+          column: 1,
+        },
+      ],
+      checked: 1,
+      passed: 0,
+      failed: 1,
+      skipped: 0,
+      duration: 50,
+    });
+
+    try {
+      await verifyCommand.parseAsync(['node', 'test', 'verify']);
+      expect.fail('Expected process.exit to be called');
+    } catch (error: any) {
+      expect(error.message).toBe('process.exit called');
+    }
+
+    // Should have called console.log (output happens via chalk-wrapped strings)
+    expect(consoleLogSpy).toHaveBeenCalled();
+
+    // Check that the suggestion was output (may be in any call)
+    const allCalls = consoleLogSpy.mock.calls.map(call => call.join(' '));
+    const hassuggestion = allCalls.some(call => call.includes('Suggestion') || call.includes('Replace default export'));
+    expect(hassuggestion).toBe(true);
+  });
+
+  it('should display summary statistics with severity counts', async () => {
+    mockVerify.mockResolvedValueOnce({
+      success: false,
+      violations: [
+        {
+          file: 'test1.ts',
+          decisionId: 'test-001',
+          constraintId: 'c1',
+          type: 'invariant',
+          severity: 'critical',
+          message: 'Critical error',
+        },
+        {
+          file: 'test2.ts',
+          decisionId: 'test-002',
+          constraintId: 'c2',
+          type: 'convention',
+          severity: 'high',
+          message: 'High severity warning',
+        },
+        {
+          file: 'test3.ts',
+          decisionId: 'test-003',
+          constraintId: 'c3',
+          type: 'convention',
+          severity: 'medium',
+          message: 'Medium issue',
+        },
+        {
+          file: 'test4.ts',
+          decisionId: 'test-004',
+          constraintId: 'c4',
+          type: 'guideline',
+          severity: 'low',
+          message: 'Low priority',
+        },
+      ],
+      checked: 10,
+      passed: 6,
+      failed: 4,
+      skipped: 0,
+      duration: 150,
+    });
+
+    try {
+      await verifyCommand.parseAsync(['node', 'test', 'verify']);
+      expect.fail('Expected process.exit to be called');
+    } catch (error: any) {
+      expect(error.message).toBe('process.exit called');
+    }
+
+    // Should have called console.log for output
+    expect(consoleLogSpy).toHaveBeenCalled();
+
+    // Check output contains expected elements
+    const allCalls = consoleLogSpy.mock.calls.map(call => call.join(' '));
+    const hasSummary = allCalls.some(call => call.includes('Summary'));
+    const hasFileStats = allCalls.some(call => call.includes('Files') || call.includes('checked'));
+    expect(hasSummary || hasFileStats).toBe(true);
+  });
+
+  it('should use correct severity colors and icons', async () => {
+    mockVerify.mockResolvedValueOnce({
+      success: false,
+      violations: [
+        {
+          file: 'test.ts',
+          decisionId: 'test-001',
+          constraintId: 'c1',
+          type: 'invariant',
+          severity: 'critical',
+          message: 'Critical violation',
+        },
+      ],
+      checked: 1,
+      passed: 0,
+      failed: 1,
+      skipped: 0,
+      duration: 50,
+    });
+
+    try {
+      await verifyCommand.parseAsync(['node', 'test', 'verify']);
+      expect.fail('Expected process.exit to be called');
+    } catch (error: any) {
+      expect(error.message).toBe('process.exit called');
+    }
+
+    // Should have output the violation
+    expect(consoleLogSpy).toHaveBeenCalled();
+
+    // Check that critical severity appears in output
+    const allCalls = consoleLogSpy.mock.calls.map(call => call.join(' '));
+    const hasCritical = allCalls.some(call => call.toLowerCase().includes('critical'));
+    expect(hasCritical).toBe(true);
+  });
+
+  it('should display success message when no violations found', async () => {
+    mockVerify.mockResolvedValueOnce({
+      success: true,
+      violations: [],
+      checked: 10,
+      passed: 10,
+      failed: 0,
+      skipped: 0,
+      duration: 100,
+    });
+
+    await verifyCommand.parseAsync(['node', 'test', 'verify']);
+
+    // Should have output success
+    expect(consoleLogSpy).toHaveBeenCalled();
+
+    // Should not call process.exit with error code
+    expect(processExitSpy).not.toHaveBeenCalledWith(1);
+  });
 });

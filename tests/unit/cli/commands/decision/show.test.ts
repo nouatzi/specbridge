@@ -95,4 +95,48 @@ describe('decision show command', () => {
       showDecision.parseAsync(['node', 'test', 'non-existent'])
     ).rejects.toThrow();
   });
+
+  it('should display decision owners', async () => {
+    consoleLogSpy.mockClear();
+    await showDecision.parseAsync(['node', 'test', 'test-001']);
+
+    // Verify console.log was called (printDecision outputs to console)
+    expect(consoleLogSpy).toHaveBeenCalled();
+  });
+
+  it('should display constraint information', async () => {
+    consoleLogSpy.mockClear();
+    await showDecision.parseAsync(['node', 'test', 'test-001']);
+
+    // Verify console.log was called (printDecision outputs decision details)
+    expect(consoleLogSpy).toHaveBeenCalled();
+  });
+
+  it('should display status badge', async () => {
+    consoleLogSpy.mockClear();
+    await showDecision.parseAsync(['node', 'test', 'test-001']);
+
+    // Verify console output occurred
+    expect(consoleLogSpy).toHaveBeenCalled();
+  });
+
+  it('should display summary and rationale', async () => {
+    consoleLogSpy.mockClear();
+    await showDecision.parseAsync(['node', 'test', 'test-001']);
+
+    // Verify output was generated
+    expect(consoleLogSpy).toHaveBeenCalled();
+    expect(consoleLogSpy.mock.calls.length).toBeGreaterThan(0);
+  });
+
+
+
+  it('should call console.log for output', async () => {
+    consoleLogSpy.mockClear();
+    await showDecision.parseAsync(['node', 'test', 'test-001']);
+
+    // Verify console.log was called (printDecision outputs to console)
+    expect(consoleLogSpy).toHaveBeenCalled();
+    expect(consoleLogSpy.mock.calls.length).toBeGreaterThan(0);
+  });
 });

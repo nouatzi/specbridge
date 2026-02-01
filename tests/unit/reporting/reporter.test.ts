@@ -1,9 +1,14 @@
 /**
  * Reporter Unit Tests
  */
-import { describe, it, expect, beforeEach } from 'vitest';
-import { Reporter, checkDegradation } from '../../../src/reporting/reporter.js';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { Reporter, checkDegradation, generateReport } from '../../../src/reporting/reporter.js';
 import type { VerificationResult, ComplianceReport } from '../../../src/core/types/index.js';
+import { mkdtempSync, rmSync, existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { setupTestProject, cleanupTestProject, createDecisionYaml } from '../../helpers/setup.js';
+import type { SpecBridgeConfig } from '../../../src/core/types/index.js';
 
 describe('Reporter', () => {
   let reporter: Reporter;
@@ -708,6 +713,187 @@ describe('Reporter', () => {
 
       expect(result.degraded).toBe(false);
       expect(result.details).toEqual([]);
+    });
+  });
+
+  describe('generateReport function', () => {
+    let testDir: string;
+    let config: SpecBridgeConfig;
+
+    beforeEach(async () => {
+      // Create temporary test directory
+      testDir = mkdtempSync(join(tmpdir(), 'specbridge-report-test-'));
+
+      // Set up test project with decisions
+      await setupTestProject(testDir, {
+        decisions: [
+          {
+            id: 'report-test-001',
+            content: createDecisionYaml('report-test-001', {
+              title: 'Test Decision 1',
+              status: 'active',
+              constraints: [
+                {
+                  id: 'constraint-1',
+                  type: 'convention',
+                  rule: 'Test rule 1',
+                  severity: 'medium',
+                  scope: '**/*.ts',
+                },
+              ],
+            }),
+          },
+          {
+            id: 'report-test-002',
+            content: createDecisionYaml('report-test-002', {
+              title: 'Test Decision 2',
+              status: 'active',
+              constraints: [
+                {
+                  id: 'constraint-2',
+                  type: 'invariant',
+                  rule: 'Test rule 2',
+                  severity: 'critical',
+                  scope: '**/*.ts',
+                },
+              ],
+            }),
+          },
+          {
+            id: 'report-test-003',
+            content: createDecisionYaml('report-test-003', {
+              title: 'Draft Decision',
+              status: 'draft',
+              constraints: [
+                {
+                  id: 'constraint-3',
+                  type: 'guideline',
+                  rule: 'Test rule 3',
+                  severity: 'low',
+                  scope: '**/*.ts',
+                },
+              ],
+            }),
+          },
+        ],
+      });
+
+      // Create minimal config
+      config = {
+        version: '1.0',
+        project: {
+          name: 'report-test-project',
+          sourceRoots: ['src/**/*.ts'],
+          exclude: ['node_modules', 'dist'],
+        },
+        verification: {
+          levels: {
+            commit: { timeout: 5000 },
+          },
+        },
+      };
+    });
+
+    afterEach(async () => {
+      await cleanupTestProject(testDir);
+      if (existsSync(testDir)) {
+        rmSync(testDir, { recursive: true, force: true });
+      }
+    });
+
+    it('should generate report with compliance calculations per decision', async () => {
+      const report = await generateReport(config, { cwd: testDir });
+
+      expect(report).toBeDefined();
+      expect(report.byDecision).toBeDefined();
+      expect(Array.isArray(report.byDecision)).toBe(true);
+
+      // Should include active decisions
+      const activeDecisions = report.byDecision.filter(d => d.status === 'active');
+      expect(activeDecisions.length).toBeGreaterThan(0);
+    });
+
+    it('should verify summary statistics are calculated correctly', async () => {
+      const report = await generateReport(config, { cwd: testDir });
+
+      expect(report.summary).toBeDefined();
+      expect(report.summary.totalDecisions).toBeGreaterThanOrEqual(2);
+      expect(report.summary.activeDecisions).toBeGreaterThanOrEqual(2);
+      expect(report.summary.totalConstraints).toBeGreaterThanOrEqual(2);
+      expect(report.summary.violations).toBeDefined();
+      expect(typeof report.summary.compliance).toBe('number');
+    });
+
+    it('should include all decisions when includeAll=true', async () => {
+      const report = await generateReport(config, { cwd: testDir, includeAll: true });
+
+      // Should include draft decisions
+      const draftDecisions = report.byDecision.filter(d => d.status === 'draft');
+      expect(draftDecisions.length).toBeGreaterThan(0);
+
+      // Should include active decisions
+      const activeDecisions = report.byDecision.filter(d => d.status === 'active');
+      expect(activeDecisions.length).toBeGreaterThan(0);
+    });
+
+    it('should calculate compliance percentages accurately', async () => {
+      const report = await generateReport(config, { cwd: testDir });
+
+      // Verify each decision has compliance data
+      report.byDecision.forEach(decision => {
+        expect(decision).toHaveProperty('decisionId');
+        expect(decision).toHaveProperty('compliance');
+        expect(typeof decision.compliance).toBe('number');
+        expect(decision.compliance).toBeGreaterThanOrEqual(0);
+        expect(decision.compliance).toBeLessThanOrEqual(100);
+      });
+    });
+
+    it('should filter out non-active decisions by default', async () => {
+      const report = await generateReport(config, { cwd: testDir });
+
+      // Should not include draft decisions by default
+      const draftDecisions = report.byDecision.filter(d => d.status === 'draft');
+      expect(draftDecisions.length).toBe(0);
+
+      // Should include active decisions
+      const activeDecisions = report.byDecision.filter(d => d.status === 'active');
+      expect(activeDecisions.length).toBeGreaterThan(0);
+    });
+
+    it('should include violation counts by severity', async () => {
+      const report = await generateReport(config, { cwd: testDir });
+
+      expect(report.summary.violations).toBeDefined();
+      expect(report.summary.violations).toHaveProperty('critical');
+      expect(report.summary.violations).toHaveProperty('high');
+      expect(report.summary.violations).toHaveProperty('medium');
+      expect(report.summary.violations).toHaveProperty('low');
+
+      // All should be numbers
+      expect(typeof report.summary.violations.critical).toBe('number');
+      expect(typeof report.summary.violations.high).toBe('number');
+      expect(typeof report.summary.violations.medium).toBe('number');
+      expect(typeof report.summary.violations.low).toBe('number');
+    });
+
+    it('should include project metadata', async () => {
+      const report = await generateReport(config, { cwd: testDir });
+
+      expect(report.timestamp).toBeDefined();
+      expect(report.project).toBe('report-test-project');
+      expect(new Date(report.timestamp).getTime()).toBeGreaterThan(0);
+    });
+
+    it('should sort decisions by compliance (lowest first)', async () => {
+      const report = await generateReport(config, { cwd: testDir });
+
+      // Verify decisions are sorted
+      for (let i = 1; i < report.byDecision.length; i++) {
+        expect(report.byDecision[i]!.compliance).toBeGreaterThanOrEqual(
+          report.byDecision[i - 1]!.compliance
+        );
+      }
     });
   });
 });

@@ -293,4 +293,198 @@ describe('hook command - uninstall', () => {
 
     expect(existsSync(hookPath)).toBe(false);
   });
+
+  it.sequential('should warn if trying to uninstall non-SpecBridge hook', async () => {
+    // Ensure no .husky directory exists
+    const huskyDir = join(testDir, '.husky');
+    if (existsSync(huskyDir)) {
+      rmSync(huskyDir, { recursive: true, force: true });
+    }
+
+    const gitDir = join(testDir, '.git', 'hooks');
+    mkdirSync(gitDir, { recursive: true });
+
+    // Create a non-SpecBridge hook
+    const hookPath = join(gitDir, 'pre-commit');
+    const { writeFileSync } = await import('node:fs');
+    writeFileSync(hookPath, '#!/bin/sh\necho "Other hook"');
+
+    await hookCommand.parseAsync(['node', 'test', 'uninstall']);
+
+    // Hook should still exist since it's not a SpecBridge hook
+    expect(existsSync(hookPath)).toBe(true);
+    // Spinner outputs the message, not console.log, so just verify hook wasn't removed
+  });
+});
+
+describe('hook command - run edge cases', () => {
+  let testDir: string;
+  let cwdMock: ReturnType<typeof mockProcessCwd>;
+  let processExitSpy: any;
+  let consoleLogSpy: any;
+  let hookCommand: ReturnType<typeof createHookCommand>;
+
+  beforeEach(async () => {
+    mockHookVerify.mockClear();
+
+    testDir = mkdtempSync(join(tmpdir(), 'specbridge-test-hook-edge-'));
+    cwdMock = mockProcessCwd(testDir);
+
+    await setupTestProject(testDir);
+    hookCommand = createHookCommand();
+
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit called');
+    });
+  });
+
+  afterEach(() => {
+    cwdMock.restore();
+    if (existsSync(testDir)) {
+      rmSync(testDir, { recursive: true, force: true });
+    }
+    vi.restoreAllMocks();
+  });
+
+  it.sequential('should exit early when no files provided', async () => {
+    try {
+      await hookCommand.parseAsync(['node', 'test', 'run', '--files', '']);
+    } catch (error: any) {
+      expect(error.message).toBe('process.exit called');
+    }
+
+    // Should exit without calling verify
+    expect(mockHookVerify).not.toHaveBeenCalled();
+    expect(processExitSpy).toHaveBeenCalledWith(0);
+  });
+
+  it.sequential('should display violations with file locations', async () => {
+    mockHookVerify.mockResolvedValueOnce({
+      success: false,
+      violations: [
+        {
+          file: 'src/app.ts',
+          decisionId: 'test-001',
+          constraintId: 'c1',
+          severity: 'critical',
+          message: 'Critical violation',
+          line: 42,
+        },
+        {
+          file: 'src/utils.ts',
+          decisionId: 'test-002',
+          constraintId: 'c2',
+          severity: 'high',
+          message: 'High severity issue',
+          line: 15,
+        },
+      ],
+      checked: 2,
+      passed: 0,
+      failed: 2,
+      skipped: 0,
+      duration: 100,
+    });
+
+    try {
+      await hookCommand.parseAsync(['node', 'test', 'run', '--files', 'src/app.ts,src/utils.ts']);
+    } catch (error: any) {
+      expect(error.message).toBe('process.exit called');
+    }
+
+    // Should display violation count
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('2 violation(s) found')
+    );
+
+    // Should display file with line number
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('src/app.ts:42')
+    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('src/utils.ts:15')
+    );
+
+    // Should suggest running verify for details
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('specbridge verify')
+    );
+
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+  });
+
+  it.sequential('should handle violations without line numbers', async () => {
+    mockHookVerify.mockResolvedValueOnce({
+      success: false,
+      violations: [
+        {
+          file: 'src/test.ts',
+          decisionId: 'test-001',
+          constraintId: 'c1',
+          severity: 'medium',
+          message: 'File-level violation',
+        },
+      ],
+      checked: 1,
+      passed: 0,
+      failed: 1,
+      skipped: 0,
+      duration: 50,
+    });
+
+    try {
+      await hookCommand.parseAsync(['node', 'test', 'run', '--files', 'src/test.ts']);
+    } catch (error: any) {
+      expect(error.message).toBe('process.exit called');
+    }
+
+    // Should display file without line number
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('src/test.ts:')
+    );
+  });
+});
+
+describe('hook command - lefthook auto-detection', () => {
+  let testDir: string;
+  let cwdMock: ReturnType<typeof mockProcessCwd>;
+  let consoleLogSpy: any;
+  let hookCommand: ReturnType<typeof createHookCommand>;
+
+  beforeEach(async () => {
+    testDir = mkdtempSync(join(tmpdir(), 'specbridge-test-lefthook-'));
+    cwdMock = mockProcessCwd(testDir);
+
+    await setupTestProject(testDir);
+    hookCommand = createHookCommand();
+
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    cwdMock.restore();
+    if (existsSync(testDir)) {
+      rmSync(testDir, { recursive: true, force: true });
+    }
+    vi.restoreAllMocks();
+  });
+
+  it.sequential('should auto-detect lefthook when lefthook.yml exists', async () => {
+    // Create lefthook.yml
+    const { writeFileSync } = await import('node:fs');
+    writeFileSync(join(testDir, 'lefthook.yml'), 'pre-commit:\n  commands:\n');
+
+    await hookCommand.parseAsync(['node', 'test', 'install']);
+
+    // Should show lefthook config
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('lefthook.yml')
+    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('pre-commit:')
+    );
+  });
 });

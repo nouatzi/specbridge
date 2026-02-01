@@ -1,0 +1,29 @@
+kind: Decision
+metadata:
+  id: example-001
+  title: Example Decision - Error Handling Convention
+  status: draft
+  owners:
+    - team
+  tags:
+    - example
+    - error-handling
+decision:
+  summary: All errors should be handled using a consistent error class hierarchy.
+  rationale: |-
+    Consistent error handling improves debugging and makes the codebase more maintainable.
+    This is an example decision to demonstrate SpecBridge functionality.
+  context: |-
+    This decision was auto-generated when initializing SpecBridge for t.
+    Replace or delete this file and create your own architectural decisions.
+constraints:
+  - id: custom-errors
+    type: convention
+    rule: Custom error classes should extend a base AppError class
+    severity: medium
+    scope: src/**/*.ts
+  - id: error-logging
+    type: guideline
+    rule: Errors should be logged with appropriate context before being thrown or handled
+    severity: low
+    scope: src/**/*.ts

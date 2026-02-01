@@ -1,14 +1,14 @@
 version: "1.0"
 project:
-  name: specbridge
+  name: t
   sourceRoots:
     - src/**/*.ts
+    - src/**/*.tsx
   exclude:
     - "**/*.test.ts"
     - "**/*.spec.ts"
     - "**/node_modules/**"
     - "**/dist/**"
-    - "**/coverage/**"
 inference:
   minConfidence: 70
   analyzers:

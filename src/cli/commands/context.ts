@@ -11,7 +11,7 @@ import { NotInitializedError } from '../../core/errors/index.js';
 interface ContextOptions {
   format?: string;
   output?: string;
-  noRationale?: boolean;
+  rationale?: boolean;
 }
 
 export const contextCommand = new Command('context')
@@ -35,7 +35,7 @@ export const contextCommand = new Command('context')
       // Generate context
       const output = await generateFormattedContext(file, config, {
         format: options.format as 'markdown' | 'json' | 'mcp',
-        includeRationale: options.noRationale !== true,
+        includeRationale: options.rationale !== false,
         cwd,
       });
 

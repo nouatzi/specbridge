@@ -7,15 +7,14 @@ export default defineConfig({
     include: ['tests/unit/**/*.test.ts'],
     exclude: ['tests/integration/**/*.test.ts'],
     pool: 'threads',
+    testTimeout: 180000, // 3 minutes - user requested > 2min30
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
       include: ['src/**/*.ts'],
       exclude: [
         'src/**/*.d.ts',
-        'src/cli/**', // CLI commands have integration tests
         'src/**/index.ts', // Re-exports only
-        'src/reporting/formats/**', // Display logic (low risk)
         'tests/',
         'dist/',
       ],

@@ -33,21 +33,41 @@ export async function setupTestProject(
   mkdirSync(decisionsDir, { recursive: true });
 
   // Create minimal config
-  const config = options.configContent || `version: 1
+  const config = options.configContent || `version: "1.0"
 project:
   name: test-project
   root: ./
   sourceRoots:
-    - src
+    - "src/**/*.ts"
   exclude:
     - node_modules
     - dist
     - .git
 inference:
   minConfidence: 0.7
+  analyzers: []
 verification:
   level: commit
   failOnCritical: true
+  levels:
+    commit:
+      timeout: 5000
+      severity:
+        - critical
+        - high
+    pr:
+      timeout: 30000
+      severity:
+        - critical
+        - high
+        - medium
+    full:
+      timeout: 300000
+      severity:
+        - critical
+        - high
+        - medium
+        - low
 agent:
   format: markdown
   includeRationale: true

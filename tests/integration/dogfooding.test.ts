@@ -2,7 +2,7 @@
  * Dogfooding integration tests - SpecBridge verifying itself
  */
 import { describe, it, expect } from 'vitest';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
 describe('SpecBridge Dogfooding', () => {
@@ -10,7 +10,8 @@ describe('SpecBridge Dogfooding', () => {
   const projectRoot = path.resolve(__dirname, '../..');
 
   it('should list all 5 decisions', () => {
-    const result = execSync(`node ${cliPath} decision list`, {
+    // Use execFileSync to prevent shell injection
+    const result = execFileSync('node', [cliPath, 'decision', 'list'], {
       encoding: 'utf-8',
       cwd: projectRoot,
       timeout: 10000,
@@ -23,7 +24,8 @@ describe('SpecBridge Dogfooding', () => {
   });
 
   it('should validate all decision files', () => {
-    const result = execSync(`node ${cliPath} decision validate`, {
+    // Use execFileSync to prevent shell injection
+    const result = execFileSync('node', [cliPath, 'decision', 'validate'], {
       encoding: 'utf-8',
       cwd: projectRoot,
       timeout: 10000,
@@ -32,7 +34,8 @@ describe('SpecBridge Dogfooding', () => {
   });
 
   it('should complete commit-level verification successfully', () => {
-    const result = execSync(`node ${cliPath} verify --level commit`, {
+    // Use execFileSync to prevent shell injection
+    const result = execFileSync('node', [cliPath, 'verify', '--level', 'commit'], {
       encoding: 'utf-8',
       cwd: projectRoot,
       timeout: 10000,

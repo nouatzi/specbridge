@@ -149,19 +149,22 @@ function tarjanScc(graph: DependencyGraph): string[][] {
 }
 
 function parseMaxImportDepth(rule: string): number | null {
-  const m = rule.match(/maximum\s+import\s+depth\s*[:=]?\s*(\d+)/i);
+  // Use bounded quantifiers to prevent ReDoS
+  const m = rule.match(/maximum\s{1,5}import\s{1,5}depth\s{0,5}[:=]?\s{0,5}(\d+)/i);
   return m ? Number.parseInt(m[1]!, 10) : null;
 }
 
 function parseBannedDependency(rule: string): string | null {
-  const m = rule.match(/no\s+dependencies?\s+on\s+(?:package\s+)?(.+?)(?:\.|$)/i);
+  // Use bounded quantifiers to prevent ReDoS
+  const m = rule.match(/no\s{1,5}dependencies?\s{1,5}on\s{1,5}(?:package\s{1,5})?(.+?)(?:\.|$)/i);
   if (!m) return null;
   const value = m[1]!.trim();
   return value.length > 0 ? value : null;
 }
 
 function parseLayerRule(rule: string): { fromLayer: string; toLayer: string } | null {
-  const m = rule.match(/(\w+)\s+layer\s+cannot\s+depend\s+on\s+(\w+)\s+layer/i);
+  // Use bounded quantifiers to prevent ReDoS
+  const m = rule.match(/(\w+)\s{1,5}layer\s{1,5}cannot\s{1,5}depend\s{1,5}on\s{1,5}(\w+)\s{1,5}layer/i);
   if (!m) return null;
   return { fromLayer: m[1]!.toLowerCase(), toLayer: m[2]!.toLowerCase() };
 }

@@ -37,7 +37,15 @@ export function formatViolationsForGitHub(violations: Violation[], limit: number
       v.type,
       `${v.file}${loc}`,
       `${v.decisionId}/${v.constraintId}`,
-      v.message.replace(/\|/g, '\\|'),
+      // Escape all markdown special characters to prevent table breaking
+      v.message
+        .replace(/\\/g, '\\\\')  // Backslash first
+        .replace(/\|/g, '\\|')   // Pipe
+        .replace(/\[/g, '\\[')   // Brackets
+        .replace(/\]/g, '\\]')
+        .replace(/\*/g, '\\*')   // Asterisk
+        .replace(/_/g, '\\_')    // Underscore
+        .replace(/`/g, '\\`'),   // Backtick
     ]);
   }
 

@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, existsSync, rmSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { hookCommand } from '../../../../src/cli/commands/hook.js';
+import { createHookCommand } from '../../../../src/cli/commands/hook.js';
 import { mockProcessCwd, mockSpinner } from '../../../helpers/mocks.js';
 import { setupTestProject } from '../../../helpers/setup.js';
 import { NotInitializedError } from '../../../../src/core/errors/index.js';
@@ -58,12 +58,14 @@ describe('hook command - install', () => {
   let testDir: string;
   let cwdMock: ReturnType<typeof mockProcessCwd>;
   let consoleLogSpy: any;
+  let hookCommand: ReturnType<typeof createHookCommand>;
 
   beforeEach(async () => {
     testDir = mkdtempSync(join(tmpdir(), 'specbridge-test-hook-'));
     cwdMock = mockProcessCwd(testDir);
 
     await setupTestProject(testDir);
+    hookCommand = createHookCommand();
 
     // Ensure clean slate - remove any .husky directory
     const huskyDir = join(testDir, '.husky');
@@ -176,6 +178,7 @@ describe('hook command - run', () => {
   let testDir: string;
   let cwdMock: ReturnType<typeof mockProcessCwd>;
   let processExitSpy: any;
+  let hookCommand: ReturnType<typeof createHookCommand>;
 
   beforeEach(async () => {
     // Reset mock
@@ -185,6 +188,7 @@ describe('hook command - run', () => {
     cwdMock = mockProcessCwd(testDir);
 
     await setupTestProject(testDir);
+    hookCommand = createHookCommand();
 
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -227,7 +231,7 @@ describe('hook command - run', () => {
 
   it.sequential('should use commit level by default', async () => {
     try {
-      await hookCommand.parseAsync(['node', 'test', 'run']);
+      await hookCommand.parseAsync(['node', 'test', 'run', '--files', 'src/test.ts']);
     } catch (error: any) {
       // Expect process.exit to be called
       expect(error.message).toBe('process.exit called');
@@ -237,6 +241,7 @@ describe('hook command - run', () => {
       expect.any(Object),
       expect.objectContaining({
         level: 'commit',
+        files: ['src/test.ts'],
       })
     );
     expect(processExitSpy).toHaveBeenCalledWith(0);
@@ -247,12 +252,14 @@ describe('hook command - uninstall', () => {
   let testDir: string;
   let cwdMock: ReturnType<typeof mockProcessCwd>;
   let consoleLogSpy: any;
+  let hookCommand: ReturnType<typeof createHookCommand>;
 
   beforeEach(async () => {
     testDir = mkdtempSync(join(tmpdir(), 'specbridge-test-hook-uninstall-'));
     cwdMock = mockProcessCwd(testDir);
 
     await setupTestProject(testDir);
+    hookCommand = createHookCommand();
 
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
   });

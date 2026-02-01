@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-02-01
+
+### Security
+
+#### Fixed Vulnerabilities
+
+- **🔒 Polynomial ReDoS (3 instances)** - `src/verification/verifiers/dependencies.ts`
+  - Fixed unbounded regex quantifiers in `parseMaxImportDepth()`, `parseBannedDependency()`, `parseLayerRule()`
+  - Changed `\s+` to bounded `\s{1,5}` to prevent catastrophic backtracking
+  - Prevents denial-of-service attacks via malicious input strings
+  - Resolves GitHub CodeQL alerts #7, #8, #9
+
+- **🔒 Incomplete Sanitization** - `src/integrations/github.ts`
+  - Enhanced markdown escaping to cover all special characters
+  - Now escapes: backslash, pipe, brackets, asterisk, underscore, backtick
+  - Prevents markdown table breaking and potential injection
+  - Resolves GitHub CodeQL alert #6
+
+- **🔒 Shell Command Injection (3 instances)** - `tests/integration/dogfooding.test.ts`
+  - Replaced `execSync` with `execFileSync` for safer command execution
+  - Uses array form for arguments to prevent shell interpretation
+  - Eliminates risk of command injection in test environment
+  - Resolves GitHub CodeQL alerts #3, #4, #5
+
+### Testing
+
+- ✅ All 893 tests passing
+- ✅ No functional regressions
+- ✅ Test coverage maintained at 92%+
+
 ## [1.1.0] - 2026-02-01
 
 ### 🚀 Major Feature Release
@@ -641,7 +671,8 @@ This release adopts a **pragmatic testing approach**:
 - Vitest for testing
 - tsup for building
 
-[Unreleased]: https://github.com/nouatzi/specbridge/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/nouatzi/specbridge/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/nouatzi/specbridge/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/nouatzi/specbridge/compare/v1.0.6...v1.1.0
 [1.0.0]: https://github.com/nouatzi/specbridge/compare/v0.2.1...v1.0.0
 [0.2.1]: https://github.com/nouatzi/specbridge/compare/v0.2.0...v0.2.1

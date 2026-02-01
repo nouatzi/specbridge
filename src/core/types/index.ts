@@ -116,7 +116,16 @@ export interface Violation {
  */
 export interface ViolationFix {
   description: string;
-  patch: string;
+  edits: TextEdit[];
+}
+
+/**
+ * Text edit (0-based offsets into the file content)
+ */
+export interface TextEdit {
+  start: number;
+  end: number;
+  text: string;
 }
 
 /**

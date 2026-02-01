@@ -9,11 +9,12 @@ import type {
   Severity,
   SpecBridgeConfig,
   Decision,
-  Constraint,
 } from '../core/types/index.js';
 import { createRegistry, type Registry } from '../registry/registry.js';
 import { selectVerifierForConstraint, type VerificationContext } from './verifiers/index.js';
-import { glob, matchesPattern } from '../utils/glob.js';
+import { glob } from '../utils/glob.js';
+import { AstCache } from './cache.js';
+import { shouldApplyConstraintToFile } from './applicability.js';
 
 export interface VerificationOptions {
   level?: VerificationLevel;
@@ -30,6 +31,7 @@ export interface VerificationOptions {
 export class VerificationEngine {
   private registry: Registry;
   private project: Project;
+  private astCache: AstCache;
 
   constructor(registry?: Registry) {
     this.registry = registry || createRegistry();
@@ -42,6 +44,7 @@ export class VerificationEngine {
       },
       skipAddingFilesFromTsConfig: true,
     });
+    this.astCache = new AstCache();
   }
 
   /**
@@ -182,32 +185,14 @@ export class VerificationEngine {
   ): Promise<Violation[]> {
     const violations: Violation[] = [];
 
-    // Get or add source file
-    let sourceFile = this.project.getSourceFile(filePath);
-    if (!sourceFile) {
-      try {
-        sourceFile = this.project.addSourceFileAtPath(filePath);
-      } catch {
-        // Can't parse file, skip
-        return violations;
-      }
-    }
+    const sourceFile = await this.astCache.get(filePath, this.project);
+    if (!sourceFile) return violations;
 
     // Check each decision's constraints
     for (const decision of decisions) {
       for (const constraint of decision.constraints) {
         // Check if file matches constraint scope
-        if (!matchesPattern(filePath, constraint.scope, { cwd })) {
-          continue;
-        }
-
-        // Check severity filter
-        if (severityFilter && !severityFilter.includes(constraint.severity)) {
-          continue;
-        }
-
-        // Check for exceptions
-        if (this.isExcepted(filePath, constraint, cwd)) {
+        if (!shouldApplyConstraintToFile({ filePath, constraint, cwd, severityFilter })) {
           continue;
         }
 
@@ -247,29 +232,17 @@ export class VerificationEngine {
     cwd: string,
     onFileVerified: (violations: Violation[]) => void
   ): Promise<void> {
-    for (const file of files) {
-      const violations = await this.verifyFile(file, decisions, severityFilter, cwd);
-      onFileVerified(violations);
-    }
-  }
+    const BATCH_SIZE = 10;
+    for (let i = 0; i < files.length; i += BATCH_SIZE) {
+      const batch = files.slice(i, i + BATCH_SIZE);
+      const results = await Promise.all(
+        batch.map(file => this.verifyFile(file, decisions, severityFilter, cwd))
+      );
 
-  /**
-   * Check if file is excepted from constraint
-   */
-  private isExcepted(filePath: string, constraint: Constraint, cwd: string): boolean {
-    if (!constraint.exceptions) return false;
-
-    return constraint.exceptions.some(exception => {
-      // Check if exception has expired
-      if (exception.expiresAt) {
-        const expiryDate = new Date(exception.expiresAt);
-        if (expiryDate < new Date()) {
-          return false;
-        }
+      for (const violations of results) {
+        onFileVerified(violations);
       }
-
-      return matchesPattern(filePath, exception.pattern, { cwd });
-    });
+    }
   }
 
   /**

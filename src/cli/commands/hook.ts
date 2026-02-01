@@ -15,17 +15,10 @@ const HOOK_SCRIPT = `#!/bin/sh
 # SpecBridge pre-commit hook
 # Runs verification on staged files
 
-# Get list of staged TypeScript files
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\\.(ts|tsx)$')
-
-if [ -z "$STAGED_FILES" ]; then
-  exit 0
-fi
-
 echo "Running SpecBridge verification..."
 
-# Run specbridge verify on staged files
-npx specbridge hook run --level commit --files "$STAGED_FILES"
+# Run specbridge hook (it will detect staged files automatically)
+npx specbridge hook run --level commit
 
 exit $?
 `;
@@ -145,12 +138,30 @@ export function createHookCommand(): Command {
         const level = (options.level || 'commit') as VerificationLevel;
 
         // Parse files
-        const files = options.files
+        let files = options.files
           ? options.files.split(/[\s,]+/).filter(f => f.length > 0)
           : undefined;
 
         if (!files || files.length === 0) {
-          // No files to verify
+          // Auto-detect staged files
+          const { execFile } = await import('node:child_process');
+          const { promisify } = await import('node:util');
+          const execFileAsync = promisify(execFile);
+
+          try {
+            const { stdout } = await execFileAsync('git', ['diff', '--cached', '--name-only', '--diff-filter=AM'], { cwd });
+            files = stdout
+              .trim()
+              .split('\n')
+              .map((s) => s.trim())
+              .filter(Boolean)
+              .filter((f) => /\.(ts|tsx|js|jsx)$/.test(f));
+          } catch {
+            files = [];
+          }
+        }
+
+        if (!files || files.length === 0) {
           process.exit(0);
         }
 

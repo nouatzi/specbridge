@@ -6,12 +6,20 @@ export * from './naming.js';
 export * from './imports.js';
 export * from './errors.js';
 export * from './regex.js';
+export * from './dependencies.js';
+export * from './complexity.js';
+export * from './security.js';
+export * from './api.js';
 
 import type { Verifier } from './base.js';
 import { NamingVerifier } from './naming.js';
 import { ImportsVerifier } from './imports.js';
 import { ErrorsVerifier } from './errors.js';
 import { RegexVerifier } from './regex.js';
+import { DependencyVerifier } from './dependencies.js';
+import { ComplexityVerifier } from './complexity.js';
+import { SecurityVerifier } from './security.js';
+import { ApiVerifier } from './api.js';
 
 /**
  * Built-in verifiers registry
@@ -21,6 +29,10 @@ export const builtinVerifiers: Record<string, () => Verifier> = {
   imports: () => new ImportsVerifier(),
   errors: () => new ErrorsVerifier(),
   regex: () => new RegexVerifier(),
+  dependencies: () => new DependencyVerifier(),
+  complexity: () => new ComplexityVerifier(),
+  security: () => new SecurityVerifier(),
+  api: () => new ApiVerifier(),
 };
 
 /**
@@ -49,6 +61,22 @@ export function selectVerifierForConstraint(rule: string, specifiedVerifier?: st
 
   // Auto-select based on rule content
   const lowerRule = rule.toLowerCase();
+
+  if (lowerRule.includes('dependency') || lowerRule.includes('circular dependenc') || lowerRule.includes('import depth') || (lowerRule.includes('layer') && lowerRule.includes('depend on'))) {
+    return getVerifier('dependencies');
+  }
+
+  if (lowerRule.includes('cyclomatic') || lowerRule.includes('complexity') || lowerRule.includes('nesting') || lowerRule.includes('parameters') || lowerRule.includes('file size')) {
+    return getVerifier('complexity');
+  }
+
+  if (lowerRule.includes('security') || lowerRule.includes('secret') || lowerRule.includes('password') || lowerRule.includes('token') || lowerRule.includes('xss') || lowerRule.includes('sql') || lowerRule.includes('eval')) {
+    return getVerifier('security');
+  }
+
+  if (lowerRule.includes('endpoint') || lowerRule.includes('rest') || (lowerRule.includes('api') && lowerRule.includes('path'))) {
+    return getVerifier('api');
+  }
 
   if (lowerRule.includes('naming') || lowerRule.includes('case')) {
     return getVerifier('naming');

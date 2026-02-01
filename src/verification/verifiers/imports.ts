@@ -1,6 +1,7 @@
 /**
  * Import pattern verifier
  */
+import path from 'node:path';
 import type { Violation } from '../../core/types/index.js';
 import { type Verifier, type VerificationContext, createViolation } from './base.js';
 
@@ -13,6 +14,46 @@ export class ImportsVerifier implements Verifier {
     const violations: Violation[] = [];
     const { sourceFile, constraint, decisionId, filePath } = ctx;
     const rule = constraint.rule.toLowerCase();
+
+    // Check for required .js extensions in relative imports (ESM-friendly)
+    if ((rule.includes('.js') && rule.includes('extension')) || rule.includes('esm') || rule.includes('add .js')) {
+      for (const importDecl of sourceFile.getImportDeclarations()) {
+        const moduleSpec = importDecl.getModuleSpecifierValue();
+        if (!moduleSpec.startsWith('.')) continue;
+
+        const ext = path.posix.extname(moduleSpec);
+        let suggested: string | null = null;
+
+        if (!ext) {
+          suggested = `${moduleSpec}.js`;
+        } else if (ext === '.ts' || ext === '.tsx' || ext === '.jsx') {
+          suggested = moduleSpec.slice(0, -ext.length) + '.js';
+        } else if (ext !== '.js') {
+          continue;
+        }
+
+        if (!suggested || suggested === moduleSpec) continue;
+
+        const ms = importDecl.getModuleSpecifier();
+        const start = ms.getStart() + 1; // inside quotes
+        const end = ms.getEnd() - 1;
+
+        violations.push(createViolation({
+          decisionId,
+          constraintId: constraint.id,
+          type: constraint.type,
+          severity: constraint.severity,
+          message: `Relative import "${moduleSpec}" should include a .js extension`,
+          file: filePath,
+          line: importDecl.getStartLineNumber(),
+          suggestion: `Update to "${suggested}"`,
+          autofix: {
+            description: 'Add/normalize .js extension in import specifier',
+            edits: [{ start, end, text: suggested }],
+          },
+        }));
+      }
+    }
 
     // Check for barrel import requirement
     if (rule.includes('barrel') || rule.includes('index')) {

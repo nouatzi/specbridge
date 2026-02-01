@@ -5,3 +5,4 @@ coverage
 *.config.js
 .github
 tests/fixtures
+vscode-extension

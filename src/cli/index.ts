@@ -17,6 +17,10 @@ import { decisionCommand } from './commands/decision/index.js';
 import { hookCommand } from './commands/hook.js';
 import { reportCommand } from './commands/report.js';
 import { contextCommand } from './commands/context.js';
+import { lspCommand } from './commands/lsp.js';
+import { watchCommand } from './commands/watch.js';
+import { mcpServerCommand } from './commands/mcp-server.js';
+import { promptCommand } from './commands/prompt.js';
 
 // Read version from package.json
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -40,6 +44,10 @@ program.addCommand(decisionCommand);
 program.addCommand(hookCommand);
 program.addCommand(reportCommand);
 program.addCommand(contextCommand);
+program.addCommand(lspCommand);
+program.addCommand(watchCommand);
+program.addCommand(mcpServerCommand);
+program.addCommand(promptCommand);
 
 // Global error handler
 program.exitOverride((err) => {

@@ -5,6 +5,8 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { createVerificationEngine } from '../../verification/engine.js';
+import { AutofixEngine, type AutofixResult } from '../../verification/autofix/engine.js';
+import { getChangedFiles } from '../../verification/incremental.js';
 import { loadConfig } from '../../config/loader.js';
 import { pathExists, getSpecBridgeDir } from '../../utils/fs.js';
 import { NotInitializedError } from '../../core/errors/index.js';
@@ -17,6 +19,9 @@ interface VerifyOptions {
   severity?: string;
   json?: boolean;
   fix?: boolean;
+  dryRun?: boolean;
+  interactive?: boolean;
+  incremental?: boolean;
 }
 
 export const verifyCommand = new Command('verify')
@@ -26,7 +31,10 @@ export const verifyCommand = new Command('verify')
   .option('-d, --decisions <ids>', 'Comma-separated decision IDs to check')
   .option('-s, --severity <levels>', 'Comma-separated severity levels (critical, high, medium, low)')
   .option('--json', 'Output as JSON')
-  .option('--fix', 'Attempt to auto-fix violations (not yet implemented)')
+  .option('--incremental', 'Only verify changed files (git diff --name-only --diff-filter=AM HEAD)')
+  .option('--fix', 'Apply auto-fixes for supported violations')
+  .option('--dry-run', 'Show what would be fixed without applying (requires --fix)')
+  .option('--interactive', 'Confirm each fix interactively (requires --fix)')
   .action(async (options: VerifyOptions) => {
     const cwd = process.cwd();
 
@@ -43,15 +51,20 @@ export const verifyCommand = new Command('verify')
 
       // Parse options
       const level = (options.level || 'full') as VerificationLevel;
-      const files = options.files?.split(',').map(f => f.trim());
+      let files = options.files?.split(',').map(f => f.trim());
       const decisions = options.decisions?.split(',').map(d => d.trim());
       const severity = options.severity?.split(',').map(s => s.trim() as Severity);
+
+      if (options.incremental) {
+        const changed = await getChangedFiles(cwd);
+        files = changed.length > 0 ? changed : [];
+      }
 
       spinner.text = `Running ${level}-level verification...`;
 
       // Run verification
       const engine = createVerificationEngine();
-      const result = await engine.verify(config, {
+      let result = await engine.verify(config, {
         level,
         files,
         decisions,
@@ -59,13 +72,51 @@ export const verifyCommand = new Command('verify')
         cwd,
       });
 
+      // Apply auto-fixes (optional)
+      let fixResult: AutofixResult | undefined;
+      if (options.fix && result.violations.length > 0) {
+        const fixableCount = result.violations.filter(v => v.autofix).length;
+
+        if (fixableCount === 0) {
+          spinner.stop();
+          if (!options.json) {
+            console.log(chalk.yellow('No auto-fixable violations found'));
+          }
+        } else {
+          spinner.text = `Applying ${fixableCount} auto-fix(es)...`;
+          const fixer = new AutofixEngine();
+          fixResult = await fixer.applyFixes(result.violations, {
+            dryRun: options.dryRun,
+            interactive: options.interactive,
+          });
+
+          if (!options.dryRun && fixResult.applied.length > 0) {
+            result = await engine.verify(config, {
+              level,
+              files,
+              decisions,
+              severity,
+              cwd,
+            });
+          }
+        }
+      }
+
       spinner.stop();
 
       // Output results
       if (options.json) {
-        console.log(JSON.stringify(result, null, 2));
+        console.log(JSON.stringify({ ...result, autofix: fixResult }, null, 2));
       } else {
         printResult(result, level);
+
+        if (options.fix && fixResult) {
+          console.log(chalk.green(`✓ Applied ${fixResult.applied.length} fix(es)`));
+          if (fixResult.skipped > 0) {
+            console.log(chalk.yellow(`⊘ Skipped ${fixResult.skipped} fix(es)`));
+          }
+          console.log('');
+        }
       }
 
       // Exit with error code if verification failed

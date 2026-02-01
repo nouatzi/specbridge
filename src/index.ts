@@ -28,5 +28,8 @@ export * from './reporting/index.js';
 // Agent interface
 export * from './agent/index.js';
 
+// MCP server integration
+export * from './mcp/index.js';
+
 // Utilities
 export * from './utils/index.js';

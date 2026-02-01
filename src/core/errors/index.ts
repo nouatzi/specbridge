@@ -9,7 +9,8 @@ export class SpecBridgeError extends Error {
   constructor(
     message: string,
     public readonly code: string,
-    public readonly details?: Record<string, unknown>
+    public readonly details?: Record<string, unknown>,
+    public readonly suggestion?: string
   ) {
     super(message);
     this.name = 'SpecBridgeError';
@@ -108,7 +109,9 @@ export class NotInitializedError extends SpecBridgeError {
   constructor() {
     super(
       'SpecBridge is not initialized. Run "specbridge init" first.',
-      'NOT_INITIALIZED'
+      'NOT_INITIALIZED',
+      undefined,
+      'Run `specbridge init` in this directory to create .specbridge/'
     );
     this.name = 'NotInitializedError';
   }
@@ -161,6 +164,9 @@ export function formatError(error: Error): string {
     }
     if (error instanceof DecisionValidationError && error.validationErrors.length > 0) {
       message += '\nValidation errors:\n' + error.validationErrors.map(e => `  - ${e}`).join('\n');
+    }
+    if (error.suggestion) {
+      message += `\nSuggestion: ${error.suggestion}`;
     }
     return message;
   }

@@ -21,6 +21,8 @@ import { lspCommand } from './commands/lsp.js';
 import { watchCommand } from './commands/watch.js';
 import { mcpServerCommand } from './commands/mcp-server.js';
 import { promptCommand } from './commands/prompt.js';
+import { analyticsCommand } from './commands/analytics.js';
+import { dashboardCommand } from './commands/dashboard.js';
 
 // Read version from package.json
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -48,6 +50,8 @@ program.addCommand(lspCommand);
 program.addCommand(watchCommand);
 program.addCommand(mcpServerCommand);
 program.addCommand(promptCommand);
+program.addCommand(analyticsCommand);
+program.addCommand(dashboardCommand);
 
 // Global error handler
 program.exitOverride((err) => {

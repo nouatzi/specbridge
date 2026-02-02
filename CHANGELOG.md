@@ -7,6 +7,96 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2024-02-03 - Phase 4: Analytics & Insights
+
+### Added
+
+#### Report Storage & History
+- **Automatic report persistence**: All reports now auto-save to `.specbridge/reports/history/`
+- **Historical data management**: Store and retrieve compliance reports over time
+- **Report cleanup**: Automatic retention management (default: 90 days)
+- **Date-based retrieval**: Load reports by specific dates or ranges
+
+#### Drift Detection
+- **Compliance drift analysis**: Compare current vs. previous reports
+- **Trend classification**: Automatic categorization (improving/stable/degrading)
+- **Violation tracking**: Track new vs. fixed violations by severity
+- **Decision-level drift**: Per-decision compliance changes
+- **Top movers identification**: Automatically identify most improved/degraded decisions
+
+#### Trend Analysis
+- **Multi-period trends**: Analyze compliance patterns over 7-90 days
+- **Visual data points**: Chart-ready data for compliance visualization
+- **Per-decision trends**: Track individual decision compliance over time
+- **Period summaries**: Start/end compliance with overall change calculation
+
+#### Analytics Engine
+- **Decision metrics**: Deep analysis of individual decisions with historical context
+- **Automated insights**: AI-generated observations, warnings, and suggestions
+- **Performance ranking**: Identify top and bottom performing decisions
+- **Trend detection**: Automatic pattern recognition in compliance data
+- **Insight categories**: Warnings (🟠), Successes (🟢), Suggestions (💡)
+
+#### CLI Enhancements
+- **`specbridge report --trend`**: Show compliance trends over time
+- **`specbridge report --drift`**: Analyze drift since last report
+- **`specbridge report --days <n>`**: Specify analysis period
+- **`specbridge analytics`**: New analytics command with comprehensive insights
+- **`specbridge analytics [decision-id]`**: Per-decision analysis
+- **`specbridge analytics --insights`**: Show AI-generated insights
+- **`specbridge dashboard`**: Launch interactive web dashboard
+
+#### Web Dashboard
+- **Real-time monitoring**: Interactive compliance dashboard with live data
+- **Visual compliance score**: Large, prominent score with trend indicators
+- **30-day trend chart**: Interactive Chart.js visualization
+- **Decision breakdown**: Sortable table with per-decision compliance
+- **Automated insights panel**: Display warnings, successes, and suggestions
+- **Modern React UI**: Responsive design with gradient styling
+- **Mobile-friendly**: Adaptive layout for all screen sizes
+
+#### REST API
+- 11 new API endpoints for programmatic access to compliance data
+- Full CRUD operations for reports, decisions, and analytics
+- Configurable query parameters for flexible data retrieval
+- Consistent error handling and response formats
+
+#### Documentation
+- **Interactive demo guide**: Step-by-step walkthrough of all features
+- **Quick start guide**: 5-minute setup with sample data
+- **Comprehensive API reference**: Full TypeScript/JavaScript/REST API docs
+- **Feature documentation**: Detailed explanation of analytics capabilities
+- **Sample data generator**: Script to create realistic historical reports
+- **Integration examples**: Slack, email, CI/CD, and monitoring integrations
+
+### Changed
+- **Report command**: Now auto-saves all reports to history by default
+- **Report output**: Enhanced with trend indicators (📈/📉/➡️)
+- **CLI experience**: Improved formatting with colors and visual indicators
+
+### Dependencies
+- **Added**: `express@^4.18.0` - Web server framework for dashboard
+- **Added**: `@types/express@^4.17.0` - TypeScript types for Express
+
+### Testing
+- **Total tests**: 951 (all passing)
+- **New tests**: 58 for Phase 4 components
+- **Coverage**: >95% for all new code
+
+### Files Added
+- `src/reporting/storage.ts` - Historical report storage
+- `src/reporting/drift.ts` - Drift detection and trend analysis
+- `src/analytics/engine.ts` - Analytics engine with insight generation
+- `src/dashboard/server.ts` - Express REST API server
+- `src/dashboard/public/index.html` - React dashboard UI
+- `src/cli/commands/analytics.ts` - Analytics CLI command
+- `src/cli/commands/dashboard.ts` - Dashboard CLI command
+- `docs/demos/phase4-analytics-demo.md` - Interactive demo guide (900+ lines)
+- `docs/demos/QUICKSTART.md` - Quick start guide
+- `docs/demos/generate-sample-data.sh` - Sample data generator
+- `docs/features/analytics-and-insights.md` - Feature documentation (1200+ lines)
+- `docs/API.md` - Complete API reference (900+ lines)
+
 ## [1.1.2] - 2026-02-02
 
 ### Documentation

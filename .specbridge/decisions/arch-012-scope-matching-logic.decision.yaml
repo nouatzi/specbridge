@@ -1,0 +1,63 @@
+kind: Decision
+metadata:
+  id: arch-012
+  title: Scope Matching Logic
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - verification
+    - scope
+    - applicability
+    - exceptions
+
+decision:
+  summary: Use shouldApplyConstraintToFile for all scope checks with exception expiry validation
+  rationale: |-
+    Centralized scope matching logic ensures consistent behavior across all verifiers,
+    proper exception handling, expiry date validation, and glob pattern matching.
+    This prevents logic duplication and inconsistent behavior.
+  context: |-
+    Applicability logic defined in src/verification/applicability.ts provides helpers
+    for constraint scope matching and exception handling. shouldApplyConstraintToFile
+    checks scope glob pattern, severity filter, and exception patterns with expiry validation.
+  consequences:
+    - "Use shouldApplyConstraintToFile() for all scope checks"
+    - "Validate exception expiry dates before applying"
+    - "Scope patterns use standard glob syntax"
+    - "Exception patterns checked with matchesPattern()"
+
+constraints:
+  - id: use-should-apply-helper
+    type: convention
+    rule: All verifiers must use shouldApplyConstraintToFile for scope checks
+    severity: high
+    scope: src/verification/**/*.ts
+    verifier: regex
+    autofix: false
+    exceptions:
+      - pattern: src/verification/applicability.ts
+        reason: Defines the scope checking logic
+        approvedBy: core-team
+
+  - id: validate-exception-expiry
+    type: convention
+    rule: Exception expiry dates must be validated before applying exception
+    severity: high
+    scope: src/verification/applicability.ts
+    verifier: regex
+    autofix: false
+
+  - id: glob-pattern-syntax
+    type: convention
+    rule: Scope patterns must use standard glob syntax (* and **)
+    severity: medium
+    scope: .specbridge/decisions/*.decision.yaml
+    verifier: regex
+    autofix: false
+
+verification:
+  automated:
+    - check: regex
+      target: src/verification/**/*.ts
+      frequency: commit

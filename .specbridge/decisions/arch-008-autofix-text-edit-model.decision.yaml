@@ -1,0 +1,78 @@
+kind: Decision
+metadata:
+  id: arch-008
+  title: Autofix TextEdit Offset Model
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - autofix
+    - text-editing
+    - architecture
+
+decision:
+  summary: TextEdit uses 0-based byte offsets with descending sort order to prevent offset invalidation
+  rationale: |-
+    When applying multiple text edits to a file, edits must be applied in descending order
+    by start offset to prevent earlier edits from invalidating the offsets of later edits.
+    Using 0-based byte offsets provides a consistent, unambiguous addressing model.
+  context: |-
+    The autofix engine was introduced in v1.1.0 (commit 94d6dc4) to automatically fix violations.
+    TextEdit model uses { start, end, text } with 0-based byte offsets into file content.
+    Edits are sorted descending by start position and applied right-to-left to maintain offset validity.
+    Overlap detection rejects conflicting edits that would corrupt the file.
+  consequences:
+    - All TextEdit offsets are 0-based byte positions
+    - Edits must be sorted descending by start before application
+    - Overlap detection prevents conflicting edits
+    - Bounds validation prevents out-of-range edits
+
+constraints:
+  - id: zero-based-byte-offsets
+    type: invariant
+    rule: TextEdit must use 0-based byte offsets (start, end, text)
+    severity: critical
+    scope: src/verification/autofix/**/*.ts
+    verifier: regex
+    autofix: false
+
+  - id: descending-sort-order
+    type: invariant
+    rule: Edits must be sorted descending by start offset (.sort((a, b) => b.start - a.start))
+    severity: critical
+    scope: src/verification/autofix/engine.ts
+    verifier: regex
+    autofix: false
+
+  - id: overlap-detection
+    type: invariant
+    rule: Overlap detection must reject edits where edit.end > lastStart
+    severity: critical
+    scope: src/verification/autofix/engine.ts
+    verifier: regex
+    autofix: false
+
+  - id: bounds-validation
+    type: invariant
+    rule: Edits must validate start >= 0 && end <= content.length
+    severity: critical
+    scope: src/verification/autofix/engine.ts
+    verifier: regex
+    autofix: false
+
+  - id: text-edit-interface
+    type: convention
+    rule: TextEdit interface must include start (number), end (number), text (string)
+    severity: high
+    scope: src/core/types/index.ts
+    verifier: regex
+    autofix: false
+
+verification:
+  automated:
+    - check: regex
+      target: src/verification/autofix/**/*.ts
+      frequency: commit
+    - check: regex
+      target: src/core/types/index.ts
+      frequency: commit

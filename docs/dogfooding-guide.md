@@ -4,13 +4,26 @@ SpecBridge uses itself to enforce its own architectural decisions. This guide sh
 
 ## Our Architectural Decisions
 
-We've formalized 5 key architectural patterns:
+We've formalized 15 key architectural patterns covering all major aspects of the codebase:
 
+### Core Patterns (v1.0)
 1. **Error Hierarchy** (arch-001) - All errors extend SpecBridgeError
 2. **ESM Imports** (arch-002) - All imports use .js extensions
 3. **Naming Conventions** (arch-003) - PascalCase/camelCase patterns
 4. **TypeScript Strict Mode** (arch-004) - Strict compiler settings
 5. **Module Structure** (arch-005) - Domain-driven organization
+
+### Advanced Patterns (v1.1.0+)
+6. **Verifier Plugin Architecture** (arch-006) - Base interface and registry
+7. **Security Pattern Enforcement** (arch-007) - ReDoS, shell injection prevention
+8. **Autofix Engine Model** (arch-008) - TextEdit offset handling
+9. **Server Integration Pattern** (arch-009) - LSP/MCP initialization
+10. **Configuration Merging** (arch-010) - Recursive merge strategy
+11. **Testing Standards** (arch-011) - Coverage thresholds and patterns
+12. **Scope Matching Logic** (arch-012) - Applicability patterns
+13. **Agent Context Format** (arch-013) - Emoji and format conventions
+14. **Violation Model** (arch-014) - Standard violation structure
+15. **Extension Stability** (arch-015) - Plugin API guarantees
 
 ## Running Verification
 
@@ -41,14 +54,20 @@ specbridge verify --decisions arch-001
 
 ## Exploring Our Decisions
 
-All our decision files are in `.specbridge/decisions/`:
-- `arch-001-error-hierarchy.decision.yaml`
-- `arch-002-esm-imports.decision.yaml`
-- `arch-003-naming-conventions.decision.yaml`
-- `arch-004-typescript-strict.decision.yaml`
-- `arch-005-module-structure.decision.yaml`
+All our decision files are in `.specbridge/decisions/` - 15 active decisions covering:
+- Error handling patterns
+- ESM imports and naming conventions
+- TypeScript configuration
+- Module structure
+- Verifier plugin system
+- Security best practices
+- Autofix engine
+- Server integrations (LSP/MCP)
+- Configuration merging
+- Testing infrastructure
+- Agent context formatting
 
-Feel free to copy and adapt these for your own projects!
+Feel free to copy and adapt these for your own projects! See `.specbridge/decisions/arch-*.decision.yaml` for full details.
 
 ## Decision Details
 

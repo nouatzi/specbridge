@@ -1,0 +1,67 @@
+kind: Decision
+metadata:
+  id: arch-013
+  title: Agent Context Format Conventions
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - agent
+    - context
+    - formats
+    - mcp
+
+decision:
+  summary: Agent context uses emoji conventions and supports markdown, JSON, and MCP formats
+  rationale: |-
+    Consistent formatting conventions ensure AI agents receive context in a clear,
+    parseable format. Emoji icons provide visual cues for constraint types,
+    while multiple format options support different integration scenarios.
+  context: |-
+    Agent context generation introduced in v1.1.0 (commit 94d6dc4) to provide
+    architectural decisions to code generation agents. Context includes applicable
+    decisions, constraints, and rationale formatted for agent consumption.
+  consequences:
+    - "Emoji conventions: 🔒 invariant, 📋 convention, 💡 guideline"
+    - "Support markdown, JSON, and MCP formats"
+    - "Include decision summary and rationale based on config"
+    - "Filter constraints by file path applicability"
+
+constraints:
+  - id: emoji-type-conventions
+    type: convention
+    rule: "Use emoji conventions: 🔒 invariant, 📋 convention, 💡 guideline"
+    severity: medium
+    scope: src/agent/**/*.ts
+    verifier: regex
+    autofix: false
+
+  - id: format-support
+    type: convention
+    rule: Support markdown, JSON, and MCP output formats
+    severity: high
+    scope: src/agent/context.generator.ts
+    verifier: regex
+    autofix: false
+
+  - id: severity-badge-format
+    type: guideline
+    rule: Severity displayed as uppercase badge [CRITICAL], [HIGH], [MEDIUM], [LOW]
+    severity: low
+    scope: src/agent/context.generator.ts
+    verifier: regex
+    autofix: false
+
+  - id: include-rationale-option
+    type: guideline
+    rule: Support includeRationale option to control context verbosity
+    severity: low
+    scope: src/agent/context.generator.ts
+    verifier: regex
+    autofix: false
+
+verification:
+  automated:
+    - check: regex
+      target: src/agent/**/*.ts
+      frequency: commit

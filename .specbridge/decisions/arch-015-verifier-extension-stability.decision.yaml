@@ -1,0 +1,67 @@
+kind: Decision
+metadata:
+  id: arch-015
+  title: Verifier Extension Stability
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - verifiers
+    - api
+    - stability
+    - versioning
+
+decision:
+  summary: Verifier interface changes require major version bump with documented stability guarantees
+  rationale: |-
+    Custom verifiers depend on the Verifier interface for plugin integration.
+    Breaking changes to the interface would break external verifiers, requiring
+    careful versioning and documentation of stability guarantees.
+  context: |-
+    Verifier plugin system introduced in v1.1.0 allows users to create custom
+    verifiers by implementing the Verifier interface. The interface defines the
+    contract between SpecBridge and verifier plugins.
+  consequences:
+    - "Verifier interface changes require major version bump"
+    - "Document stability guarantees in JSDoc"
+    - "Deprecate fields before removal (minor version)"
+    - "Add optional fields only in minor versions"
+
+constraints:
+  - id: interface-stability-documentation
+    type: guideline
+    rule: Verifier interface must document stability guarantees in JSDoc
+    severity: low
+    scope: src/verification/verifiers/base.ts
+    verifier: regex
+    autofix: false
+
+  - id: breaking-changes-require-major-bump
+    type: guideline
+    rule: Breaking changes to Verifier interface require major version bump
+    severity: medium
+    scope: src/verification/verifiers/base.ts
+    verifier: regex
+    autofix: false
+
+  - id: deprecation-before-removal
+    type: guideline
+    rule: Deprecate interface fields with @deprecated tag before removal
+    severity: low
+    scope: src/verification/verifiers/base.ts
+    verifier: regex
+    autofix: false
+
+  - id: optional-fields-only-minor
+    type: guideline
+    rule: Minor versions may add optional fields to Verifier interface
+    severity: low
+    scope: src/verification/verifiers/base.ts
+    verifier: regex
+    autofix: false
+
+verification:
+  automated:
+    - check: regex
+      target: src/verification/verifiers/base.ts
+      frequency: pr

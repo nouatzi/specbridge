@@ -1,0 +1,81 @@
+kind: Decision
+metadata:
+  id: arch-009
+  title: Server Integration Options Pattern
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - lsp
+    - mcp
+    - server
+    - integration
+
+decision:
+  summary: LSP and MCP servers follow lazy initialization pattern with required cwd option
+  rationale: |-
+    Consistent server initialization patterns enable predictable setup sequences,
+    proper error handling during initialization, and clear separation between
+    construction (sync) and initialization (async loading).
+  context: |-
+    LSP and MCP servers were introduced in v1.1.0 (commit 94d6dc4).
+    Both servers follow the pattern: constructor takes options with required cwd,
+    constructor performs sync setup only, initialize() method loads async resources
+    (config, registry), and server.connect() or server.listen() starts the server.
+  consequences:
+    - "Options interfaces must require cwd: string"
+    - "Constructor must be synchronous (no await)"
+    - "initialize() method performs async loading"
+    - "Lazy loading prevents blocking on construction"
+    - "MCP tools use Zod schemas for input validation"
+    - "LSP maps Severity to DiagnosticSeverity consistently"
+
+constraints:
+  - id: require-cwd-in-options
+    type: invariant
+    rule: "Server options interfaces must require cwd: string field"
+    severity: critical
+    scope: src/lsp/*.ts
+    verifier: regex
+    autofix: false
+
+  - id: lazy-initialization-pattern
+    type: convention
+    rule: Constructor creates server, initialize() loads async resources
+    severity: high
+    scope: src/lsp/*.ts
+    verifier: regex
+    autofix: false
+
+  - id: mcp-zod-validation
+    type: convention
+    rule: MCP tools must use Zod schemas for input validation
+    severity: high
+    scope: src/mcp/*.ts
+    verifier: regex
+    autofix: false
+
+  - id: lsp-severity-mapping
+    type: convention
+    rule: LSP must map Severity to DiagnosticSeverity consistently
+    severity: medium
+    scope: src/lsp/server.ts
+    verifier: regex
+    autofix: false
+
+  - id: mcp-uri-schemes
+    type: guideline
+    rule: MCP resources use decision:// and report:// URI schemes
+    severity: low
+    scope: src/mcp/server.ts
+    verifier: regex
+    autofix: false
+
+verification:
+  automated:
+    - check: regex
+      target: src/lsp/*.ts
+      frequency: commit
+    - check: regex
+      target: src/mcp/*.ts
+      frequency: commit

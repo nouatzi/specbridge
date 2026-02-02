@@ -1,0 +1,61 @@
+kind: Decision
+metadata:
+  id: arch-010
+  title: Configuration Merging Strategy
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - configuration
+    - defaults
+    - merging
+
+decision:
+  summary: Configuration merging uses recursive merge for nested objects with comprehensive defaults
+  rationale: |-
+    Partial configuration overrides should merge with defaults at all nesting levels,
+    not replace entire objects. This allows users to override specific settings while
+    maintaining sensible defaults for unspecified values.
+  context: |-
+    Configuration system uses defaultConfig as the baseline defined in config.schema.ts.
+    The mergeWithDefaults function in loader.ts performs recursive merging for nested
+    objects including project, inference, verification.levels, and agent settings.
+  consequences:
+    - All config properties must have defaults in defaultConfig
+    - Nested objects are recursively merged
+    - User config overrides specific fields only
+    - Missing fields fall back to defaults
+
+constraints:
+  - id: recursive-merge-nested-objects
+    type: convention
+    rule: mergeWithDefaults must recursively merge verification.levels, project, inference, agent
+    severity: high
+    scope: src/config/loader.ts
+    verifier: regex
+    autofix: false
+
+  - id: require-defaults-for-all-fields
+    type: convention
+    rule: All config properties must have defaults in defaultConfig
+    severity: high
+    scope: src/core/schemas/config.schema.ts
+    verifier: regex
+    autofix: false
+
+  - id: validate-after-merge
+    type: convention
+    rule: Merged config must be validated with validateConfig
+    severity: medium
+    scope: src/config/loader.ts
+    verifier: regex
+    autofix: false
+
+verification:
+  automated:
+    - check: regex
+      target: src/config/loader.ts
+      frequency: commit
+    - check: regex
+      target: src/core/schemas/config.schema.ts
+      frequency: commit

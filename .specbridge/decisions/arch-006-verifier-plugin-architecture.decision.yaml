@@ -1,0 +1,81 @@
+kind: Decision
+metadata:
+  id: arch-006
+  title: Verifier Plugin Architecture
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - architecture
+    - verifiers
+    - extensibility
+
+decision:
+  summary: All verifiers must implement the Verifier interface and register in the builtinVerifiers map
+  rationale: |-
+    A consistent verifier plugin architecture enables structured constraint verification,
+    type-safe verifier integration, dynamic verifier selection based on rule patterns,
+    and extensibility for custom verification logic.
+  context: |-
+    SpecBridge uses a verifier plugin system introduced in v1.1.0 (commit 94d6dc4).
+    All built-in verifiers implement the Verifier interface (id, name, description, verify method).
+    Verifiers are registered in the builtinVerifiers map for discovery and instantiation.
+    The selectVerifierForConstraint function auto-selects appropriate verifiers based on rule content.
+  consequences:
+    - New verifiers must implement Verifier interface
+    - All verifiers registered in builtinVerifiers
+    - Consistent violation creation via createViolation() helper
+    - Auto-selection based on rule keywords
+
+constraints:
+  - id: implement-verifier-interface
+    type: invariant
+    rule: All verifier classes must implement the Verifier interface
+    severity: critical
+    scope: src/verification/verifiers/*.ts
+    verifier: regex
+    autofix: false
+    exceptions:
+      - pattern: src/verification/verifiers/base.ts
+        reason: Defines the Verifier interface itself
+        approvedBy: core-team
+      - pattern: src/verification/verifiers/index.ts
+        reason: Registry file that imports verifiers
+        approvedBy: core-team
+
+  - id: register-in-builtin-map
+    type: invariant
+    rule: All verifiers must be registered in builtinVerifiers map in index.ts
+    severity: critical
+    scope: src/verification/verifiers/index.ts
+    verifier: regex
+    autofix: false
+
+  - id: use-create-violation-helper
+    type: convention
+    rule: Use createViolation() helper for consistent violation structure
+    severity: high
+    scope: src/verification/verifiers/*.ts
+    verifier: regex
+    autofix: false
+
+  - id: verifier-naming-convention
+    type: convention
+    rule: Verifier class names must end with "Verifier" (e.g., SecurityVerifier)
+    severity: medium
+    scope: src/verification/verifiers/*.ts
+    verifier: naming
+    autofix: false
+    exceptions:
+      - pattern: src/verification/verifiers/base.ts
+        reason: Defines base types and helpers
+        approvedBy: core-team
+
+verification:
+  automated:
+    - check: regex
+      target: src/verification/verifiers/*.ts
+      frequency: commit
+    - check: naming
+      target: src/verification/verifiers/*.ts
+      frequency: commit

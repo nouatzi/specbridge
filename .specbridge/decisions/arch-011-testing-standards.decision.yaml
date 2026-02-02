@@ -1,0 +1,80 @@
+kind: Decision
+metadata:
+  id: arch-011
+  title: Testing Infrastructure Standards
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - testing
+    - vitest
+    - coverage
+    - quality
+
+decision:
+  summary: Vitest configuration with 90%+ coverage thresholds and 3-minute timeout for unit tests
+  rationale: |-
+    Consistent testing standards ensure code quality, prevent regressions, and maintain
+    high test coverage across the codebase. Thread pool mode provides good performance
+    while maintaining test isolation.
+  context: |-
+    Testing infrastructure established in early versions with Vitest as the test runner.
+    Coverage thresholds set at: lines 90%, functions 94.5%, branches 88%, statements 90%.
+    Thread pool mode used for parallel test execution with proper isolation.
+    Test timeout set to 180000ms (3 minutes) for unit tests.
+  consequences:
+    - "All unit tests must use Vitest with pool: threads"
+    - "Coverage thresholds: lines 90%, functions 94.5%, branches 88%"
+    - "Test timeout: 180000ms (3 minutes) for unit tests"
+    - "ts-morph tests use in-memory file system"
+    - "Test helpers: setupTestProject() and cleanupTestProject()"
+
+constraints:
+  - id: vitest-thread-pool
+    type: convention
+    rule: "Vitest must use pool: threads for test execution"
+    severity: high
+    scope: vitest.config.ts
+    verifier: regex
+    autofix: false
+
+  - id: coverage-thresholds
+    type: convention
+    rule: "Coverage thresholds: lines 90%, functions 94.5%, branches 88%, statements 90%"
+    severity: high
+    scope: vitest.config.ts
+    verifier: regex
+    autofix: false
+
+  - id: test-timeout
+    type: convention
+    rule: "Unit test timeout must be 180000ms (3 minutes)"
+    severity: medium
+    scope: vitest.config.ts
+    verifier: regex
+    autofix: false
+
+  - id: ts-morph-in-memory-fs
+    type: convention
+    rule: "ts-morph tests should use Project({ useInMemoryFileSystem: true })"
+    severity: medium
+    scope: tests/**/*.test.ts
+    verifier: regex
+    autofix: false
+
+  - id: use-test-helpers
+    type: guideline
+    rule: "Use setupTestProject() and cleanupTestProject() helpers in tests"
+    severity: low
+    scope: tests/**/*.test.ts
+    verifier: regex
+    autofix: false
+
+verification:
+  automated:
+    - check: regex
+      target: vitest.config.ts
+      frequency: commit
+    - check: complexity
+      target: tests/**/*.test.ts
+      frequency: pr

@@ -1,0 +1,78 @@
+kind: Decision
+metadata:
+  id: arch-014
+  title: Violation Model Structure
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - violations
+    - model
+    - verifiers
+
+decision:
+  summary: Violations use createViolation helper with required and optional fields
+  rationale: |-
+    Consistent violation structure ensures predictable error reporting, enables
+    structured processing of violations, supports autofix generation, and provides
+    clear location information for IDE integration.
+  context: |-
+    Violation model defined in src/core/types/index.ts provides standard structure
+    for constraint violations. The createViolation helper in src/verification/verifiers/base.ts
+    ensures consistent violation creation across all verifiers.
+  consequences:
+    - "Use createViolation() helper for all violations"
+    - "Required fields: decisionId, constraintId, type, severity, message, file"
+    - "Optional fields: line, column, endLine, endColumn, suggestion, autofix"
+    - "Autofix includes description and TextEdit array"
+
+constraints:
+  - id: use-create-violation
+    type: convention
+    rule: All verifiers must use createViolation() helper to create violations
+    severity: high
+    scope: src/verification/verifiers/*.ts
+    verifier: regex
+    autofix: false
+    exceptions:
+      - pattern: src/verification/verifiers/base.ts
+        reason: Defines createViolation helper
+        approvedBy: core-team
+
+  - id: required-violation-fields
+    type: invariant
+    rule: "Violations must include: decisionId, constraintId, type, severity, message, file"
+    severity: critical
+    scope: src/verification/verifiers/*.ts
+    verifier: regex
+    autofix: false
+
+  - id: optional-location-fields
+    type: convention
+    rule: "Location fields (line, column, endLine, endColumn) are optional but recommended"
+    severity: medium
+    scope: src/verification/verifiers/*.ts
+    verifier: regex
+    autofix: false
+
+  - id: suggestion-field
+    type: guideline
+    rule: Violations should include suggestion field with actionable guidance
+    severity: low
+    scope: src/verification/verifiers/*.ts
+    verifier: regex
+    autofix: false
+
+  - id: autofix-structure
+    type: convention
+    rule: "Autofix must include description (string) and edits (TextEdit[])"
+    severity: high
+    scope: src/verification/verifiers/*.ts
+    verifier: regex
+    autofix: false
+
+verification:
+  automated:
+    - check: regex
+      target: src/verification/verifiers/*.ts
+      frequency: commit

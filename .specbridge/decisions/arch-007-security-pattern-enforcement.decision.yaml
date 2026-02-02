@@ -1,0 +1,125 @@
+kind: Decision
+metadata:
+  id: arch-007
+  title: Security Pattern Enforcement
+  status: active
+  owners:
+    - specbridge-team
+  tags:
+    - security
+    - redos
+    - injection
+    - xss
+    - sql-injection
+
+decision:
+  summary: Enforce security best practices to prevent ReDoS, shell injection, XSS, SQL injection, and prototype pollution
+  rationale: |-
+    Security vulnerabilities can lead to serious consequences including denial of service,
+    arbitrary code execution, data breaches, and compromised systems. Enforcing security
+    patterns at the architectural level prevents entire classes of vulnerabilities.
+  context: |-
+    Security fixes were introduced in v1.1.1 (commit e9b8f6d) to address code scanning alerts.
+    The SecurityVerifier was added to detect common security footguns including hardcoded secrets,
+    eval/Function constructor usage, XSS vectors, SQL injection patterns, and prototype pollution.
+  consequences:
+    - No unbounded regex quantifiers (prevents ReDoS attacks)
+    - Use execFileSync() instead of execSync() (prevents shell injection)
+    - No hardcoded secrets in code
+    - Markdown content must be sanitized
+    - No innerHTML or dangerouslySetInnerHTML usage
+    - SQL queries must use parameterized statements
+    - No __proto__ or constructor.prototype manipulation
+    - No eval() or Function() dynamic execution
+
+constraints:
+  - id: bounded-regex-quantifiers
+    type: invariant
+    rule: Regex quantifiers must be bounded (e.g., \s{1,5} not \s+) to prevent ReDoS
+    severity: critical
+    scope: src/**/*.ts
+    verifier: security
+    autofix: false
+
+  - id: no-shell-injection
+    type: invariant
+    rule: Use execFileSync() not execSync() to prevent shell injection
+    severity: critical
+    scope: src/**/*.ts
+    verifier: security
+    autofix: false
+
+  - id: no-hardcoded-secrets
+    type: invariant
+    rule: No hardcoded secrets (api_key, password, token, secret) in variables or properties
+    severity: critical
+    scope: src/**/*.ts
+    verifier: security
+    autofix: false
+    exceptions:
+      - pattern: tests/**/*.test.ts
+        reason: Test fixtures may contain dummy secrets
+        approvedBy: core-team
+        expiresAt: 2027-12-31T23:59:59Z
+
+  - id: sanitize-markdown
+    type: invariant
+    rule: Markdown content must escape special characters (\, |, [, ], *, _, `)
+    severity: high
+    scope: src/**/*.ts
+    verifier: security
+    autofix: false
+
+  - id: no-innerhtml-xss
+    type: invariant
+    rule: No innerHTML or dangerouslySetInnerHTML usage (XSS prevention)
+    severity: critical
+    scope: src/**/*.ts
+    verifier: security
+    autofix: false
+    exceptions:
+      - pattern: src/verification/verifiers/security.ts
+        reason: Security verifier needs to reference these patterns in detection logic
+        approvedBy: core-team
+
+  - id: parameterized-sql-queries
+    type: invariant
+    rule: No template strings in .query()/.execute() calls (SQL injection prevention)
+    severity: critical
+    scope: src/**/*.ts
+    verifier: security
+    autofix: false
+
+  - id: no-prototype-pollution
+    type: invariant
+    rule: No __proto__ or constructor.prototype manipulation
+    severity: critical
+    scope: src/**/*.ts
+    verifier: security
+    autofix: false
+    exceptions:
+      - pattern: src/verification/verifiers/security.ts
+        reason: Security verifier needs to reference these patterns in detection logic
+        approvedBy: core-team
+
+  - id: no-dynamic-execution
+    type: invariant
+    rule: No eval() or Function() dynamic code execution
+    severity: critical
+    scope: src/**/*.ts
+    verifier: security
+    autofix: false
+    exceptions:
+      - pattern: tests/**/*.test.ts
+        reason: Tests may need to verify eval behavior
+        approvedBy: core-team
+        expiresAt: 2027-12-31T23:59:59Z
+
+verification:
+  automated:
+    - check: security
+      target: src/**/*.ts
+      frequency: commit
+    - check: security
+      target: src/**/*.ts
+      frequency: pr

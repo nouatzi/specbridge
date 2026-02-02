@@ -257,6 +257,9 @@ specbridge report [options]
 | `-o, --output <file>` | Output file path |
 | `--save` | Save to `.specbridge/reports/` |
 | `-a, --all` | Include all decisions (not just active) |
+| `--trend` | Show compliance trend over time |
+| `--drift` | Analyze drift since last report |
+| `--days <n>` | Number of days for trend analysis (default: 30) |
 
 ### Examples
 
@@ -272,7 +275,122 @@ specbridge report --format json --save
 
 # Include draft and deprecated decisions
 specbridge report --all
+
+# Show compliance trend over 30 days
+specbridge report --trend --days 30
+
+# Analyze drift since last report
+specbridge report --drift
+
+# Combine trend and drift analysis
+specbridge report --trend --drift --days 7
 ```
+
+---
+
+## specbridge analytics
+
+Analyze compliance trends and decision impact with AI-generated insights.
+
+```bash
+specbridge analytics [decision-id] [options]
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `[decision-id]` | Specific decision to analyze (optional) |
+| `--insights` | Show AI-generated insights |
+| `--days <n>` | Number of days of history to analyze (default: 90) |
+| `-f, --format <format>` | Output format: `console`, `json` (default: `console`) |
+
+### Examples
+
+```bash
+# Overall analytics summary
+specbridge analytics
+
+# With AI-generated insights
+specbridge analytics --insights
+
+# Analyze specific decision
+specbridge analytics auth-001
+
+# Analyze last 30 days only
+specbridge analytics --days 30
+
+# JSON output
+specbridge analytics --format json
+```
+
+### Output
+
+The analytics command provides:
+- Overall compliance summary and trends
+- Top and bottom performing decisions
+- Critical issues requiring attention
+- AI-generated insights (warnings, successes, suggestions)
+- Per-decision compliance history
+- Trend classification (improving/stable/degrading)
+
+---
+
+## specbridge dashboard
+
+Launch an interactive web dashboard for real-time compliance monitoring.
+
+```bash
+specbridge dashboard [options]
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `-p, --port <port>` | Server port (default: 3000) |
+| `-h, --host <host>` | Server host (default: localhost) |
+
+### Examples
+
+```bash
+# Start dashboard on default port
+specbridge dashboard
+
+# Custom port
+specbridge dashboard --port 8080
+
+# Bind to all interfaces
+specbridge dashboard --host 0.0.0.0
+```
+
+### Features
+
+The dashboard provides:
+- **Real-time compliance score** with trend indicators
+- **30-day trend chart** using Chart.js
+- **Decision breakdown table** with sortable columns
+- **Automated insights panel** with warnings, successes, and suggestions
+- **REST API endpoints** for programmatic access
+- **Responsive design** for desktop and mobile
+
+### REST API Endpoints
+
+The dashboard server exposes these endpoints:
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/health` | Health check |
+| `GET /api/report/latest` | Latest compliance report |
+| `GET /api/report/history?days=30` | Historical reports |
+| `GET /api/report/dates` | Available report dates |
+| `GET /api/report/:date` | Report for specific date |
+| `GET /api/decisions` | All architectural decisions |
+| `GET /api/decisions/:id` | Specific decision |
+| `GET /api/analytics/summary?days=90` | Analytics summary |
+| `GET /api/analytics/decision/:id?days=90` | Decision analytics |
+| `GET /api/drift?days=2` | Drift analysis |
+| `GET /api/trend?days=30` | Trend analysis |
 
 ---
 

@@ -240,7 +240,69 @@ specbridge report --format markdown --save
 specbridge report --format json --output compliance.json
 ```
 
-## Step 7: Integrate with AI Agents
+## Step 7: Analyze Compliance Trends
+
+Track compliance over time and get AI-generated insights:
+
+```bash
+# Show compliance trend over last 30 days
+specbridge report --trend --days 30
+
+# Analyze drift since last report
+specbridge report --drift
+
+# Get detailed analytics with AI insights
+specbridge analytics --insights
+```
+
+Example analytics output:
+
+```
+=== Overall Analytics ===
+
+Summary:
+  Total Decisions: 8
+  Average Compliance: 87.5%
+  Critical Issues: 2
+  📈 Overall Trend: UP
+
+✅ Top Performing Decisions:
+  1. Error Handling Pattern: 100%
+  2. Import Conventions: 95%
+  3. Naming Standards: 92%
+
+⚠️  Decisions Needing Attention:
+  1. API Response Format: 65%
+  2. Authentication Pattern: 72%
+
+=== Insights ===
+
+⚠️  Warnings:
+  • 2 critical violation(s) require immediate attention
+    Critical violations block deployments
+
+💡 Suggestions:
+  • Consider focusing improvement efforts on these lower-performing decisions
+```
+
+## Step 8: Launch Interactive Dashboard
+
+View compliance metrics in real-time:
+
+```bash
+specbridge dashboard
+```
+
+The dashboard provides:
+- Real-time compliance score with trend indicators
+- 30-day trend chart visualization
+- Decision breakdown table
+- Automated insights panel
+- REST API for custom integrations
+
+Open your browser to `http://localhost:3000` to view the dashboard.
+
+## Step 9: Integrate with AI Agents
 
 Generate context for AI code assistants:
 
@@ -283,6 +345,8 @@ specbridge context src/api/users.ts --format json > context.json
 - Learn about [Writing Decisions](decisions-guide.md)
 - Explore [Configuration Options](configuration.md)
 - Set up [CI/CD Integration](ci-integration.md)
+- Try the [Analytics & Insights Guide](features/analytics-and-insights.md)
+- Follow the [Phase 4 Interactive Demo](demos/phase4-analytics-demo.md)
 
 ## Troubleshooting
 
@@ -305,3 +369,18 @@ Create decisions in `.specbridge/decisions/` or run `specbridge decision create`
 - Ensure `sourceRoots` in config matches your source files
 - Lower `inference.minConfidence` to see more patterns
 - Check that files aren't excluded
+
+### "No historical data available"
+
+Analytics requires at least one saved report. Generate reports with:
+```bash
+specbridge report
+```
+
+Reports are automatically saved to `.specbridge/reports/history/`.
+
+### Dashboard won't start
+
+- Check if port 3000 is already in use
+- Use a different port: `specbridge dashboard --port 8080`
+- Ensure you have network permissions

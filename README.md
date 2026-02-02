@@ -16,6 +16,8 @@ SpecBridge creates a living integration layer between design intent and implemen
 - **Verification Engine** - Continuously verifies code compliance at multiple levels
 - **Propagation Engine** - Analyzes impact when architectural decisions change
 - **Compliance Reporting** - Provides dashboards and tracks conformity over time
+- **Analytics & Insights** - AI-generated insights, drift detection, and trend analysis
+- **Interactive Dashboard** - Real-time compliance monitoring with visual charts
 - **Agent Interface** - Exposes decisions to code generation agents (Copilot, Claude, etc.)
 
 ## Installation
@@ -92,7 +94,31 @@ specbridge report
 specbridge report --format markdown --save
 ```
 
-### 6. Integrate with AI agents
+Track compliance trends over time:
+```bash
+specbridge report --trend --days 30
+specbridge report --drift
+```
+
+### 6. Analyze compliance with AI insights
+
+```bash
+specbridge analytics
+specbridge analytics --insights
+specbridge analytics auth-001
+```
+
+Get AI-generated insights about compliance trends, violations, and decision impact.
+
+### 7. Launch interactive dashboard
+
+```bash
+specbridge dashboard
+```
+
+Open your browser to view real-time compliance metrics, trend charts, and insights.
+
+### 8. Integrate with AI agents
 
 ```bash
 specbridge context src/api/auth.ts
@@ -222,6 +248,11 @@ verification:
 | `specbridge decision create <id>` | Create new decision |
 | `specbridge decision validate` | Validate decision files |
 | `specbridge report` | Generate compliance report |
+| `specbridge report --trend` | Show compliance trends over time |
+| `specbridge report --drift` | Analyze drift since last report |
+| `specbridge analytics` | Analyze compliance with AI insights |
+| `specbridge analytics <id>` | Analyze specific decision |
+| `specbridge dashboard` | Launch interactive web dashboard |
 | `specbridge hook install` | Install git hooks |
 | `specbridge hook run` | Run verification (for hooks) |
 | `specbridge context <file>` | Generate agent context |

@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-02-02
+
+### Documentation
+
+#### Dogfooding Expansion
+
+- **📚 Expanded Architectural Decisions** - Added 10 new decision files
+  - `arch-006`: Verifier Plugin Architecture - Base interface and registry pattern
+  - `arch-007`: Security Pattern Enforcement - ReDoS, XSS, SQL injection prevention
+  - `arch-008`: Autofix TextEdit Offset Model - 0-based byte offsets with descending sort
+  - `arch-009`: Server Integration Options Pattern - LSP/MCP lazy initialization
+  - `arch-010`: Configuration Merging Strategy - Recursive merge for nested objects
+  - `arch-011`: Testing Infrastructure Standards - Vitest with 90%+ coverage thresholds
+  - `arch-012`: Scope Matching Logic - Centralized applicability checking
+  - `arch-013`: Agent Context Format Conventions - Emoji icons and multiple formats
+  - `arch-014`: Violation Model Structure - createViolation helper usage
+  - `arch-015`: Verifier Extension Stability - API stability guarantees
+
+- **📊 Compliance Achievement**
+  - Expanded dogfooding from 5 to 15 active architectural decisions
+  - 54 total constraints (up from 7)
+  - 100% compliance across codebase
+  - Documents all patterns introduced in v1.1.0
+
+- **📖 Updated Documentation**
+  - Updated `docs/dogfooding-guide.md` with all 15 decisions
+  - Updated integration tests to verify all 15 decisions
+  - Comprehensive decision coverage for verifiers, security, autofix, servers, and testing
+
+### Testing
+
+- ✅ All 893 tests passing
+- ✅ Commit-level verification < 5 seconds
+- ✅ 100% architectural compliance
+
 ## [1.1.1] - 2026-02-01
 
 ### Security

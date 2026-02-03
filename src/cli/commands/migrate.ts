@@ -229,7 +229,7 @@ async function migrateDecisions(cwd: string, dryRun: boolean): Promise<number> {
     // Migrate: Convert verifier field to check block
     // This is a simple regex-based migration
     // Pattern: "  verifier: <name>" → "  check:\n    verifier: <name>"
-    let migratedContent = content.replace(
+    const migratedContent = content.replace(
       /^(\s+)verifier:\s+(\S+)$/gm,
       '$1check:\n$1  verifier: $2'
     );

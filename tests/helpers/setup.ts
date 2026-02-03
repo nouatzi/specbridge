@@ -133,11 +133,51 @@ decision:
 constraints:
 ${merged.constraints
   .map(
-    (c: any) => `  - id: ${c.id}
-    type: ${c.type}
-    rule: ${c.rule}
-    severity: ${c.severity}
-    scope: "${c.scope}"`
+    (c: any) => {
+      const lines: string[] = [];
+      lines.push(`  - id: ${c.id}`);
+      lines.push(`    type: ${c.type}`);
+      lines.push(`    rule: ${c.rule}`);
+      lines.push(`    severity: ${c.severity}`);
+      lines.push(`    scope: "${c.scope}"`);
+
+      if (c.verifier) {
+        lines.push(`    verifier: ${c.verifier}`);
+      }
+
+      if (c.check?.verifier) {
+        lines.push(`    check:`);
+        lines.push(`      verifier: ${c.check.verifier}`);
+        if (c.check.params && typeof c.check.params === 'object' && Object.keys(c.check.params).length > 0) {
+          lines.push(`      params:`);
+          for (const [key, value] of Object.entries(c.check.params)) {
+            const rendered =
+              typeof value === 'string'
+                ? JSON.stringify(value)
+                : typeof value === 'number' || typeof value === 'boolean'
+                  ? String(value)
+                  : JSON.stringify(value);
+            lines.push(`        ${key}: ${rendered}`);
+          }
+        }
+      }
+
+      if (typeof c.autofix === 'boolean') {
+        lines.push(`    autofix: ${c.autofix}`);
+      }
+
+      if (Array.isArray(c.exceptions) && c.exceptions.length > 0) {
+        lines.push(`    exceptions:`);
+        for (const ex of c.exceptions) {
+          lines.push(`      - pattern: ${JSON.stringify(ex.pattern)}`);
+          lines.push(`        reason: ${JSON.stringify(ex.reason)}`);
+          if (ex.approvedBy) lines.push(`        approvedBy: ${JSON.stringify(ex.approvedBy)}`);
+          if (ex.expiresAt) lines.push(`        expiresAt: ${JSON.stringify(ex.expiresAt)}`);
+        }
+      }
+
+      return lines.join('\n');
+    }
   )
   .join('\n')}
 

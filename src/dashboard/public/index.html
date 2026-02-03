@@ -318,50 +318,85 @@
 
       useEffect(() => {
         if (history.length > 0) {
-          renderChart();
+          // Small delay to ensure canvas is fully mounted
+          const timer = setTimeout(() => {
+            renderChart();
+          }, 100);
+          return () => clearTimeout(timer);
         }
       }, [history]);
 
       function renderChart() {
         const ctx = document.getElementById('complianceChart');
-        if (!ctx) return;
+        if (!ctx) {
+          console.warn('Chart canvas not found');
+          return;
+        }
 
-        // Destroy existing chart
-        const existing = Chart.getChart(ctx);
-        if (existing) existing.destroy();
+        try {
+          // Destroy existing chart
+          const existing = Chart.getChart(ctx);
+          if (existing) {
+            existing.destroy();
+          }
 
-        // Sort history by date
-        const sorted = [...history].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+          // Sort history by date
+          const sorted = [...history].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
-        new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: sorted.map(h => h.timestamp),
-            datasets: [{
-              label: 'Compliance %',
-              data: sorted.map(h => h.report.summary.compliance),
-              borderColor: '#667eea',
-              backgroundColor: 'rgba(102, 126, 234, 0.1)',
-              tension: 0.4,
-              fill: true,
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                display: false,
-              },
+          // Format dates for better readability
+          const formatDate = (timestamp) => {
+            const date = new Date(timestamp);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          };
+
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: sorted.map(h => formatDate(h.timestamp)),
+              datasets: [{
+                label: 'Compliance %',
+                data: sorted.map(h => h.report.summary.compliance),
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+              }]
             },
-            scales: {
-              y: {
-                beginAtZero: true,
-                max: 100,
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: false,
+                },
+                tooltip: {
+                  callbacks: {
+                    label: (context) => `Compliance: ${context.parsed.y}%`
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 100,
+                  ticks: {
+                    callback: (value) => value + '%'
+                  }
+                },
+                x: {
+                  ticks: {
+                    maxRotation: 45,
+                    minRotation: 45
+                  }
+                }
               }
             }
-          }
-        });
+          });
+        } catch (error) {
+          console.error('Failed to render chart:', error);
+        }
       }
 
       if (loading) {

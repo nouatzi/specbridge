@@ -1,4 +1,6 @@
 import { defineConfig, Options } from 'tsup';
+import { copyFileSync, mkdirSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
 
 export default defineConfig({
   entry: {
@@ -19,6 +21,28 @@ export default defineConfig({
           ? '#!/usr/bin/env node'
           : '',
       };
+    }
+  },
+  async onSuccess() {
+    // Copy dashboard static files
+    // Note: Because tsup bundles everything into dist/cli.js,
+    // __dirname in the bundled code points to dist/, not dist/dashboard/
+    // So we copy to dist/public/ to match the runtime path resolution
+    const srcPublic = 'src/dashboard/public';
+    const distPublic = 'dist/public';
+
+    if (existsSync(srcPublic)) {
+      // Create directory if it doesn't exist
+      mkdirSync(distPublic, { recursive: true });
+
+      // Copy index.html
+      const srcFile = join(srcPublic, 'index.html');
+      const distFile = join(distPublic, 'index.html');
+
+      if (existsSync(srcFile)) {
+        copyFileSync(srcFile, distFile);
+        console.log('✓ Copied dashboard static files to dist/public/');
+      }
     }
   },
 });

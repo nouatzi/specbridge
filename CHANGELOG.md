@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-02-03
+
+### Fixed
+- **Dashboard Chart.js rendering**: Fixed chart initialization timing issue by adding 100ms delay to ensure canvas element is fully mounted before rendering
+- **Build process**: Configured tsup to automatically copy dashboard static files (`src/dashboard/public/`) to `dist/public/` during build
+- **Chart enhancements**: Added better error handling, formatted date labels, tooltips, and improved visual styling for compliance trend chart
+
+### Changed
+- **Build output**: Dashboard static files now automatically included in build output without manual intervention
+- **.gitignore**: Added `.playwright-mcp/` and `.specbridge/reports/history/` to ignore test and runtime artifacts
+
 ## [1.2.0] - 2026-02-03
 
 ### Phase 4: Analytics & Insights

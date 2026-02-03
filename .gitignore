@@ -31,6 +31,12 @@ npm-debug.log*
 *.temp
 .cache/
 
+# Test artifacts
+.playwright-mcp/
+
+# Runtime artifacts
+.specbridge/reports/history/
+
 # Package lock (prefer package-lock.json)
 yarn.lock
 pnpm-lock.yaml

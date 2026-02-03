@@ -51,15 +51,24 @@ export function getVerifierIds(): string[] {
 }
 
 /**
- * Select appropriate verifier based on constraint rule
+ * Select appropriate verifier based on constraint
  */
-export function selectVerifierForConstraint(rule: string, specifiedVerifier?: string): Verifier | null {
-  // If verifier is explicitly specified, use it
+export function selectVerifierForConstraint(
+  rule: string,
+  specifiedVerifier?: string,
+  check?: { verifier: string; params?: Record<string, unknown> }
+): Verifier | null {
+  // Priority 1: Use check block verifier if present (new structured format)
+  if (check?.verifier) {
+    return getVerifier(check.verifier);
+  }
+
+  // Priority 2: Use legacy verifier field if specified
   if (specifiedVerifier) {
     return getVerifier(specifiedVerifier);
   }
 
-  // Auto-select based on rule content
+  // Priority 3: Auto-select based on rule content
   const lowerRule = rule.toLowerCase();
 
   if (lowerRule.includes('dependency') || lowerRule.includes('circular dependenc') || lowerRule.includes('import depth') || (lowerRule.includes('layer') && lowerRule.includes('depend on'))) {

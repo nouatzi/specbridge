@@ -42,6 +42,24 @@ export interface DecisionContent {
 }
 
 /**
+ * Exception to a constraint
+ */
+export interface ConstraintException {
+  pattern: string;
+  reason: string;
+  approvedBy?: string;
+  expiresAt?: string;
+}
+
+/**
+ * Structured verifier check specification
+ */
+export interface ConstraintCheck {
+  verifier: string;
+  params?: Record<string, unknown>;
+}
+
+/**
  * A single constraint within a decision
  */
 export interface Constraint {
@@ -51,18 +69,9 @@ export interface Constraint {
   severity: Severity;
   scope: string;
   verifier?: string;
+  check?: ConstraintCheck;
   autofix?: boolean;
   exceptions?: ConstraintException[];
-}
-
-/**
- * Exception to a constraint
- */
-export interface ConstraintException {
-  pattern: string;
-  reason: string;
-  approvedBy?: string;
-  expiresAt?: string;
 }
 
 /**
@@ -187,6 +196,29 @@ export interface LevelConfig {
 }
 
 /**
+ * Warning during verification (non-blocking)
+ */
+export interface VerificationWarning {
+  type: 'missing_verifier' | 'invalid_pattern' | 'other';
+  message: string;
+  decisionId: string;
+  constraintId: string;
+  file?: string;
+}
+
+/**
+ * Error during verification (continued after error)
+ */
+export interface VerificationIssue {
+  type: 'verifier_exception' | 'file_read_error' | 'other';
+  message: string;
+  decisionId?: string;
+  constraintId?: string;
+  file?: string;
+  stack?: string;
+}
+
+/**
  * Result of a verification run
  */
 export interface VerificationResult {
@@ -197,6 +229,8 @@ export interface VerificationResult {
   failed: number;
   skipped: number;
   duration: number;
+  warnings?: VerificationWarning[];
+  errors?: VerificationIssue[];
 }
 
 /**

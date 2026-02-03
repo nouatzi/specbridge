@@ -43,6 +43,12 @@ export const ConstraintExceptionSchema = z.object({
   expiresAt: z.string().datetime().optional(),
 });
 
+// Constraint check (structured verifier specification)
+export const ConstraintCheckSchema = z.object({
+  verifier: z.string().min(1),
+  params: z.record(z.unknown()).optional(),
+});
+
 // Single constraint
 export const ConstraintSchema = z.object({
   id: z.string().min(1).regex(/^[a-z0-9-]+$/, 'Constraint ID must be lowercase alphanumeric with hyphens'),
@@ -51,6 +57,7 @@ export const ConstraintSchema = z.object({
   severity: SeveritySchema,
   scope: z.string().min(1),
   verifier: z.string().optional(),
+  check: ConstraintCheckSchema.optional(),
   autofix: z.boolean().optional(),
   exceptions: z.array(ConstraintExceptionSchema).optional(),
 });
@@ -90,6 +97,7 @@ export type VerificationFrequencySchema_ = z.infer<typeof VerificationFrequencyS
 export type DecisionMetadataSchema_ = z.infer<typeof DecisionMetadataSchema>;
 export type DecisionContentSchema_ = z.infer<typeof DecisionContentSchema>;
 export type ConstraintExceptionSchema_ = z.infer<typeof ConstraintExceptionSchema>;
+export type ConstraintCheckSchema_ = z.infer<typeof ConstraintCheckSchema>;
 export type ConstraintSchema_ = z.infer<typeof ConstraintSchema>;
 export type VerificationConfigSchema_ = z.infer<typeof VerificationConfigSchema>;
 export type DecisionTypeSchema = z.infer<typeof DecisionSchema>;

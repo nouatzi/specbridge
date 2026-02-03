@@ -10,6 +10,7 @@ import { getChangedFiles } from '../../verification/incremental.js';
 import { loadConfig } from '../../config/loader.js';
 import { pathExists, getSpecBridgeDir } from '../../utils/fs.js';
 import { NotInitializedError } from '../../core/errors/index.js';
+import { ExplainReporter } from '../../verification/explain.js';
 import type { Violation, VerificationLevel, Severity } from '../../core/types/index.js';
 
 interface VerifyOptions {
@@ -22,6 +23,7 @@ interface VerifyOptions {
   dryRun?: boolean;
   interactive?: boolean;
   incremental?: boolean;
+  explain?: boolean;
 }
 
 export const verifyCommand = new Command('verify')
@@ -32,6 +34,7 @@ export const verifyCommand = new Command('verify')
   .option('-s, --severity <levels>', 'Comma-separated severity levels (critical, high, medium, low)')
   .option('--json', 'Output as JSON')
   .option('--incremental', 'Only verify changed files (git diff --name-only --diff-filter=AM HEAD)')
+  .option('--explain', 'Show detailed explanation of verification process')
   .option('--fix', 'Apply auto-fixes for supported violations')
   .option('--dry-run', 'Show what would be fixed without applying (requires --fix)')
   .option('--interactive', 'Confirm each fix interactively (requires --fix)')
@@ -62,6 +65,9 @@ export const verifyCommand = new Command('verify')
 
       spinner.text = `Running ${level}-level verification...`;
 
+      // Create explain reporter if requested
+      const reporter = options.explain ? new ExplainReporter() : undefined;
+
       // Run verification
       const engine = createVerificationEngine();
       let result = await engine.verify(config, {
@@ -70,6 +76,7 @@ export const verifyCommand = new Command('verify')
         decisions,
         severity,
         cwd,
+        reporter,
       });
 
       // Apply auto-fixes (optional)
@@ -108,6 +115,33 @@ export const verifyCommand = new Command('verify')
       if (options.json) {
         console.log(JSON.stringify({ ...result, autofix: fixResult }, null, 2));
       } else {
+        // Display warnings and errors first
+        if (result.warnings && result.warnings.length > 0) {
+          console.log(chalk.yellow.bold('\nWarnings:'));
+          for (const warning of result.warnings) {
+            console.log(chalk.yellow(`  ⚠ ${warning.message}`));
+            console.log(chalk.dim(`    ${warning.decisionId}/${warning.constraintId}`));
+            if (warning.file) {
+              console.log(chalk.dim(`    File: ${warning.file}`));
+            }
+          }
+          console.log('');
+        }
+
+        if (result.errors && result.errors.length > 0) {
+          console.log(chalk.red.bold('\nErrors:'));
+          for (const error of result.errors) {
+            console.log(chalk.red(`  ✗ ${error.message}`));
+            if (error.decisionId && error.constraintId) {
+              console.log(chalk.dim(`    ${error.decisionId}/${error.constraintId}`));
+            }
+            if (error.file) {
+              console.log(chalk.dim(`    File: ${error.file}`));
+            }
+          }
+          console.log('');
+        }
+
         printResult(result, level);
 
         if (options.fix && fixResult) {
@@ -116,6 +150,11 @@ export const verifyCommand = new Command('verify')
             console.log(chalk.yellow(`⊘ Skipped ${fixResult.skipped} fix(es)`));
           }
           console.log('');
+        }
+
+        // Print explanation if requested
+        if (options.explain && reporter) {
+          reporter.print();
         }
       }
 

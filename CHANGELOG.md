@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-02-03
+
+### Phase 5: Foundational Trust & Propagation (v1.3 - Non-Breaking)
+
+### Added
+
+#### Structured Constraints
+- **Machine-readable constraint specification**: New optional `check` block in constraints with `verifier` and `params` fields
+- **Backward compatibility**: Legacy `verifier` field continues to work; `check` block takes priority when present
+- **Type-safe parameters**: Structured parameters passed to verifiers, validated by Zod schema
+- **Better verifier selection**: Three-tier priority system - check.verifier → verifier field → auto-detection
+
+#### Verification Debuggability
+- **--explain mode**: New `specbridge verify --explain` flag shows detailed verification trace
+- **Constraint application tracking**: See which constraints applied/skipped for each file and why
+- **Verifier selection visibility**: Shows which verifier was selected and why
+- **Execution metrics**: Displays violation count and execution time per constraint
+- **Error transparency**: Failed verifications show full error details in explanation
+
+#### Stop Silent Failures
+- **Warning system**: Missing verifiers now log warnings with available alternatives
+- **Error reporting**: Verifier exceptions logged with full stack traces
+- **Structured diagnostics**: `VerificationResult` includes `warnings` and `errors` arrays
+- **CLI output**: Warnings and errors displayed before summary with proper formatting
+- **Non-blocking errors**: Verification continues after errors instead of silently stopping
+
+#### Propagation Exposure
+- **Impact analysis command**: New `specbridge impact <decision-id>` command
+- **Change type support**: Analyze created, modified, or deprecated decisions
+- **Affected files tracking**: Shows all files impacted with violation counts
+- **Auto-fix detection**: Identifies which violations can be automatically fixed
+- **Migration planning**: Generated step-by-step migration plans (automated vs manual)
+- **Effort estimation**: Calculates low/medium/high effort based on violation complexity
+- **JSON output**: Machine-readable format via `--json` flag
+
+### Changed
+- **VerificationResult interface**: Added optional `warnings` and `errors` fields
+- **VerificationEngine**: Enhanced error handling with detailed logging
+- **Verifier selection**: Updated priority system to support structured check blocks
+
+### Documentation
+- **Decision format**: Updated with new `check` block format examples
+- **CLI help**: Enhanced with new --explain option documentation
+
+### Tests
+- **18 new tests**: Added comprehensive test coverage for v1.3 features
+  - ConstraintCheckSchema validation tests
+  - ExplainReporter functionality tests
+  - Impact command integration tests
+- **969 total tests passing**: All existing tests continue to pass
+
+### Migration Notes
+- **No breaking changes**: All existing decision files work without modification
+- **Optional adoption**: New features can be adopted incrementally
+- **Forward compatible**: Decisions with `check` blocks validate successfully
+
 ## [1.2.1] - 2026-02-03
 
 ### Fixed

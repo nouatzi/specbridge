@@ -2,6 +2,7 @@
  * Verification Engine - Orchestrates constraint checking
  */
 import { Project } from 'ts-morph';
+import chalk from 'chalk';
 import type {
   Violation,
   VerificationResult,
@@ -9,12 +10,15 @@ import type {
   Severity,
   SpecBridgeConfig,
   Decision,
+  VerificationWarning,
+  VerificationIssue,
 } from '../core/types/index.js';
 import { createRegistry, type Registry } from '../registry/registry.js';
-import { selectVerifierForConstraint, type VerificationContext } from './verifiers/index.js';
+import { selectVerifierForConstraint, getVerifierIds, type VerificationContext } from './verifiers/index.js';
 import { glob } from '../utils/glob.js';
 import { AstCache } from './cache.js';
 import { shouldApplyConstraintToFile } from './applicability.js';
+import { ExplainReporter } from './explain.js';
 
 export interface VerificationOptions {
   level?: VerificationLevel;
@@ -23,6 +27,7 @@ export interface VerificationOptions {
   severity?: Severity[];
   timeout?: number;
   cwd?: string;
+  reporter?: ExplainReporter;
 }
 
 /**
@@ -95,11 +100,15 @@ export class VerificationEngine {
         failed: 0,
         skipped: 0,
         duration: Date.now() - startTime,
+        warnings: [],
+        errors: [],
       };
     }
 
-    // Collect all violations
+    // Collect all violations, warnings, and errors
     const allViolations: Violation[] = [];
+    const allWarnings: VerificationWarning[] = [];
+    const allErrors: VerificationIssue[] = [];
     let checked = 0;
     let passed = 0;
     let failed = 0;
@@ -118,8 +127,11 @@ export class VerificationEngine {
       decisions,
       severityFilter,
       cwd,
-      (violations) => {
+      options.reporter,
+      (violations, warnings, errors) => {
         allViolations.push(...violations);
+        allWarnings.push(...warnings);
+        allErrors.push(...errors);
         checked++;
         if (violations.length > 0) {
           failed++;
@@ -142,6 +154,8 @@ export class VerificationEngine {
           failed,
           skipped: filesToVerify.length - checked,
           duration: timeout,
+          warnings: allWarnings,
+          errors: allErrors,
         };
       }
     } finally {
@@ -171,6 +185,8 @@ export class VerificationEngine {
       failed,
       skipped,
       duration: Date.now() - startTime,
+      warnings: allWarnings,
+      errors: allErrors,
     };
   }
 
@@ -181,24 +197,72 @@ export class VerificationEngine {
     filePath: string,
     decisions: Decision[],
     severityFilter?: Severity[],
-    cwd: string = process.cwd()
-  ): Promise<Violation[]> {
+    cwd: string = process.cwd(),
+    reporter?: ExplainReporter
+  ): Promise<{ violations: Violation[]; warnings: VerificationWarning[]; errors: VerificationIssue[] }> {
     const violations: Violation[] = [];
+    const warnings: VerificationWarning[] = [];
+    const errors: VerificationIssue[] = [];
 
     const sourceFile = await this.astCache.get(filePath, this.project);
-    if (!sourceFile) return violations;
+    if (!sourceFile) return { violations, warnings, errors };
 
     // Check each decision's constraints
     for (const decision of decisions) {
       for (const constraint of decision.constraints) {
         // Check if file matches constraint scope
         if (!shouldApplyConstraintToFile({ filePath, constraint, cwd, severityFilter })) {
+          // Track skipped constraint in reporter
+          if (reporter) {
+            reporter.add({
+              file: filePath,
+              decision,
+              constraint,
+              applied: false,
+              reason: 'File does not match scope pattern or severity filter',
+            });
+          }
           continue;
         }
 
         // Get appropriate verifier
-        const verifier = selectVerifierForConstraint(constraint.rule, constraint.verifier);
+        const verifier = selectVerifierForConstraint(
+          constraint.rule,
+          constraint.verifier,
+          constraint.check
+        );
+
         if (!verifier) {
+          // Determine what was requested
+          const requestedVerifier = constraint.check?.verifier || constraint.verifier || 'auto-detected';
+
+          console.warn(
+            chalk.yellow(
+              `Warning: No verifier found for ${decision.metadata.id}/${constraint.id}\n` +
+              `  Requested: ${requestedVerifier}\n` +
+              `  Available: ${getVerifierIds().join(', ')}`
+            )
+          );
+
+          warnings.push({
+            type: 'missing_verifier',
+            message: `No verifier found for constraint (requested: ${requestedVerifier})`,
+            decisionId: decision.metadata.id,
+            constraintId: constraint.id,
+            file: filePath,
+          });
+
+          // Track in reporter
+          if (reporter) {
+            reporter.add({
+              file: filePath,
+              decision,
+              constraint,
+              applied: false,
+              reason: `No verifier found (requested: ${requestedVerifier})`,
+            });
+          }
+
           continue;
         }
 
@@ -210,16 +274,73 @@ export class VerificationEngine {
           decisionId: decision.metadata.id,
         };
 
+        const verificationStart = Date.now();
         try {
           const constraintViolations = await verifier.verify(ctx);
           violations.push(...constraintViolations);
-        } catch {
-          // Verifier failed, skip
+
+          // Track successful verification in reporter
+          if (reporter) {
+            reporter.add({
+              file: filePath,
+              decision,
+              constraint,
+              applied: true,
+              reason: 'Constraint matches file scope',
+              selectedVerifier: verifier.id,
+              verifierOutput: {
+                violations: constraintViolations.length,
+                duration: Date.now() - verificationStart,
+              },
+            });
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          const errorStack = error instanceof Error ? error.stack : undefined;
+
+          console.error(
+            chalk.red(
+              `Error: Verifier '${verifier.id}' failed\n` +
+              `  File: ${filePath}\n` +
+              `  Decision: ${decision.metadata.id}/${constraint.id}\n` +
+              `  Error: ${errorMessage}`
+            )
+          );
+
+          if (errorStack) {
+            console.error(chalk.dim(errorStack));
+          }
+
+          errors.push({
+            type: 'verifier_exception',
+            message: `Verifier '${verifier.id}' failed: ${errorMessage}`,
+            decisionId: decision.metadata.id,
+            constraintId: constraint.id,
+            file: filePath,
+            stack: errorStack,
+          });
+
+          // Track failed verification in reporter
+          if (reporter) {
+            reporter.add({
+              file: filePath,
+              decision,
+              constraint,
+              applied: true,
+              reason: 'Constraint matches file scope',
+              selectedVerifier: verifier.id,
+              verifierOutput: {
+                violations: 0,
+                duration: Date.now() - verificationStart,
+                error: errorMessage,
+              },
+            });
+          }
         }
       }
     }
 
-    return violations;
+    return { violations, warnings, errors };
   }
 
   /**
@@ -230,17 +351,18 @@ export class VerificationEngine {
     decisions: Decision[],
     severityFilter: Severity[] | undefined,
     cwd: string,
-    onFileVerified: (violations: Violation[]) => void
+    reporter: ExplainReporter | undefined,
+    onFileVerified: (violations: Violation[], warnings: VerificationWarning[], errors: VerificationIssue[]) => void
   ): Promise<void> {
     const BATCH_SIZE = 10;
     for (let i = 0; i < files.length; i += BATCH_SIZE) {
       const batch = files.slice(i, i + BATCH_SIZE);
       const results = await Promise.all(
-        batch.map(file => this.verifyFile(file, decisions, severityFilter, cwd))
+        batch.map(file => this.verifyFile(file, decisions, severityFilter, cwd, reporter))
       );
 
-      for (const violations of results) {
-        onFileVerified(violations);
+      for (const result of results) {
+        onFileVerified(result.violations, result.warnings, result.errors);
       }
     }
   }

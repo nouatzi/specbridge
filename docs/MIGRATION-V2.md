@@ -356,7 +356,7 @@ Yes, if you use the dashboard API programmatically. CLI usage unchanged.
 
 ### How do I create custom verifiers?
 
-See [Plugin Development Guide](./PLUGIN-DEVELOPMENT.md).
+See [Plugin Development Guide](./PLUGIN-DEVELOPMENT.md). New in v2.0.1: Custom verifiers can now define `paramsSchema` for type-safe parameter validation.
 
 ### Can I migrate incrementally?
 

@@ -310,6 +310,13 @@ constraints:
 ### Plugin Development
 ```typescript
 import { defineVerifierPlugin, type Verifier } from '@ipation/specbridge';
+import { z } from 'zod';
+
+// Define parameter schema for type-safe validation (NEW in v2.0.1)
+const ParamsSchema = z.object({
+  threshold: z.number().min(0).max(100),
+  pattern: z.string().optional(),
+});
 
 export default defineVerifierPlugin({
   metadata: {
@@ -318,9 +325,11 @@ export default defineVerifierPlugin({
     author: 'Your Name',
   },
   createVerifier: () => new MyVerifier(),
-  paramsSchema: z.object({ /* ... */ }),
+  paramsSchema: ParamsSchema,  // Validates constraint.check.params at runtime
 });
 ```
+
+**NEW in v2.0.1:** The `paramsSchema` field enables runtime validation of `constraint.check.params` using Zod schemas. If params don't match the schema, verification will generate a warning instead of throwing an error.
 
 ### Cache Management
 ```typescript

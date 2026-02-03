@@ -1,6 +1,6 @@
 {
   "name": "@ipation/specbridge",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Architecture Decision Runtime - Transform architectural decisions into executable, verifiable constraints",
   "type": "module",
   "main": "./dist/index.js",

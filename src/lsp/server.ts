@@ -12,6 +12,7 @@ import { createRegistry, type Registry } from '../registry/registry.js';
 import { getSpecBridgeDir, pathExists } from '../utils/fs.js';
 import { selectVerifierForConstraint, type VerificationContext } from '../verification/verifiers/index.js';
 import { shouldApplyConstraintToFile } from '../verification/applicability.js';
+import { getPluginLoader } from '../verification/plugins/loader.js';
 import type { Decision, Violation, Severity } from '../core/types/index.js';
 import { NotInitializedError } from '../core/errors/index.js';
 
@@ -153,6 +154,15 @@ export class SpecBridgeLspServer {
 
     try {
       const config = await loadConfig(this.cwd);
+
+      // Load custom verifier plugins (best-effort). This must not write to stdout.
+      try {
+        await getPluginLoader().loadPlugins(this.cwd);
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        if (this.options.verbose) this.connection.console.error(chalk.red(`Plugin load failed: ${msg}`));
+      }
+
       this.registry = createRegistry({ basePath: this.cwd });
       await this.registry.load();
       this.decisions = this.registry.getActive();
@@ -192,7 +202,7 @@ export class SpecBridgeLspServer {
       for (const constraint of decision.constraints) {
         if (!shouldApplyConstraintToFile({ filePath, constraint, cwd: this.cwd })) continue;
 
-        const verifier = selectVerifierForConstraint(constraint.rule, constraint.verifier);
+        const verifier = selectVerifierForConstraint(constraint.rule, constraint.verifier, constraint.check);
         if (!verifier) continue;
 
         const ctx: VerificationContext = {

@@ -22,11 +22,24 @@ describe('Custom Verifiers Integration', () => {
     clearVerifierPool();
 
     config = {
-      version: 1,
+      version: '1.0',
       project: {
         name: 'test-project',
-        root: testDir,
+        sourceRoots: ['src/**/*.ts', 'src/**/*.tsx'],
+        exclude: ['**/*.test.ts', '**/*.spec.ts', '**/node_modules/**', '**/dist/**'],
       },
+      inference: {
+        minConfidence: 70,
+        analyzers: ['naming', 'structure', 'imports', 'errors'],
+      },
+      verification: {
+        levels: {
+          commit: { timeout: 5000, severity: ['critical'] },
+          pr: { timeout: 60000, severity: ['critical', 'high'] },
+          full: { timeout: 300000, severity: ['critical', 'high', 'medium', 'low'] },
+        },
+      },
+      agent: { format: 'markdown', includeRationale: true },
     };
   });
 

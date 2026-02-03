@@ -53,7 +53,8 @@ export class PluginLoader {
 
     // Log summary
     if (this.plugins.size > 0) {
-      console.log(`Loaded ${this.plugins.size} custom verifier(s)`);
+      // Important: keep protocol-based integrations (LSP/MCP stdio) safe by logging to stderr.
+      console.error(`Loaded ${this.plugins.size} custom verifier(s)`);
     }
     if (this.loadErrors.length > 0) {
       console.warn(`Failed to load ${this.loadErrors.length} plugin(s)`);

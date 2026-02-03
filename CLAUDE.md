@@ -28,10 +28,10 @@ Stores validated architectural decisions in a versioned, structured format. Deci
 
 ### 3. Verification Engine
 Continuously verifies code compliance at multiple levels:
-- **Lint-time**: IDE warnings on save
+- **Lint-time**: IDE warnings on save (via LSP server)
 - **Commit-time**: Pre-commit hooks (< 5s checks)
 - **PR-time**: Full CI/CD verification
-- **Runtime**: Production monitoring and alerts
+- **Runtime**: Production monitoring and alerts (_planned feature_)
 
 ### 4. Propagation Engine
 Analyzes impact when architectural decisions change. Builds a dependency graph, calculates necessary changes, and generates migration plans with effort estimates.
@@ -144,6 +144,30 @@ DRAFT → ACTIVE → DEPRECATED → SUPERSEDED
 ```
 
 Deprecated decisions issue warnings but don't block. Superseded decisions point to their replacement.
+
+## Implementation Status
+
+SpecBridge v2.0 has fully implemented all core components:
+
+### ✅ Implemented & Production-Ready
+- **Inference Engine**: Pattern extraction from existing code (src/inference/)
+- **Registry**: Decision storage and versioning (src/registry/)
+- **Verification Engine**: Multi-level constraint checking (src/verification/)
+  - Lint-time via LSP server (src/lsp/)
+  - Commit-time via hooks (src/cli/commands/hook.ts)
+  - PR-time via CI integration
+- **Propagation Engine**: Impact analysis for decision changes (src/propagation/)
+- **Reporting & Alerts**: Compliance dashboards and reports (src/reporting/, src/dashboard/)
+- **Agent Interface**: Context generation for AI tools (src/agent/, src/mcp/)
+- **Plugin System**: Custom verifier extensibility (src/verification/plugins/)
+
+### 🔨 Planned Features
+- **Runtime Monitoring**: Production alerts and real-time compliance tracking
+- **Visual Decision Designer**: GUI for creating and editing decisions
+- **Plugin Marketplace**: Centralized repository for sharing custom verifiers
+- **Advanced Sandboxing**: Isolated execution environment for untrusted plugins
+
+For the most up-to-date implementation status, see [CHANGELOG-v2.0.md](../CHANGELOG-v2.0.md).
 
 ## Language and Localization
 

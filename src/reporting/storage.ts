@@ -82,6 +82,7 @@ export class ReportStorage {
 
   /**
    * Load historical reports for the specified number of days
+   * Uses parallel I/O for better performance
    */
   async loadHistory(days: number = 30): Promise<StoredReport[]> {
     if (!await pathExists(this.storageDir)) {
@@ -99,22 +100,25 @@ export class ReportStorage {
     // Take only the requested number of days
     const recentFiles = reportFiles.slice(0, days);
 
-    // Load all reports
-    const reports: StoredReport[] = [];
-    for (const file of recentFiles) {
+    // Load all reports in parallel
+    const reportPromises = recentFiles.map(async (file) => {
       try {
         const content = await readTextFile(join(this.storageDir, file));
         const report = JSON.parse(content) as ComplianceReport;
         const timestamp = file.replace('report-', '').replace('.json', '');
 
-        reports.push({ timestamp, report });
+        return { timestamp, report } as StoredReport;
       } catch (error) {
         // Skip corrupted files
         console.warn(`Warning: Failed to load report ${file}:`, error);
+        return null;
       }
-    }
+    });
 
-    return reports;
+    const results = await Promise.all(reportPromises);
+
+    // Filter out null results from failed loads
+    return results.filter((r): r is StoredReport => r !== null);
   }
 
   /**

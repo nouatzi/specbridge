@@ -20,6 +20,16 @@ SpecBridge creates a living integration layer between design intent and implemen
 - **Interactive Dashboard** - Real-time compliance monitoring with visual charts
 - **Agent Interface** - Exposes decisions to code generation agents (Copilot, Claude, etc.)
 
+### New in v2.0 ✨
+
+- 🔌 **Plugin System** - Create custom verifiers without modifying core code ([Guide](./docs/PLUGIN-DEVELOPMENT.md))
+- ⚖️ **Severity-Weighted Compliance** - Scores that properly reflect violation criticality
+- ⚡ **Performance Boost** - 30% faster verification with instance pooling and caching
+- 📊 **Sub-1s Dashboard** - In-memory caching for instant report loading
+- 🔄 **Migration Tool** - Automated v1 → v2 migration with comparison reports
+
+[📖 See full changelog](./CHANGELOG-v2.0.md) | [🔧 Migration Guide](./docs/MIGRATION-V2.md)
+
 ## Installation
 
 ```bash
@@ -115,6 +125,25 @@ Get AI-generated insights about compliance trends, violations, and decision impa
 ```bash
 specbridge dashboard
 ```
+
+Visit `http://localhost:3000` to see real-time compliance metrics, trend charts, and decision details.
+
+### 8. Create custom verifiers (v2.0+)
+
+```bash
+# Copy plugin template
+cp templates/verifiers/example-custom.ts .specbridge/verifiers/my-verifier.ts
+
+# Edit and customize
+# Then use in decisions:
+# check:
+#   verifier: my-verifier
+
+# Verify
+specbridge verify
+```
+
+See the [Plugin Development Guide](./docs/PLUGIN-DEVELOPMENT.md) for detailed instructions.
 
 Open your browser to view real-time compliance metrics, trend charts, and insights.
 

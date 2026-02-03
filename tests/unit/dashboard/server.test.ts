@@ -33,31 +33,34 @@ const mockConfig: SpecBridgeConfig = {
 
 describe('Dashboard Server', () => {
   describe('createDashboardServer', () => {
-    it('should create an Express application', () => {
-      const app = createDashboardServer({
+    it('should create a DashboardServer instance', () => {
+      const server = createDashboardServer({
         cwd: process.cwd(),
         config: mockConfig,
       });
 
+      expect(server).toBeDefined();
+      expect(typeof server.getApp).toBe('function');
+    });
+
+    it('should provide Express application via getApp()', () => {
+      const server = createDashboardServer({
+        cwd: process.cwd(),
+        config: mockConfig,
+      });
+
+      const app = server.getApp();
       expect(app).toBeDefined();
       expect(typeof app.listen).toBe('function');
     });
 
-    it('should configure JSON middleware', () => {
-      const app = createDashboardServer({
-        cwd: process.cwd(),
-        config: mockConfig,
-      });
-
-      // Check that app has the expected structure
-      expect(app._router).toBeDefined();
-    });
-
     it('should register API routes', () => {
-      const app = createDashboardServer({
+      const server = createDashboardServer({
         cwd: process.cwd(),
         config: mockConfig,
       });
+
+      const app = server.getApp();
 
       // Get all registered routes
       const routes: string[] = [];
@@ -77,13 +80,14 @@ describe('Dashboard Server', () => {
 
   describe('API Endpoints Structure', () => {
     it('should have health check endpoint', () => {
-      const app = createDashboardServer({
+      const server = createDashboardServer({
         cwd: process.cwd(),
         config: mockConfig,
       });
 
+      const app = server.getApp();
       const routes: string[] = [];
-      app._router.stack.forEach((middleware: any) => {
+      (app as any)._router.stack.forEach((middleware: any) => {
         if (middleware.route) {
           routes.push(middleware.route.path);
         }
@@ -93,13 +97,14 @@ describe('Dashboard Server', () => {
     });
 
     it('should have report endpoints', () => {
-      const app = createDashboardServer({
+      const server = createDashboardServer({
         cwd: process.cwd(),
         config: mockConfig,
       });
 
+      const app = server.getApp();
       const routes: string[] = [];
-      app._router.stack.forEach((middleware: any) => {
+      (app as any)._router.stack.forEach((middleware: any) => {
         if (middleware.route) {
           routes.push(middleware.route.path);
         }
@@ -111,13 +116,14 @@ describe('Dashboard Server', () => {
     });
 
     it('should have decision endpoints', () => {
-      const app = createDashboardServer({
+      const server = createDashboardServer({
         cwd: process.cwd(),
         config: mockConfig,
       });
 
+      const app = server.getApp();
       const routes: string[] = [];
-      app._router.stack.forEach((middleware: any) => {
+      (app as any)._router.stack.forEach((middleware: any) => {
         if (middleware.route) {
           routes.push(middleware.route.path);
         }
@@ -127,13 +133,14 @@ describe('Dashboard Server', () => {
     });
 
     it('should have analytics endpoints', () => {
-      const app = createDashboardServer({
+      const server = createDashboardServer({
         cwd: process.cwd(),
         config: mockConfig,
       });
 
+      const app = server.getApp();
       const routes: string[] = [];
-      app._router.stack.forEach((middleware: any) => {
+      (app as any)._router.stack.forEach((middleware: any) => {
         if (middleware.route) {
           routes.push(middleware.route.path);
         }
@@ -143,13 +150,14 @@ describe('Dashboard Server', () => {
     });
 
     it('should have drift and trend endpoints', () => {
-      const app = createDashboardServer({
+      const server = createDashboardServer({
         cwd: process.cwd(),
         config: mockConfig,
       });
 
+      const app = server.getApp();
       const routes: string[] = [];
-      app._router.stack.forEach((middleware: any) => {
+      (app as any)._router.stack.forEach((middleware: any) => {
         if (middleware.route) {
           routes.push(middleware.route.path);
         }
@@ -162,19 +170,21 @@ describe('Dashboard Server', () => {
 
   describe('CORS Configuration', () => {
     it('should set CORS headers', () => {
-      const app = createDashboardServer({
+      const server = createDashboardServer({
         cwd: process.cwd(),
         config: mockConfig,
       });
 
+      const app = server.getApp();
+
       // CORS middleware should be configured
       // Check that middleware stack includes CORS handling
-      const hasCorsMiddleware = app._router.stack.some((layer: any) => {
+      const hasCorsMiddleware = (app as any)._router.stack.some((layer: any) => {
         return layer.name === 'corsMiddleware' || (layer.handle && layer.handle.length === 3);
       });
 
       // The app should have middleware configured
-      expect(app._router.stack.length).toBeGreaterThan(0);
+      expect((app as any)._router.stack.length).toBeGreaterThan(0);
     });
   });
 });

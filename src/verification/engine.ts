@@ -17,8 +17,12 @@ import { createRegistry, type Registry } from '../registry/registry.js';
 import { selectVerifierForConstraint, getVerifierIds, type VerificationContext } from './verifiers/index.js';
 import { glob } from '../utils/glob.js';
 import { AstCache } from './cache.js';
+import { ResultsCache } from './results-cache.js';
 import { shouldApplyConstraintToFile } from './applicability.js';
 import { ExplainReporter } from './explain.js';
+import { getPluginLoader } from './plugins/loader.js';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 
 export interface VerificationOptions {
   level?: VerificationLevel;
@@ -37,6 +41,8 @@ export class VerificationEngine {
   private registry: Registry;
   private project: Project;
   private astCache: AstCache;
+  private resultsCache: ResultsCache;
+  private pluginsLoaded = false;
 
   constructor(registry?: Registry) {
     this.registry = registry || createRegistry();
@@ -50,6 +56,7 @@ export class VerificationEngine {
       skipAddingFilesFromTsConfig: true,
     });
     this.astCache = new AstCache();
+    this.resultsCache = new ResultsCache();
   }
 
   /**
@@ -72,6 +79,12 @@ export class VerificationEngine {
     const levelConfig = config.verification?.levels?.[level];
     const severityFilter = options.severity || levelConfig?.severity;
     const timeout = options.timeout || levelConfig?.timeout || 60000;
+
+    // Load plugins once per engine instance
+    if (!this.pluginsLoaded) {
+      await getPluginLoader().loadPlugins(cwd);
+      this.pluginsLoaded = true;
+    }
 
     // Load registry if not already loaded
     await this.registry.load();
@@ -207,6 +220,16 @@ export class VerificationEngine {
     const sourceFile = await this.astCache.get(filePath, this.project);
     if (!sourceFile) return { violations, warnings, errors };
 
+    // Compute file hash once for caching
+    let fileHash: string | null = null;
+    try {
+      const content = await readFile(filePath, 'utf-8');
+      fileHash = createHash('sha256').update(content).digest('hex');
+    } catch {
+      // If we can't read the file, skip caching
+      fileHash = null;
+    }
+
     // Check each decision's constraints
     for (const decision of decisions) {
       for (const constraint of decision.constraints) {
@@ -266,6 +289,39 @@ export class VerificationEngine {
           continue;
         }
 
+        // Check results cache first
+        let constraintViolations: Violation[];
+
+        if (fileHash) {
+          const cacheKey = {
+            filePath,
+            decisionId: decision.metadata.id,
+            constraintId: constraint.id,
+            fileHash,
+          };
+
+          const cached = this.resultsCache.get(cacheKey);
+          if (cached) {
+            // Cache hit!
+            constraintViolations = cached;
+            violations.push(...constraintViolations);
+
+            // Track in reporter
+            if (reporter) {
+              reporter.add({
+                file: filePath,
+                decision,
+                constraint,
+                applied: true,
+                reason: 'Constraint matches file scope (cached)',
+                selectedVerifier: verifier.id,
+              });
+            }
+
+            continue;
+          }
+        }
+
         // Run verification
         const ctx: VerificationContext = {
           filePath,
@@ -276,8 +332,21 @@ export class VerificationEngine {
 
         const verificationStart = Date.now();
         try {
-          const constraintViolations = await verifier.verify(ctx);
+          constraintViolations = await verifier.verify(ctx);
           violations.push(...constraintViolations);
+
+          // Cache results
+          if (fileHash) {
+            this.resultsCache.set(
+              {
+                filePath,
+                decisionId: decision.metadata.id,
+                constraintId: constraint.id,
+                fileHash,
+              },
+              constraintViolations
+            );
+          }
 
           // Track successful verification in reporter
           if (reporter) {
@@ -354,7 +423,7 @@ export class VerificationEngine {
     reporter: ExplainReporter | undefined,
     onFileVerified: (violations: Violation[], warnings: VerificationWarning[], errors: VerificationIssue[]) => void
   ): Promise<void> {
-    const BATCH_SIZE = 10;
+    const BATCH_SIZE = 50; // Increased from 10 for better parallelism
     for (let i = 0; i < files.length; i += BATCH_SIZE) {
       const batch = files.slice(i, i + BATCH_SIZE);
       const results = await Promise.all(

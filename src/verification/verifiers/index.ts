@@ -20,6 +20,7 @@ import { DependencyVerifier } from './dependencies.js';
 import { ComplexityVerifier } from './complexity.js';
 import { SecurityVerifier } from './security.js';
 import { ApiVerifier } from './api.js';
+import { getPluginLoader } from '../plugins/loader.js';
 
 /**
  * Built-in verifiers registry
@@ -36,18 +37,54 @@ export const builtinVerifiers: Record<string, () => Verifier> = {
 };
 
 /**
+ * Verifier instance pool (reuse instances instead of creating new ones)
+ */
+const verifierInstances = new Map<string, Verifier>();
+
+/**
  * Get verifier by ID
+ * Checks custom plugins first, then built-in verifiers
+ * Instances are pooled for performance
  */
 export function getVerifier(id: string): Verifier | null {
+  // Check instance pool first
+  if (verifierInstances.has(id)) {
+    return verifierInstances.get(id)!;
+  }
+
+  // Priority 1: Custom plugins
+  const pluginLoader = getPluginLoader();
+  const customVerifier = pluginLoader.getVerifier(id);
+  if (customVerifier) {
+    verifierInstances.set(id, customVerifier);
+    return customVerifier;
+  }
+
+  // Priority 2: Built-in verifiers
   const factory = builtinVerifiers[id];
-  return factory ? factory() : null;
+  if (factory) {
+    const verifier = factory();
+    verifierInstances.set(id, verifier);
+    return verifier;
+  }
+
+  return null;
 }
 
 /**
- * Get all verifier IDs
+ * Get all verifier IDs (built-in + plugins)
  */
 export function getVerifierIds(): string[] {
-  return Object.keys(builtinVerifiers);
+  const builtinIds = Object.keys(builtinVerifiers);
+  const pluginIds = getPluginLoader().getPluginIds();
+  return [...new Set([...builtinIds, ...pluginIds])];
+}
+
+/**
+ * Clear the verifier instance pool (for testing)
+ */
+export function clearVerifierPool(): void {
+  verifierInstances.clear();
 }
 
 /**

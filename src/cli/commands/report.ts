@@ -22,6 +22,7 @@ interface ReportOptions {
   trend?: boolean;
   drift?: boolean;
   days?: string;
+  legacyCompliance?: boolean;
 }
 
 export const reportCommand = new Command('report')
@@ -33,6 +34,7 @@ export const reportCommand = new Command('report')
   .option('--trend', 'Show compliance trend over time')
   .option('--drift', 'Analyze drift since last report')
   .option('--days <n>', 'Number of days for trend analysis', '30')
+  .option('--legacy-compliance', 'Use v1.3 compliance formula (for comparison)')
   .action(async (options: ReportOptions) => {
     const cwd = process.cwd();
 
@@ -51,6 +53,7 @@ export const reportCommand = new Command('report')
       const report = await generateReport(config, {
         includeAll: options.all,
         cwd,
+        legacyCompliance: options.legacyCompliance,
       });
 
       spinner.succeed('Report generated');

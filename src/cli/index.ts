@@ -24,6 +24,7 @@ import { promptCommand } from './commands/prompt.js';
 import { analyticsCommand } from './commands/analytics.js';
 import { dashboardCommand } from './commands/dashboard.js';
 import { impactCommand } from './commands/impact.js';
+import { migrateCommand } from './commands/migrate.js';
 
 // Read version from package.json
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -54,6 +55,7 @@ program.addCommand(promptCommand);
 program.addCommand(analyticsCommand);
 program.addCommand(dashboardCommand);
 program.addCommand(impactCommand);
+program.addCommand(migrateCommand);
 
 // Global error handler
 program.exitOverride((err) => {

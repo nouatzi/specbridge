@@ -12,6 +12,8 @@ import { createVerificationEngine } from '../verification/engine.js';
 export interface ReportOptions {
   includeAll?: boolean;
   cwd?: string;
+  /** Use v1.3 compliance formula instead of v2.0 severity-weighted formula */
+  legacyCompliance?: boolean;
 }
 
 /**
@@ -45,11 +47,48 @@ export async function generateReport(
     const constraintCount = decision.constraints.length;
     const violationCount = decisionViolations.length;
 
-    // Simple compliance calculation
-    // In a real system, this would be based on files checked
-    const compliance = violationCount === 0
-      ? 100
-      : Math.max(0, 100 - Math.min(violationCount * 10, 100));
+    // Calculate compliance based on mode
+    let compliance: number;
+    let violationsBySeverity: DecisionCompliance['violationsBySeverity'];
+    let weightedScore: number | undefined;
+    let coverageRate: number | undefined;
+
+    if (options.legacyCompliance) {
+      // v1.3 formula: Simple count-based
+      compliance = violationCount === 0
+        ? 100
+        : Math.max(0, 100 - Math.min(violationCount * 10, 100));
+    } else {
+      // v2.0 formula: Severity-weighted with coverage penalty
+      const weights = { critical: 40, high: 25, medium: 10, low: 2 };
+
+      // Count violations by severity
+      const bySeverity = {
+        critical: decisionViolations.filter(v => v.severity === 'critical').length,
+        high: decisionViolations.filter(v => v.severity === 'high').length,
+        medium: decisionViolations.filter(v => v.severity === 'medium').length,
+        low: decisionViolations.filter(v => v.severity === 'low').length,
+      };
+
+      // Calculate weighted score
+      weightedScore = decisionViolations.reduce(
+        (score, v) => score + weights[v.severity],
+        0
+      );
+
+      // Base compliance
+      compliance = Math.max(0, 100 - weightedScore);
+
+      // Apply coverage penalty (up to 20% reduction)
+      if (decisionViolations.length > 0 && constraintCount > 0) {
+        const violationRate = decisionViolations.length / constraintCount;
+        compliance = compliance * (1 - violationRate * 0.2);
+        coverageRate = violationRate;
+      }
+
+      compliance = Math.round(compliance);
+      violationsBySeverity = bySeverity;
+    }
 
     byDecision.push({
       decisionId: decision.metadata.id,
@@ -58,6 +97,9 @@ export async function generateReport(
       constraints: constraintCount,
       violations: violationCount,
       compliance,
+      violationsBySeverity,
+      weightedScore,
+      coverageRate,
     });
   }
 

@@ -275,6 +275,17 @@ export interface DecisionCompliance {
   constraints: number;
   violations: number;
   compliance: number;
+  /** Breakdown of violations by severity (v2.0+) */
+  violationsBySeverity?: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+  };
+  /** Raw weighted score before coverage penalty (v2.0+) */
+  weightedScore?: number;
+  /** Ratio of violations to constraints (v2.0+) */
+  coverageRate?: number;
 }
 
 /**

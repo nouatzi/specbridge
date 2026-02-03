@@ -413,6 +413,136 @@ describe('PluginLoader', () => {
     });
   });
 
+  describe('Params Validation', () => {
+    it('should validate params against paramsSchema', async () => {
+      const pluginWithSchema = `
+        import { z } from 'zod';
+
+        export default {
+          metadata: { id: 'with-schema', version: '1.0.0' },
+          createVerifier: () => ({
+            id: 'with-schema',
+            name: 'With Schema',
+            description: 'Plugin with params schema',
+            verify: async () => []
+          }),
+          paramsSchema: z.object({
+            threshold: z.number().min(0).max(100),
+            pattern: z.string()
+          })
+        };
+      `;
+
+      writeFileSync(join(verifiersDir, 'with-schema.js'), pluginWithSchema);
+      await loader.loadPlugins(testDir);
+
+      // Valid params
+      const validResult = loader.validateParams('with-schema', { threshold: 50, pattern: 'test' });
+      expect(validResult.success).toBe(true);
+
+      // Invalid params - missing required field
+      const invalidResult1 = loader.validateParams('with-schema', { threshold: 50 });
+      expect(invalidResult1.success).toBe(false);
+      if (!invalidResult1.success) {
+        expect(invalidResult1.error).toContain('pattern');
+      }
+
+      // Invalid params - wrong type
+      const invalidResult2 = loader.validateParams('with-schema', { threshold: 'not a number', pattern: 'test' });
+      expect(invalidResult2.success).toBe(false);
+
+      // Invalid params - out of range
+      const invalidResult3 = loader.validateParams('with-schema', { threshold: 150, pattern: 'test' });
+      expect(invalidResult3.success).toBe(false);
+    });
+
+    it('should succeed when plugin has no paramsSchema', async () => {
+      const pluginWithoutSchema = `
+        export default {
+          metadata: { id: 'no-schema', version: '1.0.0' },
+          createVerifier: () => ({
+            id: 'no-schema',
+            name: 'No Schema',
+            description: 'Plugin without params schema',
+            verify: async () => []
+          })
+        };
+      `;
+
+      writeFileSync(join(verifiersDir, 'no-schema.js'), pluginWithoutSchema);
+      await loader.loadPlugins(testDir);
+
+      // Should succeed with no params
+      const result1 = loader.validateParams('no-schema', undefined);
+      expect(result1.success).toBe(true);
+
+      // Should also succeed with params (no validation)
+      const result2 = loader.validateParams('no-schema', { anything: 'goes' });
+      expect(result2.success).toBe(true);
+    });
+
+    it('should fail when params required but not provided', async () => {
+      const pluginWithSchema = `
+        import { z } from 'zod';
+
+        export default {
+          metadata: { id: 'requires-params', version: '1.0.0' },
+          createVerifier: () => ({
+            id: 'requires-params',
+            name: 'Requires Params',
+            description: 'Plugin that requires params',
+            verify: async () => []
+          }),
+          paramsSchema: z.object({
+            value: z.string()
+          })
+        };
+      `;
+
+      writeFileSync(join(verifiersDir, 'requires-params.js'), pluginWithSchema);
+      await loader.loadPlugins(testDir);
+
+      const result = loader.validateParams('requires-params', undefined);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain('requires params');
+      }
+    });
+
+    it('should fail for non-existent plugin', () => {
+      const result = loader.validateParams('does-not-exist', { test: 'value' });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain('not found');
+      }
+    });
+
+    it('should get plugin with paramsSchema', async () => {
+      const pluginWithSchema = `
+        import { z } from 'zod';
+
+        export default {
+          metadata: { id: 'get-plugin-test', version: '1.0.0' },
+          createVerifier: () => ({
+            id: 'get-plugin-test',
+            name: 'Get Plugin Test',
+            description: 'Test getPlugin method',
+            verify: async () => []
+          }),
+          paramsSchema: z.object({ test: z.string() })
+        };
+      `;
+
+      writeFileSync(join(verifiersDir, 'get-plugin.js'), pluginWithSchema);
+      await loader.loadPlugins(testDir);
+
+      const plugin = loader.getPlugin('get-plugin-test');
+      expect(plugin).toBeTruthy();
+      expect(plugin?.metadata.id).toBe('get-plugin-test');
+      expect(plugin?.paramsSchema).toBeTruthy();
+    });
+  });
+
   describe('Performance', () => {
     it('should load plugins in reasonable time', async () => {
       // Create 10 plugins

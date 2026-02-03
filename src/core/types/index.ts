@@ -199,7 +199,7 @@ export interface LevelConfig {
  * Warning during verification (non-blocking)
  */
 export interface VerificationWarning {
-  type: 'missing_verifier' | 'invalid_pattern' | 'other';
+  type: 'missing_verifier' | 'invalid_pattern' | 'invalid_params' | 'other';
   message: string;
   decisionId: string;
   constraintId: string;

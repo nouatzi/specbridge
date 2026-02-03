@@ -322,6 +322,35 @@ export class VerificationEngine {
           }
         }
 
+        // Validate params if this is a custom plugin with paramsSchema
+        if (constraint.check?.verifier && constraint.check?.params) {
+          const pluginLoader = getPluginLoader();
+          const validationResult = pluginLoader.validateParams(constraint.check.verifier, constraint.check.params);
+
+          if (!validationResult.success) {
+            warnings.push({
+              type: 'invalid_params',
+              message: validationResult.error,
+              decisionId: decision.metadata.id,
+              constraintId: constraint.id,
+              file: filePath,
+            });
+
+            // Track in reporter
+            if (reporter) {
+              reporter.add({
+                file: filePath,
+                decision,
+                constraint,
+                applied: false,
+                reason: `Params validation failed: ${validationResult.error}`,
+              });
+            }
+
+            continue;
+          }
+        }
+
         // Run verification
         const ctx: VerificationContext = {
           filePath,

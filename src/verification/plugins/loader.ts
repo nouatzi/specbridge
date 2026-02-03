@@ -13,7 +13,7 @@ import type { Verifier, VerifierPlugin } from '../verifiers/base.js';
  * Manages loading and registry of custom verifier plugins
  */
 export class PluginLoader {
-  private plugins = new Map<string, () => Verifier>();
+  private plugins = new Map<string, VerifierPlugin>();
   private loaded = false;
   private loadErrors: Array<{ file: string; error: string }> = [];
 
@@ -89,8 +89,8 @@ export class PluginLoader {
       );
     }
 
-    // Register plugin factory
-    this.plugins.set(plugin.metadata.id, plugin.createVerifier);
+    // Register full plugin (not just factory) to access paramsSchema
+    this.plugins.set(plugin.metadata.id, plugin);
   }
 
   /**
@@ -170,8 +170,69 @@ export class PluginLoader {
    * @returns Verifier instance or null if not found
    */
   getVerifier(id: string): Verifier | null {
-    const factory = this.plugins.get(id);
-    return factory ? factory() : null;
+    const plugin = this.plugins.get(id);
+    return plugin ? plugin.createVerifier() : null;
+  }
+
+  /**
+   * Get a plugin by ID (includes paramsSchema)
+   *
+   * @param id - Plugin ID
+   * @returns Plugin or null if not found
+   */
+  getPlugin(id: string): VerifierPlugin | null {
+    return this.plugins.get(id) || null;
+  }
+
+  /**
+   * Validate params against a plugin's paramsSchema
+   *
+   * @param id - Plugin ID
+   * @param params - Parameters to validate
+   * @returns Validation result with success flag and error message if failed
+   */
+  validateParams(id: string, params: Record<string, unknown> | undefined): { success: true } | { success: false; error: string } {
+    const plugin = this.plugins.get(id);
+
+    if (!plugin) {
+      return { success: false, error: `Plugin ${id} not found` };
+    }
+
+    // If no paramsSchema is defined, params validation is not required
+    if (!plugin.paramsSchema) {
+      return { success: true };
+    }
+
+    // If paramsSchema exists but no params provided, that's an error
+    if (!params) {
+      return { success: false, error: `Plugin ${id} requires params but none were provided` };
+    }
+
+    // Validate that paramsSchema is a Zod schema
+    if (typeof plugin.paramsSchema !== 'object' || !plugin.paramsSchema || !('parse' in plugin.paramsSchema)) {
+      return { success: false, error: `Plugin ${id} has invalid paramsSchema (must be a Zod schema)` };
+    }
+
+    // Type cast to any since we've validated it has a parse method
+    const schema = plugin.paramsSchema as { parse: (data: unknown) => unknown; safeParse?: (data: unknown) => { success: boolean; error?: { issues: Array<{ message: string; path: Array<string | number> }> } } };
+
+    // Use safeParse if available, otherwise catch parse errors
+    if (schema.safeParse) {
+      const result = schema.safeParse(params);
+      if (!result.success) {
+        const errors = result.error?.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ') || 'Validation failed';
+        return { success: false, error: `Invalid params for ${id}: ${errors}` };
+      }
+    } else {
+      try {
+        schema.parse(params);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return { success: false, error: `Invalid params for ${id}: ${message}` };
+      }
+    }
+
+    return { success: true };
   }
 
   /**

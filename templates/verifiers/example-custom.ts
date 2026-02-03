@@ -49,6 +49,11 @@ class MyCustomVerifier implements Verifier {
   async verify(ctx: VerificationContext): Promise<Violation[]> {
     const violations: Violation[] = [];
 
+    // Check if verification was cancelled (optional, for long-running verifiers)
+    if (ctx.signal?.aborted) {
+      return violations;
+    }
+
     // Parse and validate parameters
     const params: Params = ParamsSchema.parse(ctx.constraint.check?.params || {});
 

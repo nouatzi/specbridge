@@ -127,10 +127,16 @@ export class VerificationEngine {
     let failed = 0;
     const skipped = 0;
 
+    // Create AbortController for cancellation support
+    const abortController = new AbortController();
+
     // Process files with timeout
     let timeoutHandle: NodeJS.Timeout | null = null;
     const timeoutPromise = new Promise<'timeout'>((resolve) => {
-      timeoutHandle = setTimeout(() => resolve('timeout'), timeout);
+      timeoutHandle = setTimeout(() => {
+        abortController.abort(); // Signal verifiers to stop
+        resolve('timeout');
+      }, timeout);
       // Use unref() so timeout doesn't prevent process exit if it's the only thing left
       timeoutHandle.unref();
     });
@@ -141,6 +147,7 @@ export class VerificationEngine {
       severityFilter,
       cwd,
       options.reporter,
+      abortController.signal,
       (violations, warnings, errors) => {
         allViolations.push(...violations);
         allWarnings.push(...warnings);
@@ -211,11 +218,17 @@ export class VerificationEngine {
     decisions: Decision[],
     severityFilter?: Severity[],
     cwd: string = process.cwd(),
-    reporter?: ExplainReporter
+    reporter?: ExplainReporter,
+    signal?: AbortSignal
   ): Promise<{ violations: Violation[]; warnings: VerificationWarning[]; errors: VerificationIssue[] }> {
     const violations: Violation[] = [];
     const warnings: VerificationWarning[] = [];
     const errors: VerificationIssue[] = [];
+
+    // Check if verification was aborted
+    if (signal?.aborted) {
+      return { violations, warnings, errors };
+    }
 
     const sourceFile = await this.astCache.get(filePath, this.project);
     if (!sourceFile) return { violations, warnings, errors };
@@ -357,6 +370,7 @@ export class VerificationEngine {
           sourceFile,
           constraint,
           decisionId: decision.metadata.id,
+          signal,
         };
 
         const verificationStart = Date.now();
@@ -450,13 +464,19 @@ export class VerificationEngine {
     severityFilter: Severity[] | undefined,
     cwd: string,
     reporter: ExplainReporter | undefined,
+    signal: AbortSignal,
     onFileVerified: (violations: Violation[], warnings: VerificationWarning[], errors: VerificationIssue[]) => void
   ): Promise<void> {
     const BATCH_SIZE = 50; // Increased from 10 for better parallelism
     for (let i = 0; i < files.length; i += BATCH_SIZE) {
+      // Check if aborted before processing next batch
+      if (signal.aborted) {
+        break;
+      }
+
       const batch = files.slice(i, i + BATCH_SIZE);
       const results = await Promise.all(
-        batch.map(file => this.verifyFile(file, decisions, severityFilter, cwd, reporter))
+        batch.map(file => this.verifyFile(file, decisions, severityFilter, cwd, reporter, signal))
       );
 
       for (const result of results) {

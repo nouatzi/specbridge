@@ -12,6 +12,8 @@ export interface VerificationContext {
   sourceFile: SourceFile;
   constraint: Constraint;
   decisionId: string;
+  /** Optional AbortSignal for cancellation support */
+  signal?: AbortSignal;
 }
 
 /**

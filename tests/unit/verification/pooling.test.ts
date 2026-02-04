@@ -1,7 +1,7 @@
 /**
  * Verifier Instance Pooling Tests
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { getVerifier, clearVerifierPool, getVerifierIds } from '../../../src/verification/verifiers/index.js';
 import { resetPluginLoader } from '../../../src/verification/plugins/loader.js';
 

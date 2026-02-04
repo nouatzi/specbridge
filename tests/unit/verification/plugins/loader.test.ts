@@ -6,7 +6,6 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PluginLoader, getPluginLoader, resetPluginLoader } from '../../../../src/verification/plugins/loader.js';
-import type { VerifierPlugin } from '../../../../src/verification/verifiers/base.js';
 
 describe('PluginLoader', () => {
   let testDir: string;
@@ -34,9 +33,9 @@ describe('PluginLoader', () => {
   describe('Plugin Discovery', () => {
     it('should load plugins from .specbridge/verifiers/', async () => {
       // Create a valid plugin file
+      // Note: Using plain object export instead of defineVerifierPlugin to avoid
+      // requiring the package to be built before tests run
       const pluginCode = `
-        import { defineVerifierPlugin } from '@ipation/specbridge';
-
         class TestVerifier {
           id = 'test-plugin';
           name = 'Test Plugin';
@@ -47,14 +46,14 @@ describe('PluginLoader', () => {
           }
         }
 
-        export default defineVerifierPlugin({
+        export default {
           metadata: {
             id: 'test-plugin',
             version: '1.0.0',
             author: 'Test'
           },
           createVerifier: () => new TestVerifier()
-        });
+        };
       `;
 
       writeFileSync(join(verifiersDir, 'test-plugin.js'), pluginCode);

@@ -1,7 +1,7 @@
 # SpecBridge
 
 [![CI](https://github.com/nouatzi/specbridge/workflows/CI/badge.svg)](https://github.com/nouatzi/specbridge/actions)
-[![npm version](https://badge.fury.io/js/%40ipation%2Fspecbridge.svg)](https://www.npmjs.com/package/@ipation/specbridge)
+[![npm version](https://img.shields.io/npm/v/@ipation/specbridge)](https://www.npmjs.com/package/@ipation/specbridge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/node/v/%40ipation%2Fspecbridge)](https://nodejs.org)
 

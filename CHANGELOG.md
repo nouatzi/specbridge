@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-02-06
+
+### Added
+
+- Integration test suites for:
+  - MCP server (`tests/integration/mcp-server.test.ts`)
+  - LSP server (`tests/integration/lsp-server.test.ts`)
+  - Dashboard server (`tests/integration/dashboard-server.test.ts`)
+  - Propagation engine (`tests/integration/propagation.test.ts`)
+
+### Changed
+
+- Upgraded major runtime dependencies:
+  - `zod` 3.x → 4.x
+  - `commander` 12.x → 14.x
+  - `ts-morph` 24.x → 27.x
+  - `chokidar` 3.x → 5.x
+  - `express` 4.x → 5.x (with `@types/express` 5.x)
+- Updated CLI unit tests for Commander v14 parse semantics.
+- Raised coverage thresholds to:
+  - lines: `70`
+  - statements: `69`
+  - functions: `73`
+  - branches: `60`
+
+### Fixed
+
+- Express 5 dashboard fallback routing compatibility (`*` → `/{*path}`).
+- Dashboard API now returns `404` for missing decisions instead of `500`.
+- Propagation graph matching now respects the analysis `cwd` for absolute file paths.
+- Removed all remaining production non-null assertions in `src/**/*.ts`.
+
 ## [2.2.0] - 2026-02-06
 
 ### Infrastructure Modernization & Security

@@ -32,7 +32,7 @@ export async function loadConfig(basePath: string = process.cwd()): Promise<Spec
   // Validate config
   const result = validateConfig(parsed);
   if (!result.success) {
-    const errors = result.errors.errors.map(e => `${e.path.join('.')}: ${e.message}`);
+    const errors = result.errors.issues.map(e => `${e.path.join('.')}: ${e.message}`);
     throw new ConfigError(`Invalid configuration in ${configPath}`, { errors });
   }
 

@@ -14,6 +14,18 @@ Please be respectful and constructive in all interactions. We welcome contributo
 - npm 9 or later
 - Git
 
+### Current Toolchain Baseline
+
+The project currently targets these major versions:
+
+- `vitest` v4
+- `eslint` v9 (flat config in `eslint.config.js`)
+- `zod` v4
+- `commander` v14
+- `ts-morph` v27
+- `chokidar` v5
+- `express` v5
+
 ### Development Setup
 
 1. Fork the repository on GitHub
@@ -88,6 +100,9 @@ node dist/cli.js --help
 # Run all tests
 npm test
 
+# Run integration tests
+npm run test:integration
+
 # Run tests in watch mode
 npm run test:watch
 
@@ -98,6 +113,7 @@ npm run test:coverage
 ### Type Checking
 
 ```bash
+npm run type-check
 npm run lint
 ```
 

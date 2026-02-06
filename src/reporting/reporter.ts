@@ -325,7 +325,10 @@ export class Reporter {
         result.violations.forEach((v: Violation) => {
           const key = v.severity;
           if (!grouped.has(key)) grouped.set(key, []);
-          grouped.get(key)!.push(v);
+          const bucket = grouped.get(key);
+          if (bucket) {
+            bucket.push(v);
+          }
         });
 
         for (const [severity, violations] of grouped.entries()) {
@@ -341,7 +344,10 @@ export class Reporter {
         result.violations.forEach((v: Violation) => {
           const key = (v as { location?: { file: string } }).location?.file || v.file || 'unknown';
           if (!grouped.has(key)) grouped.set(key, []);
-          grouped.get(key)!.push(v);
+          const bucket = grouped.get(key);
+          if (bucket) {
+            bucket.push(v);
+          }
         });
 
         for (const [file, violations] of grouped.entries()) {

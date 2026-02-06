@@ -92,14 +92,14 @@ describe('report command', () => {
     rmSync(join(testDir, '.specbridge'), { recursive: true, force: true });
 
     await expect(
-      reportCommand.parseAsync(['node', 'test', 'report'])
+      reportCommand.parseAsync(['node', 'test'])
     ).rejects.toThrow(NotInitializedError);
   });
 
   it('should generate report with default console format', async () => {
     const { formatConsoleReport } = await import('../../../../src/reporting/formats/console.js');
 
-    await reportCommand.parseAsync(['node', 'test', 'report']);
+    await reportCommand.parseAsync(['node', 'test']);
 
     expect(formatConsoleReport).toHaveBeenCalled();
   });
@@ -107,13 +107,13 @@ describe('report command', () => {
   it('should use markdown format with --format markdown', async () => {
     const { formatMarkdownReport } = await import('../../../../src/reporting/formats/markdown.js');
 
-    await reportCommand.parseAsync(['node', 'test', 'report', '--format', 'markdown']);
+    await reportCommand.parseAsync(['node', 'test', '--format', 'markdown']);
 
     expect(formatMarkdownReport).toHaveBeenCalled();
   });
 
   it('should output JSON with --format json', async () => {
-    await reportCommand.parseAsync(['node', 'test', 'report', '--format', 'json']);
+    await reportCommand.parseAsync(['node', 'test', '--format', 'json']);
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
       expect.stringContaining('"project"')
@@ -123,7 +123,7 @@ describe('report command', () => {
   it('should include all decisions with --all flag', async () => {
     const { generateReport } = await import('../../../../src/reporting/reporter.js');
 
-    await reportCommand.parseAsync(['node', 'test', 'report', '--all']);
+    await reportCommand.parseAsync(['node', 'test', '--all']);
 
     expect(generateReport).toHaveBeenCalledWith(
       expect.any(Object),
@@ -134,7 +134,7 @@ describe('report command', () => {
   });
 
   it('should save report with --save flag', async () => {
-    await reportCommand.parseAsync(['node', 'test', 'report', '--save']);
+    await reportCommand.parseAsync(['node', 'test', '--save']);
 
     const reportsDir = join(testDir, '.specbridge', 'reports');
     const files = await import('node:fs/promises').then(fs =>

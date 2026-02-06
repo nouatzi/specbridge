@@ -7,14 +7,15 @@
  * - "Functions must have at most 4 parameters"
  * - "Nesting depth must not exceed 4"
  */
-import type { Node } from 'ts-morph';
+import { Node, type ArrowFunction, type FunctionDeclaration, type FunctionExpression, type MethodDeclaration } from 'ts-morph';
 import { SyntaxKind } from 'ts-morph';
 import type { Violation } from '../../core/types/index.js';
 import { type Verifier, type VerificationContext, createViolation } from './base.js';
 
 function parseLimit(rule: string, pattern: RegExp): number | null {
   const m = rule.match(pattern);
-  return m ? Number.parseInt(m[1]!, 10) : null;
+  const value = m?.[1];
+  return value ? Number.parseInt(value, 10) : null;
 }
 
 function getFileLineCount(text: string): number {
@@ -57,16 +58,17 @@ function calculateCyclomaticComplexity(fn: Node): number {
 
 function getFunctionDisplayName(fn: Node): string {
   // Best-effort name resolution.
-  if ('getName' in (fn as any) && typeof (fn as any).getName === 'function') {
-    const name = (fn as any).getName();
-    if (typeof name === 'string' && name.length > 0) return name;
+  if (Node.isFunctionDeclaration(fn) || Node.isMethodDeclaration(fn) || Node.isFunctionExpression(fn)) {
+    const name = fn.getName();
+    if (typeof name === 'string' && name.length > 0) {
+      return name;
+    }
   }
 
   // Variable = () => ...
   const parent = fn.getParent();
-  if (parent?.getKind() === SyntaxKind.VariableDeclaration) {
-    const vd: any = parent;
-    if (typeof vd.getName === 'function') return vd.getName();
+  if (parent && Node.isVariableDeclaration(parent)) {
+    return parent.getName();
   }
 
   return '<anonymous>';
@@ -138,7 +140,8 @@ export class ComplexityVerifier implements Verifier {
       }
     }
 
-    const functionLikes = [
+    type FunctionLikeNode = FunctionDeclaration | FunctionExpression | ArrowFunction | MethodDeclaration;
+    const functionLikes: FunctionLikeNode[] = [
       ...sourceFile.getDescendantsOfKind(SyntaxKind.FunctionDeclaration),
       ...sourceFile.getDescendantsOfKind(SyntaxKind.FunctionExpression),
       ...sourceFile.getDescendantsOfKind(SyntaxKind.ArrowFunction),
@@ -164,9 +167,8 @@ export class ComplexityVerifier implements Verifier {
         }
       }
 
-      if (maxParams !== null && 'getParameters' in (fn as any)) {
-        const params = (fn as any).getParameters();
-        const paramCount = Array.isArray(params) ? params.length : 0;
+      if (maxParams !== null) {
+        const paramCount = fn.getParameters().length;
         if (paramCount > maxParams) {
           violations.push(createViolation({
             decisionId,
@@ -201,4 +203,3 @@ export class ComplexityVerifier implements Verifier {
     return violations;
   }
 }
-

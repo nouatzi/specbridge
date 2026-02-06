@@ -213,7 +213,7 @@ export class PluginLoader {
       return { success: false, error: `Plugin ${id} has invalid paramsSchema (must be a Zod schema)` };
     }
 
-    // Type cast to any since we've validated it has a parse method
+    // Narrow to a parse-capable schema after validating the contract at runtime.
     const schema = plugin.paramsSchema as { parse: (data: unknown) => unknown; safeParse?: (data: unknown) => { success: boolean; error?: { issues: Array<{ message: string; path: Array<string | number> }> } } };
 
     // Use safeParse if available, otherwise catch parse errors

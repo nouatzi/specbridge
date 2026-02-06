@@ -1,7 +1,7 @@
 /**
  * Tests for dashboard server
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createDashboardServer } from '../../../src/dashboard/server.js';
 import type { SpecBridgeConfig } from '../../../src/core/types/index.js';
 
@@ -30,6 +30,20 @@ const mockConfig: SpecBridgeConfig = {
     },
   },
 };
+
+function getMiddlewareStack(app: any): any[] {
+  return app?._router?.stack ?? app?.router?.stack ?? [];
+}
+
+function getRegisteredRoutes(app: any): string[] {
+  const routes: string[] = [];
+  for (const layer of getMiddlewareStack(app)) {
+    if (layer.route?.path) {
+      routes.push(layer.route.path);
+    }
+  }
+  return routes;
+}
 
 describe('Dashboard Server', () => {
   describe('createDashboardServer', () => {
@@ -63,12 +77,7 @@ describe('Dashboard Server', () => {
       const app = server.getApp();
 
       // Get all registered routes
-      const routes: string[] = [];
-      app._router.stack.forEach((middleware: any) => {
-        if (middleware.route) {
-          routes.push(middleware.route.path);
-        }
-      });
+      const routes = getRegisteredRoutes(app);
 
       // Check that key API routes are registered
       expect(routes).toContain('/api/health');
@@ -86,12 +95,7 @@ describe('Dashboard Server', () => {
       });
 
       const app = server.getApp();
-      const routes: string[] = [];
-      (app as any)._router.stack.forEach((middleware: any) => {
-        if (middleware.route) {
-          routes.push(middleware.route.path);
-        }
-      });
+      const routes = getRegisteredRoutes(app);
 
       expect(routes).toContain('/api/health');
     });
@@ -103,12 +107,7 @@ describe('Dashboard Server', () => {
       });
 
       const app = server.getApp();
-      const routes: string[] = [];
-      (app as any)._router.stack.forEach((middleware: any) => {
-        if (middleware.route) {
-          routes.push(middleware.route.path);
-        }
-      });
+      const routes = getRegisteredRoutes(app);
 
       expect(routes).toContain('/api/report/latest');
       expect(routes).toContain('/api/report/history');
@@ -122,12 +121,7 @@ describe('Dashboard Server', () => {
       });
 
       const app = server.getApp();
-      const routes: string[] = [];
-      (app as any)._router.stack.forEach((middleware: any) => {
-        if (middleware.route) {
-          routes.push(middleware.route.path);
-        }
-      });
+      const routes = getRegisteredRoutes(app);
 
       expect(routes).toContain('/api/decisions');
     });
@@ -139,12 +133,7 @@ describe('Dashboard Server', () => {
       });
 
       const app = server.getApp();
-      const routes: string[] = [];
-      (app as any)._router.stack.forEach((middleware: any) => {
-        if (middleware.route) {
-          routes.push(middleware.route.path);
-        }
-      });
+      const routes = getRegisteredRoutes(app);
 
       expect(routes).toContain('/api/analytics/summary');
     });
@@ -156,12 +145,7 @@ describe('Dashboard Server', () => {
       });
 
       const app = server.getApp();
-      const routes: string[] = [];
-      (app as any)._router.stack.forEach((middleware: any) => {
-        if (middleware.route) {
-          routes.push(middleware.route.path);
-        }
-      });
+      const routes = getRegisteredRoutes(app);
 
       expect(routes).toContain('/api/drift');
       expect(routes).toContain('/api/trend');
@@ -176,15 +160,17 @@ describe('Dashboard Server', () => {
       });
 
       const app = server.getApp();
+      const stack = getMiddlewareStack(app);
 
       // CORS middleware should be configured
       // Check that middleware stack includes CORS handling
-      const hasCorsMiddleware = (app as any)._router.stack.some((layer: any) => {
+      const hasCorsMiddleware = stack.some((layer: any) => {
         return layer.name === 'corsMiddleware' || (layer.handle && layer.handle.length === 3);
       });
 
       // The app should have middleware configured
-      expect((app as any)._router.stack.length).toBeGreaterThan(0);
+      expect(hasCorsMiddleware).toBe(true);
+      expect(stack.length).toBeGreaterThan(0);
     });
   });
 });

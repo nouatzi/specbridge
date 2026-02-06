@@ -10,6 +10,7 @@ import { ReportStorage } from '../reporting/storage.js';
 import { AnalyticsEngine } from '../analytics/engine.js';
 import { createRegistry, type Registry } from '../registry/registry.js';
 import { detectDrift, analyzeTrend } from '../reporting/drift.js';
+import { DecisionNotFoundError } from '../core/errors/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -182,7 +183,8 @@ class DashboardServer {
     // GET /api/report/:date
     this.app.get('/api/report/:date', async (req: Request, res: Response) => {
       try {
-        const date = req.params.date;
+        const dateParam = req.params.date;
+        const date = Array.isArray(dateParam) ? dateParam[0] : dateParam;
         if (!date) {
           res.status(400).json({ error: 'Date parameter required' });
           return;
@@ -225,7 +227,8 @@ class DashboardServer {
     // GET /api/decisions/:id
     this.app.get('/api/decisions/:id', async (req: Request, res: Response) => {
       try {
-        const id = req.params.id;
+        const idParam = req.params.id;
+        const id = Array.isArray(idParam) ? idParam[0] : idParam;
         if (!id) {
           res.status(400).json({ error: 'Decision ID required' });
           return;
@@ -240,6 +243,11 @@ class DashboardServer {
 
         res.json(decision);
       } catch (error) {
+        if (error instanceof DecisionNotFoundError) {
+          res.status(404).json({ error: 'Decision not found' });
+          return;
+        }
+
         res.status(500).json({
           error: 'Failed to load decision',
           message: error instanceof Error ? error.message : 'Unknown error',
@@ -277,7 +285,8 @@ class DashboardServer {
     // GET /api/analytics/decision/:id?days=90
     this.app.get('/api/analytics/decision/:id', async (req: Request, res: Response) => {
       try {
-        const id = req.params.id;
+        const idParam = req.params.id;
+        const id = Array.isArray(idParam) ? idParam[0] : idParam;
         if (!id) {
           res.status(400).json({ error: 'Decision ID required' });
           return;
@@ -383,7 +392,7 @@ class DashboardServer {
     }));
 
     // Fallback to index.html for SPA routing
-    this.app.get('*', (_req: Request, res: Response) => {
+    this.app.get('/{*path}', (_req: Request, res: Response) => {
       res.sendFile(join(publicDir, 'index.html'));
     });
   }

@@ -46,7 +46,7 @@ export const ConstraintExceptionSchema = z.object({
 // Constraint check (structured verifier specification)
 export const ConstraintCheckSchema = z.object({
   verifier: z.string().min(1),
-  params: z.record(z.unknown()).optional(),
+  params: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Single constraint
@@ -117,7 +117,7 @@ export function validateDecision(data: unknown): { success: true; data: Decision
  * Format Zod errors into human-readable messages
  */
 export function formatValidationErrors(errors: z.ZodError): string[] {
-  return errors.errors.map((err) => {
+  return errors.issues.map((err) => {
     const path = err.path.join('.');
     return `${path}: ${err.message}`;
   });

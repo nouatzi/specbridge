@@ -102,18 +102,18 @@ describe('infer command', () => {
     rmSync(join(testDir, '.specbridge'), { recursive: true, force: true });
 
     await expect(
-      inferCommand.parseAsync(['node', 'test', 'infer'])
+      inferCommand.parseAsync(['node', 'test'])
     ).rejects.toThrow(NotInitializedError);
   });
 
   it('should run inference with default options', async () => {
-    await inferCommand.parseAsync(['node', 'test', 'infer']);
+    await inferCommand.parseAsync(['node', 'test']);
 
     expect(mockInfer).toHaveBeenCalled();
   });
 
   it('should filter by analyzers with --analyzers flag', async () => {
-    await inferCommand.parseAsync(['node', 'test', 'infer', '--analyzers', 'naming,imports']);
+    await inferCommand.parseAsync(['node', 'test', '--analyzers', 'naming,imports']);
 
     expect(mockInfer).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -123,7 +123,7 @@ describe('infer command', () => {
   });
 
   it('should use custom min confidence with --min-confidence flag', async () => {
-    await inferCommand.parseAsync(['node', 'test', 'infer', '--min-confidence', '80']);
+    await inferCommand.parseAsync(['node', 'test', '--min-confidence', '80']);
 
     expect(mockInfer).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -133,7 +133,7 @@ describe('infer command', () => {
   });
 
   it('should output JSON with --json flag', async () => {
-    await inferCommand.parseAsync(['node', 'test', 'infer', '--json']);
+    await inferCommand.parseAsync(['node', 'test', '--json']);
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
       expect.stringContaining('"patterns"')
@@ -141,7 +141,7 @@ describe('infer command', () => {
   });
 
   it('should save results with --save flag', async () => {
-    await inferCommand.parseAsync(['node', 'test', 'infer', '--save']);
+    await inferCommand.parseAsync(['node', 'test', '--save']);
 
     const inferredDir = join(testDir, '.specbridge', 'inferred');
     const files = await import('node:fs/promises').then(fs =>

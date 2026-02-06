@@ -119,7 +119,12 @@ export class SpecBridgeLspServer {
       return violations
         .filter((v) => v.autofix && v.autofix.edits.length > 0)
         .map((v) => {
-          const edits = v.autofix!.edits.map((edit) => ({
+          const autofix = v.autofix;
+          if (!autofix) {
+            return null;
+          }
+
+          const edits = autofix.edits.map((edit) => ({
             range: {
               start: doc.positionAt(edit.start),
               end: doc.positionAt(edit.end),
@@ -128,7 +133,7 @@ export class SpecBridgeLspServer {
           }));
 
           return {
-            title: v.autofix!.description,
+            title: autofix.description,
             kind: CodeActionKind.QuickFix,
             edit: {
               changes: {
@@ -136,7 +141,8 @@ export class SpecBridgeLspServer {
               },
             },
           };
-        });
+        })
+        .filter((action): action is NonNullable<typeof action> => action !== null);
     });
 
     this.documents.listen(this.connection);

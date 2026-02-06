@@ -16,13 +16,19 @@ export interface DependencyGraph {
   fileToDecisions: Map<string, Set<string>>;
 }
 
+export interface BuildDependencyGraphOptions {
+  cwd?: string;
+}
+
 /**
  * Build dependency graph from decisions and file list
  */
 export async function buildDependencyGraph(
   decisions: Decision[],
-  files: string[]
+  files: string[],
+  options: BuildDependencyGraphOptions = {}
 ): Promise<DependencyGraph> {
+  const { cwd } = options;
   const nodes = new Map<string, GraphNode>();
   const decisionToFiles = new Map<string, Set<string>>();
   const fileToDecisions = new Map<string, Set<string>>();
@@ -42,7 +48,7 @@ export async function buildDependencyGraph(
       const matchingFiles: string[] = [];
 
       for (const file of files) {
-        if (matchesPattern(file, constraint.scope)) {
+        if (matchesPattern(file, constraint.scope, { cwd })) {
           matchingFiles.push(`file:${file}`);
 
           // Update file -> decision mapping

@@ -123,12 +123,12 @@ describe('verify command', () => {
     rmSync(join(testDir, '.specbridge'), { recursive: true, force: true });
 
     await expect(
-      verifyCommand.parseAsync(['node', 'test', 'verify'])
+      verifyCommand.parseAsync(['node', 'test'])
     ).rejects.toThrow(NotInitializedError);
   });
 
   it('should run verification with default options', async () => {
-    await verifyCommand.parseAsync(['node', 'test', 'verify']);
+    await verifyCommand.parseAsync(['node', 'test']);
 
     expect(mockVerify).toHaveBeenCalledWith(
       expect.any(Object),
@@ -140,7 +140,7 @@ describe('verify command', () => {
   });
 
   it('should filter by decision ID with --decisions flag', async () => {
-    await verifyCommand.parseAsync(['node', 'test', 'verify', '--decisions', 'test-001,test-002']);
+    await verifyCommand.parseAsync(['node', 'test', '--decisions', 'test-001,test-002']);
 
     expect(mockVerify).toHaveBeenCalledWith(
       expect.any(Object),
@@ -151,7 +151,7 @@ describe('verify command', () => {
   });
 
   it('should filter by severity with --severity flag', async () => {
-    await verifyCommand.parseAsync(['node', 'test', 'verify', '--severity', 'critical,high']);
+    await verifyCommand.parseAsync(['node', 'test', '--severity', 'critical,high']);
 
     expect(mockVerify).toHaveBeenCalledWith(
       expect.any(Object),
@@ -162,7 +162,7 @@ describe('verify command', () => {
   });
 
   it('should filter by files with --files flag', async () => {
-    await verifyCommand.parseAsync(['node', 'test', 'verify', '--files', 'src/**/*.ts,tests/**/*.ts']);
+    await verifyCommand.parseAsync(['node', 'test', '--files', 'src/**/*.ts,tests/**/*.ts']);
 
     expect(mockVerify).toHaveBeenCalledWith(
       expect.any(Object),
@@ -173,7 +173,7 @@ describe('verify command', () => {
   });
 
   it('should use custom verification level with --level flag', async () => {
-    await verifyCommand.parseAsync(['node', 'test', 'verify', '--level', 'commit']);
+    await verifyCommand.parseAsync(['node', 'test', '--level', 'commit']);
 
     expect(mockVerify).toHaveBeenCalledWith(
       expect.any(Object),
@@ -184,7 +184,7 @@ describe('verify command', () => {
   });
 
   it('should output JSON with --json flag', async () => {
-    await verifyCommand.parseAsync(['node', 'test', 'verify', '--json']);
+    await verifyCommand.parseAsync(['node', 'test', '--json']);
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
       expect.stringContaining('"success"')
@@ -213,7 +213,7 @@ describe('verify command', () => {
     });
 
     try {
-      await verifyCommand.parseAsync(['node', 'test', 'verify']);
+      await verifyCommand.parseAsync(['node', 'test']);
       expect.fail('Expected process.exit to be called');
     } catch (error: any) {
       expect(error.message).toBe('process.exit called');
@@ -246,7 +246,7 @@ describe('verify command', () => {
     });
 
     try {
-      await verifyCommand.parseAsync(['node', 'test', 'verify']);
+      await verifyCommand.parseAsync(['node', 'test']);
       expect.fail('Expected process.exit to be called');
     } catch (error: any) {
       expect(error.message).toBe('process.exit called');
@@ -287,7 +287,7 @@ describe('verify command', () => {
     });
 
     try {
-      await verifyCommand.parseAsync(['node', 'test', 'verify']);
+      await verifyCommand.parseAsync(['node', 'test']);
       expect.fail('Expected process.exit to be called');
     } catch (error: any) {
       expect(error.message).toBe('process.exit called');
@@ -347,7 +347,7 @@ describe('verify command', () => {
     });
 
     try {
-      await verifyCommand.parseAsync(['node', 'test', 'verify']);
+      await verifyCommand.parseAsync(['node', 'test']);
       expect.fail('Expected process.exit to be called');
     } catch (error: any) {
       expect(error.message).toBe('process.exit called');
@@ -384,7 +384,7 @@ describe('verify command', () => {
     });
 
     try {
-      await verifyCommand.parseAsync(['node', 'test', 'verify']);
+      await verifyCommand.parseAsync(['node', 'test']);
       expect.fail('Expected process.exit to be called');
     } catch (error: any) {
       expect(error.message).toBe('process.exit called');
@@ -410,7 +410,7 @@ describe('verify command', () => {
       duration: 100,
     });
 
-    await verifyCommand.parseAsync(['node', 'test', 'verify']);
+    await verifyCommand.parseAsync(['node', 'test']);
 
     // Should have output success
     expect(consoleLogSpy).toHaveBeenCalled();

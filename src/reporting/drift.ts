@@ -225,7 +225,10 @@ export async function analyzeTrend(
       if (!decisionMap.has(decision.decisionId)) {
         decisionMap.set(decision.decisionId, []);
       }
-      decisionMap.get(decision.decisionId)!.push(decision);
+      const decisionHistory = decisionMap.get(decision.decisionId);
+      if (decisionHistory) {
+        decisionHistory.push(decision);
+      }
     }
   }
 

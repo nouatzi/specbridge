@@ -45,7 +45,7 @@ export class PropagationEngine {
 
     // Build dependency graph
     const decisions = this.registry.getActive();
-    this.graph = await buildDependencyGraph(decisions, files);
+    this.graph = await buildDependencyGraph(decisions, files, { cwd });
   }
 
   /**

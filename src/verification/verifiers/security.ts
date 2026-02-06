@@ -59,8 +59,7 @@ export class SecurityVerifier implements Verifier {
       }
 
       for (const pa of sourceFile.getDescendantsOfKind(SyntaxKind.PropertyAssignment)) {
-        const nameNode: any = pa.getNameNode?.();
-        const propName = nameNode?.getText?.() ?? '';
+        const propName = pa.getNameNode().getText();
         if (!SECRET_NAME_RE.test(propName)) continue;
 
         const init = pa.getInitializer();
@@ -101,9 +100,9 @@ export class SecurityVerifier implements Verifier {
       // innerHTML assignments
       for (const bin of sourceFile.getDescendantsOfKind(SyntaxKind.BinaryExpression)) {
         const left = bin.getLeft();
-        if (left.getKind() !== SyntaxKind.PropertyAccessExpression) continue;
-        const pa: any = left;
-        if (pa.getName?.() === 'innerHTML') {
+        const propertyAccess = left.asKind(SyntaxKind.PropertyAccessExpression);
+        if (!propertyAccess) continue;
+        if (propertyAccess.getName() === 'innerHTML') {
           violations.push(createViolation({
             decisionId,
             constraintId: constraint.id,
@@ -135,8 +134,9 @@ export class SecurityVerifier implements Verifier {
     if (checkSql) {
       for (const call of sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression)) {
         const expr = call.getExpression();
-        if (expr.getKind() !== SyntaxKind.PropertyAccessExpression) continue;
-        const name = (expr as any).getName?.();
+        const propertyAccess = expr.asKind(SyntaxKind.PropertyAccessExpression);
+        if (!propertyAccess) continue;
+        const name = propertyAccess.getName();
         if (name !== 'query' && name !== 'execute') continue;
 
         const arg = call.getArguments()[0];
@@ -183,4 +183,3 @@ export class SecurityVerifier implements Verifier {
     return violations;
   }
 }
-

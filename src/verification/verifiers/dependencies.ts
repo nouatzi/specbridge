@@ -94,7 +94,10 @@ function buildDependencyGraph(project: Project): DependencyGraph {
       const moduleSpec = importDecl.getModuleSpecifierValue();
       const resolved = resolveToSourceFilePath(project, from, moduleSpec);
       if (resolved) {
-        graph.get(from)!.add(normalizeFsPath(resolved));
+        const dependencies = graph.get(from);
+        if (dependencies) {
+          dependencies.add(normalizeFsPath(resolved));
+        }
       }
     }
   }
@@ -122,9 +125,17 @@ function tarjanScc(graph: DependencyGraph): string[][] {
     for (const w of edges) {
       if (!indices.has(w)) {
         strongConnect(w);
-        lowlink.set(v, Math.min(lowlink.get(v)!, lowlink.get(w)!));
+        const currentLowlink = lowlink.get(v);
+        const childLowlink = lowlink.get(w);
+        if (currentLowlink !== undefined && childLowlink !== undefined) {
+          lowlink.set(v, Math.min(currentLowlink, childLowlink));
+        }
       } else if (onStack.has(w)) {
-        lowlink.set(v, Math.min(lowlink.get(v)!, indices.get(w)!));
+        const currentLowlink = lowlink.get(v);
+        const childIndex = indices.get(w);
+        if (currentLowlink !== undefined && childIndex !== undefined) {
+          lowlink.set(v, Math.min(currentLowlink, childIndex));
+        }
       }
     }
 
@@ -151,22 +162,25 @@ function tarjanScc(graph: DependencyGraph): string[][] {
 function parseMaxImportDepth(rule: string): number | null {
   // Use bounded quantifiers to prevent ReDoS
   const m = rule.match(/maximum\s{1,5}import\s{1,5}depth\s{0,5}[:=]?\s{0,5}(\d+)/i);
-  return m ? Number.parseInt(m[1]!, 10) : null;
+  const depthText = m?.[1];
+  return depthText ? Number.parseInt(depthText, 10) : null;
 }
 
 function parseBannedDependency(rule: string): string | null {
   // Use bounded quantifiers to prevent ReDoS
   const m = rule.match(/no\s{1,5}dependencies?\s{1,5}on\s{1,5}(?:package\s{1,5})?(.+?)(?:\.|$)/i);
-  if (!m) return null;
-  const value = m[1]!.trim();
+  const value = m?.[1]?.trim();
+  if (!value) return null;
   return value.length > 0 ? value : null;
 }
 
 function parseLayerRule(rule: string): { fromLayer: string; toLayer: string } | null {
   // Use bounded quantifiers to prevent ReDoS
   const m = rule.match(/(\w+)\s{1,5}layer\s{1,5}cannot\s{1,5}depend\s{1,5}on\s{1,5}(\w+)\s{1,5}layer/i);
-  if (!m) return null;
-  return { fromLayer: m[1]!.toLowerCase(), toLayer: m[2]!.toLowerCase() };
+  const fromLayer = m?.[1]?.toLowerCase();
+  const toLayer = m?.[2]?.toLowerCase();
+  if (!fromLayer || !toLayer) return null;
+  return { fromLayer, toLayer };
 }
 
 function fileInLayer(filePath: string, layer: string): boolean {

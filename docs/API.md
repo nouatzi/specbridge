@@ -5,6 +5,7 @@ Complete API reference for SpecBridge Phase 4 Analytics features.
 ## Table of Contents
 
 - [TypeScript/JavaScript API](#typescript-javascript-api)
+  - [Core Exports](#core-exports)
   - [Report Storage](#report-storage)
   - [Drift Detection](#drift-detection)
   - [Analytics Engine](#analytics-engine)
@@ -18,6 +19,22 @@ Complete API reference for SpecBridge Phase 4 Analytics features.
 ---
 
 ## TypeScript/JavaScript API
+
+### Core Exports
+
+SpecBridge now re-exports core platform modules from the package root:
+
+```typescript
+import {
+  AnalyticsEngine,
+  createDashboardServer,
+  DashboardServer,
+  startLspServer,
+  SpecBridgeMcpServer,
+} from '@ipation/specbridge';
+```
+
+These exports are intended for embedding SpecBridge capabilities into custom tools and services.
 
 ### Report Storage
 

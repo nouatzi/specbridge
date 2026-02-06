@@ -34,15 +34,17 @@ export class ApiVerifier implements Verifier {
 
     for (const call of sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression)) {
       const expr = call.getExpression();
-      if (expr.getKind() !== SyntaxKind.PropertyAccessExpression) continue;
+      const propertyAccess = expr.asKind(SyntaxKind.PropertyAccessExpression);
+      if (!propertyAccess) continue;
 
-      const method = (expr as any).getName?.();
+      const method = propertyAccess.getName();
       if (!method || !HTTP_METHODS.has(String(method))) continue;
 
       const firstArg = call.getArguments()[0];
-      if (!firstArg || firstArg.getKind() !== SyntaxKind.StringLiteral) continue;
+      const stringLiteral = firstArg?.asKind(SyntaxKind.StringLiteral);
+      if (!stringLiteral) continue;
 
-      const pathValue = (firstArg as any).getLiteralValue?.() ?? firstArg.getText().slice(1, -1);
+      const pathValue = stringLiteral.getLiteralValue();
       if (typeof pathValue !== 'string') continue;
 
       if (!isKebabPath(pathValue)) {
@@ -62,4 +64,3 @@ export class ApiVerifier implements Verifier {
     return violations;
   }
 }
-

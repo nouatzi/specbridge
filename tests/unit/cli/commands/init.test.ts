@@ -56,7 +56,7 @@ describe('init command', () => {
   });
 
   it('should create .specbridge directory structure', async () => {
-    await initCommand.parseAsync(['node', 'test', 'init']);
+    await initCommand.parseAsync(['node', 'test']);
 
     const specbridgeDir = join(testDir, '.specbridge');
     expect(existsSync(specbridgeDir)).toBe(true);
@@ -67,7 +67,7 @@ describe('init command', () => {
   });
 
   it('should generate config.yaml with project name', async () => {
-    await initCommand.parseAsync(['node', 'test', 'init']);
+    await initCommand.parseAsync(['node', 'test']);
 
     const configPath = join(testDir, '.specbridge', 'config.yaml');
     expect(existsSync(configPath)).toBe(true);
@@ -79,7 +79,7 @@ describe('init command', () => {
   });
 
   it('should create example decision file', async () => {
-    await initCommand.parseAsync(['node', 'test', 'init']);
+    await initCommand.parseAsync(['node', 'test']);
 
     const examplePath = join(testDir, '.specbridge', 'decisions', 'example.decision.yaml');
     expect(existsSync(examplePath)).toBe(true);
@@ -92,17 +92,17 @@ describe('init command', () => {
 
   it('should throw AlreadyInitializedError when already initialized', async () => {
     // First init
-    await initCommand.parseAsync(['node', 'test', 'init']);
+    await initCommand.parseAsync(['node', 'test']);
 
     // Second init should throw
     await expect(
-      initCommand.parseAsync(['node', 'test', 'init'])
+      initCommand.parseAsync(['node', 'test'])
     ).rejects.toThrow(AlreadyInitializedError);
   });
 
   it('should force reinit with --force flag', async () => {
     // First init
-    await initCommand.parseAsync(['node', 'test', 'init']);
+    await initCommand.parseAsync(['node', 'test']);
 
     // Write a marker file
     const markerPath = join(testDir, '.specbridge', 'marker.txt');
@@ -110,14 +110,14 @@ describe('init command', () => {
     writeFileSync(markerPath, 'test');
 
     // Force reinit should succeed
-    await initCommand.parseAsync(['node', 'test', 'init', '--force']);
+    await initCommand.parseAsync(['node', 'test', '--force']);
 
     // Directory should still exist
     expect(existsSync(join(testDir, '.specbridge'))).toBe(true);
   });
 
   it('should use custom project name with --name flag', async () => {
-    await initCommand.parseAsync(['node', 'test', 'init', '--name', 'custom-project']);
+    await initCommand.parseAsync(['node', 'test', '--name', 'custom-project']);
 
     const configPath = join(testDir, '.specbridge', 'config.yaml');
     const configContent = readFileSync(configPath, 'utf-8');
@@ -126,7 +126,7 @@ describe('init command', () => {
 
   it('should extract project name from path correctly', async () => {
     // Test directory name should be extracted
-    await initCommand.parseAsync(['node', 'test', 'init']);
+    await initCommand.parseAsync(['node', 'test']);
 
     const configPath = join(testDir, '.specbridge', 'config.yaml');
     const configContent = readFileSync(configPath, 'utf-8');
@@ -136,7 +136,7 @@ describe('init command', () => {
   });
 
   it('should create .gitkeep files in empty directories', async () => {
-    await initCommand.parseAsync(['node', 'test', 'init']);
+    await initCommand.parseAsync(['node', 'test']);
 
     expect(existsSync(join(testDir, '.specbridge', 'verifiers', '.gitkeep'))).toBe(true);
     expect(existsSync(join(testDir, '.specbridge', 'inferred', '.gitkeep'))).toBe(true);

@@ -5,6 +5,7 @@ import type {
   ComplianceReport,
   DecisionCompliance,
   SpecBridgeConfig,
+  Violation,
 } from '../core/types/index.js';
 import { createRegistry } from '../registry/registry.js';
 import { createVerificationEngine } from '../verification/engine.js';
@@ -14,6 +15,24 @@ export interface ReportOptions {
   cwd?: string;
   /** Use v1.3 compliance formula instead of v2.0 severity-weighted formula */
   legacyCompliance?: boolean;
+}
+
+/**
+ * Generic verification result shape for Reporter class
+ * Supports various result formats from different verification engines
+ */
+export interface ReporterResult {
+  violations?: Violation[];
+  summary?: {
+    totalViolations?: number;
+    decisionsChecked?: number;
+    filesChecked?: number;
+    critical?: number;
+    high?: number;
+    medium?: number;
+    low?: number;
+    duration?: number;
+  };
 }
 
 /**
@@ -184,7 +203,7 @@ export class Reporter {
    * Generate formatted report from verification result
    */
   generate(
-    result: any,
+    result: ReporterResult,
     options: {
       format?: 'table' | 'json' | 'markdown';
       includePassedChecks?: boolean;
@@ -210,7 +229,7 @@ export class Reporter {
   /**
    * Generate compliance overview from multiple results
    */
-  generateComplianceReport(results: any[]): string {
+  generateComplianceReport(results: ReporterResult[]): string {
     const lines: string[] = [];
     lines.push('# Compliance Report\n');
 
@@ -240,7 +259,7 @@ export class Reporter {
     return lines.join('\n');
   }
 
-  private formatAsTable(result: any): string {
+  private formatAsTable(result: ReporterResult): string {
     const lines: string[] = [];
 
     lines.push('Verification Report');
@@ -267,11 +286,14 @@ export class Reporter {
       lines.push('Violations:');
       lines.push('-'.repeat(50));
 
-      result.violations.forEach((v: any) => {
+      result.violations.forEach((v: Violation) => {
         const severity = v.severity.toLowerCase();
         lines.push(`  [${v.severity.toUpperCase()}] ${v.decisionId} - ${v.constraintId} (${severity})`);
         lines.push(`    ${v.message}`);
-        lines.push(`    Location: ${v.location?.file || v.file}:${v.location?.line || 0}:${v.location?.column || 0}`);
+        const file = (v as { location?: { file: string } }).location?.file || v.file;
+        const line = (v as { location?: { line?: number } }).location?.line || v.line || 0;
+        const column = (v as { location?: { column?: number } }).location?.column || v.column || 0;
+        lines.push(`    Location: ${file}:${line}:${column}`);
         lines.push('');
       });
     } else {
@@ -282,7 +304,7 @@ export class Reporter {
     return lines.join('\n');
   }
 
-  private formatAsTableGrouped(result: any, groupBy: 'severity' | 'file'): string {
+  private formatAsTableGrouped(result: ReporterResult, groupBy: 'severity' | 'file'): string {
     const lines: string[] = [];
 
     lines.push('Verification Report');
@@ -299,8 +321,8 @@ export class Reporter {
     // Group violations
     if (result.violations && result.violations.length > 0) {
       if (groupBy === 'severity') {
-        const grouped = new Map<string, any[]>();
-        result.violations.forEach((v: any) => {
+        const grouped = new Map<string, Violation[]>();
+        result.violations.forEach((v: Violation) => {
           const key = v.severity;
           if (!grouped.has(key)) grouped.set(key, []);
           grouped.get(key)!.push(v);
@@ -315,9 +337,9 @@ export class Reporter {
           lines.push('');
         }
       } else if (groupBy === 'file') {
-        const grouped = new Map<string, any[]>();
-        result.violations.forEach((v: any) => {
-          const key = v.location?.file || v.file || 'unknown';
+        const grouped = new Map<string, Violation[]>();
+        result.violations.forEach((v: Violation) => {
+          const key = (v as { location?: { file: string } }).location?.file || v.file || 'unknown';
           if (!grouped.has(key)) grouped.set(key, []);
           grouped.get(key)!.push(v);
         });
@@ -339,7 +361,7 @@ export class Reporter {
     return lines.join('\n');
   }
 
-  private formatAsMarkdown(result: any): string {
+  private formatAsMarkdown(result: ReporterResult): string {
     const lines: string[] = [];
 
     lines.push('## Verification Report\n');
@@ -360,10 +382,12 @@ export class Reporter {
     if (result.violations && result.violations.length > 0) {
       lines.push('### Violations\n');
 
-      result.violations.forEach((v: any) => {
+      result.violations.forEach((v: Violation) => {
         lines.push(`#### [${v.severity.toUpperCase()}] ${v.decisionId}`);
         lines.push(`**Message:** ${v.message}`);
-        lines.push(`**Location:** \`${v.location?.file || v.file}:${v.location?.line || 0}\`\n`);
+        const file = (v as { location?: { file: string } }).location?.file || v.file;
+        const line = (v as { location?: { line?: number } }).location?.line || v.line || 0;
+        lines.push(`**Location:** \`${file}:${line}\`\n`);
       });
     } else {
       lines.push('No violations found.\n');

@@ -33,3 +33,15 @@ export * from './mcp/index.js';
 
 // Utilities
 export * from './utils/index.js';
+
+// Analytics engine
+export * from './analytics/index.js';
+
+// Dashboard server
+export * from './dashboard/index.js';
+
+// LSP server
+export * from './lsp/index.js';
+
+// Integrations
+export * from './integrations/index.js';

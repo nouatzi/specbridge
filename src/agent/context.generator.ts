@@ -6,6 +6,8 @@ import type {
   ApplicableDecision,
   ApplicableConstraint,
   SpecBridgeConfig,
+  Decision,
+  Constraint,
 } from '../core/types/index.js';
 import { createRegistry } from '../registry/registry.js';
 import { matchesPattern } from '../utils/glob.js';
@@ -176,7 +178,7 @@ export class AgentContextGenerator {
    * Generate context from decisions
    */
   generateContext(options: {
-    decisions: any[];
+    decisions: Decision[];
     filePattern?: string;
     format?: 'markdown' | 'plain' | 'json';
     concise?: boolean;
@@ -192,7 +194,7 @@ export class AgentContextGenerator {
     let filteredDecisions = activeDecisions;
     if (filePattern) {
       filteredDecisions = activeDecisions.filter(d =>
-        d.constraints.some((c: any) => matchesPattern(filePattern, c.scope))
+        d.constraints.some((c: Constraint) => matchesPattern(filePattern, c.scope))
       );
     }
 
@@ -203,7 +205,7 @@ export class AgentContextGenerator {
 
       filteredDecisions = filteredDecisions.map(d => ({
         ...d,
-        constraints: d.constraints.filter((c: any) => {
+        constraints: d.constraints.filter((c: Constraint) => {
           const level = severityOrder[c.severity as keyof typeof severityOrder] || 0;
           return level >= minLevel;
         }),
@@ -254,7 +256,7 @@ export class AgentContextGenerator {
   /**
    * Generate prompt suffix for AI agents
    */
-  generatePromptSuffix(options: { decisions: any[] }): string {
+  generatePromptSuffix(options: { decisions: Decision[] }): string {
     const { decisions } = options;
 
     if (decisions.length === 0) {
@@ -282,13 +284,13 @@ export class AgentContextGenerator {
    * Extract relevant decisions for a specific file
    */
   extractRelevantDecisions(options: {
-    decisions: any[];
+    decisions: Decision[];
     filePath: string;
-  }): any[] {
+  }): Decision[] {
     const { decisions, filePath } = options;
 
     return decisions.filter(d =>
-      d.constraints.some((c: any) => matchesPattern(filePath, c.scope))
+      d.constraints.some((c: Constraint) => matchesPattern(filePath, c.scope))
     );
   }
 }

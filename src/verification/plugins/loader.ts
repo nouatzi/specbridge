@@ -6,7 +6,7 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import { glob } from 'glob';
+import fg from 'fast-glob';
 import type { Verifier, VerifierPlugin } from '../verifiers/base.js';
 
 /**
@@ -32,7 +32,7 @@ export class PluginLoader {
     }
 
     // Find all .ts and .js files (excluding tests and .d.ts)
-    const files = await glob('**/*.{ts,js}', {
+    const files = await fg('**/*.{ts,js}', {
       cwd: verifiersDir,
       absolute: true,
       ignore: ['**/*.test.{ts,js}', '**/*.d.ts'],

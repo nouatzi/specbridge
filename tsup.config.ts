@@ -1,6 +1,6 @@
-import { defineConfig, Options } from 'tsup';
+import { defineConfig } from 'tsup';
 import { copyFileSync, mkdirSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { join } from 'path';
 
 export default defineConfig({
   entry: {
@@ -11,7 +11,7 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  target: 'node18',
+  target: 'node20',
   splitting: false,
   esbuildOptions(options, context) {
     // Add shebang only to CLI entry

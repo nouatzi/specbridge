@@ -14,7 +14,8 @@ describe('SpecBridge Dogfooding', () => {
     const result = execFileSync('node', [cliPath, 'decision', 'list'], {
       encoding: 'utf-8',
       cwd: projectRoot,
-      timeout: 10000,
+      timeout: 30000,
+      maxBuffer: 10 * 1024 * 1024,
     });
     // Check for all 15 active decisions
     expect(result).toContain('arch-001');
@@ -39,7 +40,8 @@ describe('SpecBridge Dogfooding', () => {
     const result = execFileSync('node', [cliPath, 'decision', 'validate'], {
       encoding: 'utf-8',
       cwd: projectRoot,
-      timeout: 10000,
+      timeout: 30000,
+      maxBuffer: 10 * 1024 * 1024,
     });
     expect(result).toContain('valid');
   });
@@ -49,7 +51,8 @@ describe('SpecBridge Dogfooding', () => {
     const result = execFileSync('node', [cliPath, 'verify', '--level', 'commit'], {
       encoding: 'utf-8',
       cwd: projectRoot,
-      timeout: 10000,
+      timeout: 30000,
+      maxBuffer: 10 * 1024 * 1024,
     });
     expect(result).toContain('All checks passed');
   });

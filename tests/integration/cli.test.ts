@@ -22,18 +22,34 @@ describe('CLI Integration Tests', () => {
   });
 
   const runCLI = (args: string, expectError = false): string => {
+    const command = `node ${join(process.cwd(), 'dist/cli.js')} ${args}`;
+
     try {
-      return execSync(`node ${join(process.cwd(), 'dist/cli.js')} ${args}`, {
+      return execSync(command, {
         cwd: testDir,
         encoding: 'utf-8',
         stdio: 'pipe',
+        timeout: 20000,
+        maxBuffer: 10 * 1024 * 1024,
       });
     } catch (error: any) {
+      const stdout = typeof error?.stdout === 'string' ? error.stdout : String(error?.stdout ?? '');
+      const stderr = typeof error?.stderr === 'string' ? error.stderr : String(error?.stderr ?? '');
+      const details = [
+        `Command failed: ${command}`,
+        `cwd: ${testDir}`,
+        `status: ${String(error?.status ?? 'unknown')}`,
+        `signal: ${String(error?.signal ?? 'none')}`,
+        `timedOut: ${String(Boolean(error?.signal === 'SIGTERM' && error?.status === null))}`,
+        `stdout:\n${stdout || '(empty)'}`,
+        `stderr:\n${stderr || '(empty)'}`,
+      ].join('\n');
+
       if (expectError) {
-        return error.stdout || error.stderr || error.message || '';
+        return stdout || stderr || error.message || details;
       }
-      // Return error output for inspection
-      return error.stdout || error.stderr || error.message || '';
+
+      throw new Error(details);
     }
   };
 
@@ -121,7 +137,7 @@ verification:
       expect(output).toBeDefined();
     });
 
-    it('should support --decision flag to verify specific decision', () => {
+    it('should support --decisions flag to verify specific decision', () => {
       // Create a decision
       const decisionPath = join(testDir, '.specbridge/decisions/test.decision.yaml');
       writeFileSync(
@@ -146,13 +162,13 @@ verification:
 `
       );
 
-      const output = runCLI('verify --decision test-001');
+      const output = runCLI('verify --decisions test-001');
 
       expect(output).toBeDefined();
     });
 
-    it('should support --format flag for different output formats', () => {
-      const output = runCLI('verify --format json');
+    it('should support --json flag for JSON output', () => {
+      const output = runCLI('verify --json');
 
       expect(output).toBeDefined();
       // If it outputs JSON, it should be parseable
@@ -178,8 +194,8 @@ verification:
       expect(output).toBeDefined();
     });
 
-    it('should support --analyzer flag to run specific analyzer', () => {
-      const output = runCLI('infer --analyzer naming');
+    it('should support --analyzers flag to run specific analyzer', () => {
+      const output = runCLI('infer --analyzers naming');
 
       expect(output).toBeDefined();
     });

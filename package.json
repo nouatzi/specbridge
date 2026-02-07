@@ -1,6 +1,6 @@
 {
   "name": "@ipation/specbridge",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "description": "Architecture Decision Runtime - Transform architectural decisions into executable, verifiable constraints",
   "type": "module",
   "main": "./dist/index.js",
@@ -23,6 +23,9 @@
     "test:integration": "npm run test:integration:core && npm run test:integration:cli",
     "test:integration:core": "vitest run --config vitest.integration.core.config.ts",
     "test:integration:cli": "vitest run --config vitest.integration.cli.config.ts",
+    "test:integration:cli:smoke": "vitest run --config vitest.integration.cli.config.ts tests/integration/cli/smoke.test.ts",
+    "test:integration:cli:core": "vitest run --config vitest.integration.cli.config.ts tests/integration/cli/init-verify.test.ts tests/integration/cli/infer-decision.test.ts",
+    "test:integration:cli:aux": "vitest run --config vitest.integration.cli.config.ts tests/integration/cli/hook-report-context.test.ts tests/integration/cli/errors.test.ts",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "lint": "eslint .",
@@ -37,6 +40,7 @@
     "docs": "typedoc --out docs/api src/index.ts",
     "docs:serve": "npm run docs && npx http-server docs/api",
     "pack:check": "npm_config_cache=.cache/npm npm pack --ignore-scripts && npm_config_cache=.cache/npm HUSKY=0 npm pack --dry-run",
+    "deps:outdated": "npm_config_cache=.cache/npm npm outdated --long",
     "health:check": "npm run type-check && npm run lint:check && npm run format:check && npm run test && npm run test:integration && npm run test:coverage && npm audit --audit-level=high",
     "prepare": "husky",
     "prepublishOnly": "npm run build"

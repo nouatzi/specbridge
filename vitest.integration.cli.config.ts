@@ -4,10 +4,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['tests/integration/cli.test.ts'],
+    include: ['tests/integration/cli/**/*.test.ts'],
     pool: 'forks',
-    fileParallelism: false,
-    maxWorkers: 1,
+    fileParallelism: true,
+    maxWorkers: 2,
     minWorkers: 1,
     testTimeout: 45000,
   },

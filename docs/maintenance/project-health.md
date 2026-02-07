@@ -7,7 +7,7 @@ Use this checklist for monthly maintenance or before a release.
 ```bash
 npm ci
 npm run health:check
-npm outdated
+npm run deps:outdated
 ```
 
 Expanded equivalent:
@@ -19,11 +19,13 @@ npm run lint:check
 npm run format:check
 npm test
 npm run test:integration:core
-npm run test:integration:cli
+npm run test:integration:cli:smoke
+npm run test:integration:cli:core
+npm run test:integration:cli:aux
 npm run test:coverage
 npm run pack:check
 npm audit --audit-level=high
-npm outdated
+npm run deps:outdated
 ```
 
 ## Acceptance Criteria
@@ -36,6 +38,7 @@ npm outdated
 - Packaging checks pass with and without lifecycle scripts.
 - Runtime policy in docs matches `package.json` `engines.node`.
 - Integration retries (if needed) are annotated in CI step summaries as flaky.
+- Core and CLI integration runtime stay within configured CI budgets.
 
 ## Release Readiness Notes
 
@@ -50,3 +53,13 @@ Track these regularly:
 - Major-version drift in core toolchain (`eslint`, `typescript`, `vitest`).
 - CI runtime drift vs dependency engine requirements.
 - Test runtime growth and flakiness in long integration suites.
+
+## Troubleshooting
+
+If dependency checks fail with `EACCES` under `~/.npm`, use local cache overrides:
+
+```bash
+npm_config_cache=.cache/npm npm outdated --long
+```
+
+This avoids root-owned global npm cache issues on local machines and CI mirrors.

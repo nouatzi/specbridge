@@ -5,7 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['tests/integration/**/*.test.ts'],
-    exclude: ['tests/integration/cli.test.ts'],
+    exclude: ['tests/integration/cli/**/*.test.ts'],
     pool: 'threads',
     testTimeout: 30000,
   },

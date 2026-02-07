@@ -65,27 +65,57 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Run core integration tests (retry once on failure)
+      - name: Run core integration tests (retry once on failure + runtime budget)
         id: integration_core
+        shell: bash
+        timeout-minutes: 12
         run: |
           set +e
-          npm run test:integration:core
+          budget_seconds=120
+
+          run_core() {
+            local attempt="$1"
+            local log_file="integration-core-${attempt}.log"
+            local started_at ended_at status
+
+            started_at=$(date +%s)
+            npm run test:integration:core 2>&1 | tee "$log_file"
+            status=${PIPESTATUS[0]}
+            ended_at=$(date +%s)
+            duration_seconds=$((ended_at - started_at))
+
+            echo "### Core integration (${attempt})" >> "$GITHUB_STEP_SUMMARY"
+            echo "- status: ${status}" >> "$GITHUB_STEP_SUMMARY"
+            echo "- duration: ${duration_seconds}s (budget ${budget_seconds}s)" >> "$GITHUB_STEP_SUMMARY"
+            return "$status"
+          }
+
+          run_core "run1"
           first_exit=$?
-          if [ "$first_exit" -eq 0 ]; then
-            echo "flaky=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
+          first_duration=$duration_seconds
 
-          echo "First core integration run failed. Retrying once..."
-          npm run test:integration:core
-          second_exit=$?
-          if [ "$second_exit" -eq 0 ]; then
+          if [ "$first_exit" -ne 0 ]; then
+            echo "First core integration run failed. Retrying once..."
+            run_core "run2"
+            second_exit=$?
+            second_duration=$duration_seconds
+            if [ "$second_exit" -ne 0 ]; then
+              echo "flaky=false" >> "$GITHUB_OUTPUT"
+              exit "$second_exit"
+            fi
+
             echo "flaky=true" >> "$GITHUB_OUTPUT"
-            exit 0
+            final_duration=$second_duration
+          else
+            echo "flaky=false" >> "$GITHUB_OUTPUT"
+            final_duration=$first_duration
           fi
 
-          echo "flaky=false" >> "$GITHUB_OUTPUT"
-          exit "$second_exit"
+          echo "final_duration=${final_duration}" >> "$GITHUB_OUTPUT"
+          if [ "$final_duration" -gt "$budget_seconds" ]; then
+            echo "Core integration exceeded runtime budget (${final_duration}s > ${budget_seconds}s)."
+            exit 1
+          fi
 
       - name: Annotate flaky core integration
         if: steps.integration_core.outputs.flaky == 'true'
@@ -93,8 +123,19 @@ jobs:
           echo "### Flaky integration detected (core)" >> "$GITHUB_STEP_SUMMARY"
           echo "- First run failed, retry passed." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Upload core integration logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-core-logs
+          path: integration-core-*.log
+          retention-days: 7
+
   test-integration-cli:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        suite: [smoke, core, aux]
     env:
       HUSKY: 0
 
@@ -113,33 +154,81 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Run CLI integration tests (retry once on failure)
+      - name: Run CLI integration suite (retry once on failure + runtime budget)
         id: integration_cli
+        shell: bash
+        timeout-minutes: 12
         run: |
           set +e
-          npm run test:integration:cli
+          case "${{ matrix.suite }}" in
+            smoke)
+              budget_seconds=90
+              ;;
+            core|aux)
+              budget_seconds=180
+              ;;
+            *)
+              budget_seconds=180
+              ;;
+          esac
+
+          run_suite() {
+            local attempt="$1"
+            local log_file="integration-cli-${{ matrix.suite }}-${attempt}.log"
+            local started_at ended_at status
+
+            started_at=$(date +%s)
+            npm run "test:integration:cli:${{ matrix.suite }}" 2>&1 | tee "$log_file"
+            status=${PIPESTATUS[0]}
+            ended_at=$(date +%s)
+            duration_seconds=$((ended_at - started_at))
+
+            echo "### CLI integration (${{ matrix.suite }} / ${attempt})" >> "$GITHUB_STEP_SUMMARY"
+            echo "- status: ${status}" >> "$GITHUB_STEP_SUMMARY"
+            echo "- duration: ${duration_seconds}s (budget ${budget_seconds}s)" >> "$GITHUB_STEP_SUMMARY"
+            return "$status"
+          }
+
+          run_suite "run1"
           first_exit=$?
-          if [ "$first_exit" -eq 0 ]; then
-            echo "flaky=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
+          first_duration=$duration_seconds
 
-          echo "First CLI integration run failed. Retrying once..."
-          npm run test:integration:cli
-          second_exit=$?
-          if [ "$second_exit" -eq 0 ]; then
+          if [ "$first_exit" -ne 0 ]; then
+            echo "First CLI integration run failed for suite '${{ matrix.suite }}'. Retrying once..."
+            run_suite "run2"
+            second_exit=$?
+            second_duration=$duration_seconds
+            if [ "$second_exit" -ne 0 ]; then
+              echo "flaky=false" >> "$GITHUB_OUTPUT"
+              exit "$second_exit"
+            fi
+
             echo "flaky=true" >> "$GITHUB_OUTPUT"
-            exit 0
+            final_duration=$second_duration
+          else
+            echo "flaky=false" >> "$GITHUB_OUTPUT"
+            final_duration=$first_duration
           fi
 
-          echo "flaky=false" >> "$GITHUB_OUTPUT"
-          exit "$second_exit"
+          echo "final_duration=${final_duration}" >> "$GITHUB_OUTPUT"
+          if [ "$final_duration" -gt "$budget_seconds" ]; then
+            echo "CLI integration suite '${{ matrix.suite }}' exceeded runtime budget (${final_duration}s > ${budget_seconds}s)."
+            exit 1
+          fi
 
       - name: Annotate flaky CLI integration
         if: steps.integration_cli.outputs.flaky == 'true'
         run: |
-          echo "### Flaky integration detected (cli)" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Flaky integration detected (cli / ${{ matrix.suite }})" >> "$GITHUB_STEP_SUMMARY"
           echo "- First run failed, retry passed." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload CLI integration logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-cli-logs-${{ matrix.suite }}
+          path: integration-cli-${{ matrix.suite }}-*.log
+          retention-days: 7
 
   lint:
     runs-on: ubuntu-latest

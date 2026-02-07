@@ -33,8 +33,70 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Run integration tests
-        run: npm run test:integration
+      - name: Run integration tests (retry once on failure + runtime budget)
+        id: integration_release
+        shell: bash
+        timeout-minutes: 20
+        run: |
+          set +e
+          budget_seconds=480
+
+          run_release_integration() {
+            local attempt="$1"
+            local log_file="publish-integration-${attempt}.log"
+            local started_at ended_at status
+
+            started_at=$(date +%s)
+            timeout 15m npm run test:integration 2>&1 | tee "$log_file"
+            status=${PIPESTATUS[0]}
+            ended_at=$(date +%s)
+            duration_seconds=$((ended_at - started_at))
+
+            echo "### Publish integration (${attempt})" >> "$GITHUB_STEP_SUMMARY"
+            echo "- status: ${status}" >> "$GITHUB_STEP_SUMMARY"
+            echo "- duration: ${duration_seconds}s (budget ${budget_seconds}s)" >> "$GITHUB_STEP_SUMMARY"
+            return "$status"
+          }
+
+          run_release_integration "run1"
+          first_exit=$?
+          first_duration=$duration_seconds
+
+          if [ "$first_exit" -ne 0 ]; then
+            echo "First publish integration run failed. Retrying once..."
+            run_release_integration "run2"
+            second_exit=$?
+            second_duration=$duration_seconds
+            if [ "$second_exit" -ne 0 ]; then
+              echo "flaky=false" >> "$GITHUB_OUTPUT"
+              exit "$second_exit"
+            fi
+
+            echo "flaky=true" >> "$GITHUB_OUTPUT"
+            final_duration=$second_duration
+          else
+            echo "flaky=false" >> "$GITHUB_OUTPUT"
+            final_duration=$first_duration
+          fi
+
+          if [ "$final_duration" -gt "$budget_seconds" ]; then
+            echo "Publish integration exceeded runtime budget (${final_duration}s > ${budget_seconds}s)."
+            exit 1
+          fi
+
+      - name: Annotate flaky publish integration
+        if: steps.integration_release.outputs.flaky == 'true'
+        run: |
+          echo "### Flaky integration detected in publish workflow" >> "$GITHUB_STEP_SUMMARY"
+          echo "- First run failed, retry passed." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload publish integration logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-integration-logs
+          path: publish-integration-*.log
+          retention-days: 7
 
       - name: Verify package contents
         run: npm run pack:check

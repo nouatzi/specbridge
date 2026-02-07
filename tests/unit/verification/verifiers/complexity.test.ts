@@ -21,7 +21,9 @@ describe('ComplexityVerifier', () => {
   });
 
   it('should detect cyclomatic complexity violations', async () => {
-    const sf = project.createSourceFile('src/test.ts', `
+    const sf = project.createSourceFile(
+      'src/test.ts',
+      `
       function f(x: number) {
         if (x > 0) return 1;
         for (let i = 0; i < x; i++) {
@@ -29,7 +31,8 @@ describe('ComplexityVerifier', () => {
         }
         return 0;
       }
-    `);
+    `
+    );
 
     const ctx: VerificationContext = {
       filePath: sf.getFilePath(),
@@ -71,7 +74,10 @@ describe('ComplexityVerifier', () => {
   });
 
   it('should detect parameter count violations', async () => {
-    const sf = project.createSourceFile('src/test.ts', `function f(a: any, b: any, c: any, d: any, e: any) { return a; }`);
+    const sf = project.createSourceFile(
+      'src/test.ts',
+      `function f(a: any, b: any, c: any, d: any, e: any) { return a; }`
+    );
 
     const ctx: VerificationContext = {
       filePath: sf.getFilePath(),
@@ -91,4 +97,3 @@ describe('ComplexityVerifier', () => {
     expect(violations[0].message.toLowerCase()).toContain('parameters');
   });
 });
-

@@ -71,14 +71,15 @@ export class ExplainReporter {
             if (entry.verifierOutput.error) {
               console.log(chalk.red(`    Error: ${entry.verifierOutput.error}`));
             } else {
-              const violationText = entry.verifierOutput.violations === 1
-                ? '1 violation'
-                : `${entry.verifierOutput.violations} violations`;
+              const violationText =
+                entry.verifierOutput.violations === 1
+                  ? '1 violation'
+                  : `${entry.verifierOutput.violations} violations`;
               const resultColor = entry.verifierOutput.violations > 0 ? chalk.red : chalk.green;
               console.log(
                 chalk.dim(`    Result: `) +
-                resultColor(violationText) +
-                chalk.dim(` in ${entry.verifierOutput.duration}ms`)
+                  resultColor(violationText) +
+                  chalk.dim(` in ${entry.verifierOutput.duration}ms`)
               );
             }
           }
@@ -89,8 +90,8 @@ export class ExplainReporter {
     }
 
     // Summary
-    const applied = this.entries.filter(e => e.applied).length;
-    const skipped = this.entries.filter(e => !e.applied).length;
+    const applied = this.entries.filter((e) => e.applied).length;
+    const skipped = this.entries.filter((e) => !e.applied).length;
 
     console.log(chalk.bold('Summary:'));
     console.log(`  Constraints Applied: ${chalk.green(applied)}`);

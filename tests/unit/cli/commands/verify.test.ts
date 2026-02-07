@@ -122,9 +122,7 @@ describe('verify command', () => {
     // Remove .specbridge directory
     rmSync(join(testDir, '.specbridge'), { recursive: true, force: true });
 
-    await expect(
-      verifyCommand.parseAsync(['node', 'test'])
-    ).rejects.toThrow(NotInitializedError);
+    await expect(verifyCommand.parseAsync(['node', 'test'])).rejects.toThrow(NotInitializedError);
   });
 
   it('should run verification with default options', async () => {
@@ -186,9 +184,7 @@ describe('verify command', () => {
   it('should output JSON with --json flag', async () => {
     await verifyCommand.parseAsync(['node', 'test', '--json']);
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('"success"')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('"success"'));
   });
 
   it('should exit with code 1 when verification fails', async () => {
@@ -253,14 +249,10 @@ describe('verify command', () => {
     }
 
     // Should print file name
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('src/test.ts')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('src/test.ts'));
 
     // Should print violation details
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Test violation message')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Test violation message'));
   });
 
   it('should display violations with suggestions when available', async () => {
@@ -297,8 +289,10 @@ describe('verify command', () => {
     expect(consoleLogSpy).toHaveBeenCalled();
 
     // Check that the suggestion was output (may be in any call)
-    const allCalls = consoleLogSpy.mock.calls.map(call => call.join(' '));
-    const hassuggestion = allCalls.some(call => call.includes('Suggestion') || call.includes('Replace default export'));
+    const allCalls = consoleLogSpy.mock.calls.map((call) => call.join(' '));
+    const hassuggestion = allCalls.some(
+      (call) => call.includes('Suggestion') || call.includes('Replace default export')
+    );
     expect(hassuggestion).toBe(true);
   });
 
@@ -357,9 +351,11 @@ describe('verify command', () => {
     expect(consoleLogSpy).toHaveBeenCalled();
 
     // Check output contains expected elements
-    const allCalls = consoleLogSpy.mock.calls.map(call => call.join(' '));
-    const hasSummary = allCalls.some(call => call.includes('Summary'));
-    const hasFileStats = allCalls.some(call => call.includes('Files') || call.includes('checked'));
+    const allCalls = consoleLogSpy.mock.calls.map((call) => call.join(' '));
+    const hasSummary = allCalls.some((call) => call.includes('Summary'));
+    const hasFileStats = allCalls.some(
+      (call) => call.includes('Files') || call.includes('checked')
+    );
     expect(hasSummary || hasFileStats).toBe(true);
   });
 
@@ -394,8 +390,8 @@ describe('verify command', () => {
     expect(consoleLogSpy).toHaveBeenCalled();
 
     // Check that critical severity appears in output
-    const allCalls = consoleLogSpy.mock.calls.map(call => call.join(' '));
-    const hasCritical = allCalls.some(call => call.toLowerCase().includes('critical'));
+    const allCalls = consoleLogSpy.mock.calls.map((call) => call.join(' '));
+    const hasCritical = allCalls.some((call) => call.toLowerCase().includes('critical'));
     expect(hasCritical).toBe(true);
   });
 

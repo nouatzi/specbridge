@@ -22,16 +22,25 @@ function isStringLiteralLike(node: Node): boolean {
 export class SecurityVerifier implements Verifier {
   readonly id = 'security';
   readonly name = 'Security Verifier';
-  readonly description = 'Detects common security footguns (secrets, eval, XSS/SQL injection heuristics)';
+  readonly description =
+    'Detects common security footguns (secrets, eval, XSS/SQL injection heuristics)';
 
   async verify(ctx: VerificationContext): Promise<Violation[]> {
     const violations: Violation[] = [];
     const { sourceFile, constraint, decisionId, filePath } = ctx;
     const rule = constraint.rule.toLowerCase();
 
-    const checkSecrets = rule.includes('secret') || rule.includes('password') || rule.includes('token') || rule.includes('api key') || rule.includes('hardcoded');
+    const checkSecrets =
+      rule.includes('secret') ||
+      rule.includes('password') ||
+      rule.includes('token') ||
+      rule.includes('api key') ||
+      rule.includes('hardcoded');
     const checkEval = rule.includes('eval') || rule.includes('function constructor');
-    const checkXss = rule.includes('xss') || rule.includes('innerhtml') || rule.includes('dangerouslysetinnerhtml');
+    const checkXss =
+      rule.includes('xss') ||
+      rule.includes('innerhtml') ||
+      rule.includes('dangerouslysetinnerhtml');
     const checkSql = rule.includes('sql') || rule.includes('injection');
     const checkProto = rule.includes('prototype pollution') || rule.includes('__proto__');
 
@@ -46,16 +55,18 @@ export class SecurityVerifier implements Verifier {
         const value = init.getText().slice(1, -1); // best-effort strip quotes
         if (value.length === 0) continue;
 
-        violations.push(createViolation({
-          decisionId,
-          constraintId: constraint.id,
-          type: constraint.type,
-          severity: constraint.severity,
-          message: `Possible hardcoded secret in variable "${name}"`,
-          file: filePath,
-          line: vd.getStartLineNumber(),
-          suggestion: 'Move secrets to environment variables or a secret manager',
-        }));
+        violations.push(
+          createViolation({
+            decisionId,
+            constraintId: constraint.id,
+            type: constraint.type,
+            severity: constraint.severity,
+            message: `Possible hardcoded secret in variable "${name}"`,
+            file: filePath,
+            line: vd.getStartLineNumber(),
+            suggestion: 'Move secrets to environment variables or a secret manager',
+          })
+        );
       }
 
       for (const pa of sourceFile.getDescendantsOfKind(SyntaxKind.PropertyAssignment)) {
@@ -65,16 +76,18 @@ export class SecurityVerifier implements Verifier {
         const init = pa.getInitializer();
         if (!init || !isStringLiteralLike(init)) continue;
 
-        violations.push(createViolation({
-          decisionId,
-          constraintId: constraint.id,
-          type: constraint.type,
-          severity: constraint.severity,
-          message: `Possible hardcoded secret in object property ${propName}`,
-          file: filePath,
-          line: pa.getStartLineNumber(),
-          suggestion: 'Move secrets to environment variables or a secret manager',
-        }));
+        violations.push(
+          createViolation({
+            decisionId,
+            constraintId: constraint.id,
+            type: constraint.type,
+            severity: constraint.severity,
+            message: `Possible hardcoded secret in object property ${propName}`,
+            file: filePath,
+            line: pa.getStartLineNumber(),
+            suggestion: 'Move secrets to environment variables or a secret manager',
+          })
+        );
       }
     }
 
@@ -82,16 +95,18 @@ export class SecurityVerifier implements Verifier {
       for (const call of sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression)) {
         const exprText = call.getExpression().getText();
         if (exprText === 'eval' || exprText === 'Function') {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Unsafe dynamic code execution via ${exprText}()`,
-            file: filePath,
-            line: call.getStartLineNumber(),
-            suggestion: 'Avoid eval/Function; use safer alternatives',
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Unsafe dynamic code execution via ${exprText}()`,
+              file: filePath,
+              line: call.getStartLineNumber(),
+              suggestion: 'Avoid eval/Function; use safer alternatives',
+            })
+          );
         }
       }
     }
@@ -103,31 +118,35 @@ export class SecurityVerifier implements Verifier {
         const propertyAccess = left.asKind(SyntaxKind.PropertyAccessExpression);
         if (!propertyAccess) continue;
         if (propertyAccess.getName() === 'innerHTML') {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: 'Potential XSS: assignment to innerHTML',
-            file: filePath,
-            line: bin.getStartLineNumber(),
-            suggestion: 'Prefer textContent or a safe templating/escaping strategy',
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: 'Potential XSS: assignment to innerHTML',
+              file: filePath,
+              line: bin.getStartLineNumber(),
+              suggestion: 'Prefer textContent or a safe templating/escaping strategy',
+            })
+          );
         }
       }
 
       // React dangerouslySetInnerHTML usage
       if (sourceFile.getFullText().includes('dangerouslySetInnerHTML')) {
-        violations.push(createViolation({
-          decisionId,
-          constraintId: constraint.id,
-          type: constraint.type,
-          severity: constraint.severity,
-          message: 'Potential XSS: usage of dangerouslySetInnerHTML',
-          file: filePath,
-          line: 1,
-          suggestion: 'Avoid dangerouslySetInnerHTML or ensure content is sanitized',
-        }));
+        violations.push(
+          createViolation({
+            decisionId,
+            constraintId: constraint.id,
+            type: constraint.type,
+            severity: constraint.severity,
+            message: 'Potential XSS: usage of dangerouslySetInnerHTML',
+            file: filePath,
+            line: 1,
+            suggestion: 'Avoid dangerouslySetInnerHTML or ensure content is sanitized',
+          })
+        );
       }
     }
 
@@ -143,40 +162,50 @@ export class SecurityVerifier implements Verifier {
         if (!arg) continue;
 
         const isTemplate = arg.getKind() === SyntaxKind.TemplateExpression;
-        const isConcat = arg.getKind() === SyntaxKind.BinaryExpression && arg.getText().includes('+');
+        const isConcat =
+          arg.getKind() === SyntaxKind.BinaryExpression && arg.getText().includes('+');
         if (!isTemplate && !isConcat) continue;
 
         const text = arg.getText().toLowerCase();
-        if (!text.includes('select') && !text.includes('insert') && !text.includes('update') && !text.includes('delete')) {
+        if (
+          !text.includes('select') &&
+          !text.includes('insert') &&
+          !text.includes('update') &&
+          !text.includes('delete')
+        ) {
           continue;
         }
 
-        violations.push(createViolation({
-          decisionId,
-          constraintId: constraint.id,
-          type: constraint.type,
-          severity: constraint.severity,
-          message: 'Potential SQL injection: dynamically constructed SQL query',
-          file: filePath,
-          line: call.getStartLineNumber(),
-          suggestion: 'Use parameterized queries / prepared statements',
-        }));
+        violations.push(
+          createViolation({
+            decisionId,
+            constraintId: constraint.id,
+            type: constraint.type,
+            severity: constraint.severity,
+            message: 'Potential SQL injection: dynamically constructed SQL query',
+            file: filePath,
+            line: call.getStartLineNumber(),
+            suggestion: 'Use parameterized queries / prepared statements',
+          })
+        );
       }
     }
 
     if (checkProto) {
       const text = sourceFile.getFullText();
       if (text.includes('__proto__') || text.includes('constructor.prototype')) {
-        violations.push(createViolation({
-          decisionId,
-          constraintId: constraint.id,
-          type: constraint.type,
-          severity: constraint.severity,
-          message: 'Potential prototype pollution pattern detected',
-          file: filePath,
-          line: 1,
-          suggestion: 'Avoid writing to __proto__/prototype; validate object keys',
-        }));
+        violations.push(
+          createViolation({
+            decisionId,
+            constraintId: constraint.id,
+            type: constraint.type,
+            severity: constraint.severity,
+            message: 'Potential prototype pollution pattern detected',
+            file: filePath,
+            line: 1,
+            suggestion: 'Avoid writing to __proto__/prototype; validate object keys',
+          })
+        );
       }
     }
 

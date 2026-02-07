@@ -27,18 +27,20 @@ export class ErrorsVerifier implements Verifier {
 
         const extendsClause = classDecl.getExtends();
         if (!extendsClause) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Error class "${className}" does not extend any base class`,
-            file: filePath,
-            line: classDecl.getStartLineNumber(),
-            suggestion: requiredBase
-              ? `Extend ${requiredBase}`
-              : 'Extend a base error class for consistent error handling',
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Error class "${className}" does not extend any base class`,
+              file: filePath,
+              line: classDecl.getStartLineNumber(),
+              suggestion: requiredBase
+                ? `Extend ${requiredBase}`
+                : 'Extend a base error class for consistent error handling',
+            })
+          );
         } else if (requiredBase) {
           const baseName = extendsClause.getText();
           if (baseName !== requiredBase && baseName !== 'Error') {
@@ -56,16 +58,18 @@ export class ErrorsVerifier implements Verifier {
           if (expression) {
             const text = expression.getText();
             if (text.startsWith('new Error(')) {
-              violations.push(createViolation({
-                decisionId,
-                constraintId: constraint.id,
-                type: constraint.type,
-                severity: constraint.severity,
-                message: 'Throwing generic Error instead of custom error class',
-                file: filePath,
-                line: node.getStartLineNumber(),
-                suggestion: 'Use a custom error class for better error handling',
-              }));
+              violations.push(
+                createViolation({
+                  decisionId,
+                  constraintId: constraint.id,
+                  type: constraint.type,
+                  severity: constraint.severity,
+                  message: 'Throwing generic Error instead of custom error class',
+                  file: filePath,
+                  line: node.getStartLineNumber(),
+                  suggestion: 'Use a custom error class for better error handling',
+                })
+              );
             }
           }
         }
@@ -83,16 +87,18 @@ export class ErrorsVerifier implements Verifier {
 
             // Check if catch block is empty or only has comments
             if (statements.length === 0) {
-              violations.push(createViolation({
-                decisionId,
-                constraintId: constraint.id,
-                type: constraint.type,
-                severity: constraint.severity,
-                message: 'Empty catch block swallows error without handling',
-                file: filePath,
-                line: catchClause.getStartLineNumber(),
-                suggestion: 'Add error handling, logging, or rethrow the error',
-              }));
+              violations.push(
+                createViolation({
+                  decisionId,
+                  constraintId: constraint.id,
+                  type: constraint.type,
+                  severity: constraint.severity,
+                  message: 'Empty catch block swallows error without handling',
+                  file: filePath,
+                  line: catchClause.getStartLineNumber(),
+                  suggestion: 'Add error handling, logging, or rethrow the error',
+                })
+              );
             }
           }
         }
@@ -106,16 +112,18 @@ export class ErrorsVerifier implements Verifier {
           const expression = node.getExpression();
           const text = expression.getText();
           if (text === 'console.error' || text === 'console.log') {
-            violations.push(createViolation({
-              decisionId,
-              constraintId: constraint.id,
-              type: constraint.type,
-              severity: constraint.severity,
-              message: `Using ${text} instead of proper logging`,
-              file: filePath,
-              line: node.getStartLineNumber(),
-              suggestion: 'Use a proper logging library',
-            }));
+            violations.push(
+              createViolation({
+                decisionId,
+                constraintId: constraint.id,
+                type: constraint.type,
+                severity: constraint.severity,
+                message: `Using ${text} instead of proper logging`,
+                file: filePath,
+                line: node.getStartLineNumber(),
+                suggestion: 'Use a proper logging library',
+              })
+            );
           }
         }
       });

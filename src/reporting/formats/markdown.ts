@@ -27,7 +27,9 @@ export function formatMarkdownReport(report: ComplianceReport): string {
   // Summary
   lines.push('## Summary');
   lines.push('');
-  lines.push(`- **Active Decisions:** ${report.summary.activeDecisions} / ${report.summary.totalDecisions}`);
+  lines.push(
+    `- **Active Decisions:** ${report.summary.activeDecisions} / ${report.summary.totalDecisions}`
+  );
   lines.push(`- **Total Constraints:** ${report.summary.totalConstraints}`);
   lines.push('');
 
@@ -35,7 +37,8 @@ export function formatMarkdownReport(report: ComplianceReport): string {
   lines.push('### Violations');
   lines.push('');
   const { violations } = report.summary;
-  const totalViolations = violations.critical + violations.high + violations.medium + violations.low;
+  const totalViolations =
+    violations.critical + violations.high + violations.medium + violations.low;
 
   if (totalViolations === 0) {
     lines.push('No violations found.');

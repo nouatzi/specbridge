@@ -124,7 +124,9 @@ verification:
     it('should support --decision flag to verify specific decision', () => {
       // Create a decision
       const decisionPath = join(testDir, '.specbridge/decisions/test.decision.yaml');
-      writeFileSync(decisionPath, `kind: Decision
+      writeFileSync(
+        decisionPath,
+        `kind: Decision
 metadata:
   id: test-001
   title: Test
@@ -141,7 +143,8 @@ constraints:
     scope: src/**/*.ts
 verification:
   automated: []
-`);
+`
+      );
 
       const output = runCLI('verify --decision test-001');
 
@@ -210,7 +213,9 @@ verification:
     it('should list all decisions', () => {
       // Create a decision first
       const decisionPath = join(testDir, '.specbridge/decisions/test.decision.yaml');
-      writeFileSync(decisionPath, `kind: Decision
+      writeFileSync(
+        decisionPath,
+        `kind: Decision
 metadata:
   id: test-001
   title: Test
@@ -227,7 +232,8 @@ constraints:
     scope: src/**/*.ts
 verification:
   automated: []
-`);
+`
+      );
 
       const output = runCLI('decision list');
 
@@ -237,7 +243,9 @@ verification:
     it('should show decision details', () => {
       // Create a decision first
       const decisionPath = join(testDir, '.specbridge/decisions/test.decision.yaml');
-      writeFileSync(decisionPath, `kind: Decision
+      writeFileSync(
+        decisionPath,
+        `kind: Decision
 metadata:
   id: test-001
   title: Test Decision
@@ -254,7 +262,8 @@ constraints:
     scope: src/**/*.ts
 verification:
   automated: []
-`);
+`
+      );
 
       const output = runCLI('decision show test-001');
 

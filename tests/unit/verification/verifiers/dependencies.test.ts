@@ -46,7 +46,10 @@ describe('DependencyVerifier', () => {
   });
 
   it('should detect a layer violation (heuristic by folder name)', async () => {
-    const domain = project.createSourceFile('src/domain/user.ts', `import { db } from '../infrastructure/db.js'; export const u = db;`);
+    const domain = project.createSourceFile(
+      'src/domain/user.ts',
+      `import { db } from '../infrastructure/db.js'; export const u = db;`
+    );
     project.createSourceFile('src/infrastructure/db.ts', `export const db = 1;`);
 
     const ctx: VerificationContext = {
@@ -70,7 +73,10 @@ describe('DependencyVerifier', () => {
   });
 
   it('should detect banned dependencies via imports', async () => {
-    const sf = project.createSourceFile('src/test.ts', `import _ from 'lodash'; export const x = _;`);
+    const sf = project.createSourceFile(
+      'src/test.ts',
+      `import _ from 'lodash'; export const x = _;`
+    );
 
     const ctx: VerificationContext = {
       filePath: sf.getFilePath(),
@@ -91,7 +97,10 @@ describe('DependencyVerifier', () => {
   });
 
   it('should enforce maximum import depth', async () => {
-    const sf = project.createSourceFile('src/test.ts', `import { x } from '../../../deep/module.js'; export { x };`);
+    const sf = project.createSourceFile(
+      'src/test.ts',
+      `import { x } from '../../../deep/module.js'; export { x };`
+    );
 
     const ctx: VerificationContext = {
       filePath: sf.getFilePath(),
@@ -111,4 +120,3 @@ describe('DependencyVerifier', () => {
     expect(violations[0].message).toContain('Import depth');
   });
 });
-

@@ -10,11 +10,15 @@ const execFileAsync = promisify(execFile);
 
 export async function getChangedFiles(cwd: string): Promise<string[]> {
   try {
-    const { stdout } = await execFileAsync('git', ['diff', '--name-only', '--diff-filter=AM', 'HEAD'], { cwd });
+    const { stdout } = await execFileAsync(
+      'git',
+      ['diff', '--name-only', '--diff-filter=AM', 'HEAD'],
+      { cwd }
+    );
     const rel = stdout
       .trim()
       .split('\n')
-      .map(s => s.trim())
+      .map((s) => s.trim())
       .filter(Boolean);
 
     const abs: string[] = [];
@@ -27,4 +31,3 @@ export async function getChangedFiles(cwd: string): Promise<string[]> {
     return [];
   }
 }
-

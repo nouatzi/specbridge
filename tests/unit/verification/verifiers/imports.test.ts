@@ -19,7 +19,9 @@ describe('ImportsVerifier', () => {
     it('should have correct id, name, and description', () => {
       expect(verifier.id).toBe('imports');
       expect(verifier.name).toBe('Import Pattern Verifier');
-      expect(verifier.description).toBe('Verifies import patterns like barrel imports, path aliases, etc.');
+      expect(verifier.description).toBe(
+        'Verifies import patterns like barrel imports, path aliases, etc.'
+      );
     });
   });
 
@@ -419,10 +421,7 @@ describe('ImportsVerifier', () => {
     });
 
     it('should accept default imports', async () => {
-      const sourceFile = project.createSourceFile(
-        'src/test.ts',
-        `import React from 'react';`
-      );
+      const sourceFile = project.createSourceFile('src/test.ts', `import React from 'react';`);
 
       const context: VerificationContext = {
         filePath: 'src/test.ts',
@@ -502,8 +501,8 @@ describe('ImportsVerifier', () => {
       // The verifier flags './models/user.ts', './utils', and '../../../config/app'
       // because all match the direct file import pattern
       expect(violations).toHaveLength(3);
-      expect(violations.some(v => v.message.includes('user.ts'))).toBe(true);
-      expect(violations.every(v => v.message.includes('barrel'))).toBe(true);
+      expect(violations.some((v) => v.message.includes('user.ts'))).toBe(true);
+      expect(violations.every((v) => v.message.includes('barrel'))).toBe(true);
     });
 
     it('should check only path aliases when rule specifies aliases', async () => {
@@ -539,10 +538,7 @@ describe('ImportsVerifier', () => {
 
   describe('edge cases', () => {
     it('should handle file with no imports', async () => {
-      const sourceFile = project.createSourceFile(
-        'src/test.ts',
-        `export const x = 1;`
-      );
+      const sourceFile = project.createSourceFile('src/test.ts', `export const x = 1;`);
 
       const context: VerificationContext = {
         filePath: 'src/test.ts',
@@ -584,10 +580,7 @@ describe('ImportsVerifier', () => {
     });
 
     it('should handle side-effect imports', async () => {
-      const sourceFile = project.createSourceFile(
-        'src/test.ts',
-        `import './styles.css';`
-      );
+      const sourceFile = project.createSourceFile('src/test.ts', `import './styles.css';`);
 
       const context: VerificationContext = {
         filePath: 'src/test.ts',
@@ -608,10 +601,7 @@ describe('ImportsVerifier', () => {
     });
 
     it('should return no violations for unmatched rule patterns', async () => {
-      const sourceFile = project.createSourceFile(
-        'src/test.ts',
-        `import { User } from './user';`
-      );
+      const sourceFile = project.createSourceFile('src/test.ts', `import { User } from './user';`);
 
       const context: VerificationContext = {
         filePath: 'src/test.ts',

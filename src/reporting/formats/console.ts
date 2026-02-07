@@ -21,12 +21,16 @@ export function formatConsoleReport(report: ComplianceReport): string {
   // Overall compliance
   const complianceColor = getComplianceColor(report.summary.compliance);
   lines.push(chalk.bold('Overall Compliance'));
-  lines.push(`  ${complianceColor(formatComplianceBar(report.summary.compliance))} ${complianceColor(`${report.summary.compliance}%`)}`);
+  lines.push(
+    `  ${complianceColor(formatComplianceBar(report.summary.compliance))} ${complianceColor(`${report.summary.compliance}%`)}`
+  );
   lines.push('');
 
   // Summary stats
   lines.push(chalk.bold('Summary'));
-  lines.push(`  Decisions: ${report.summary.activeDecisions} active / ${report.summary.totalDecisions} total`);
+  lines.push(
+    `  Decisions: ${report.summary.activeDecisions} active / ${report.summary.totalDecisions} total`
+  );
   lines.push(`  Constraints: ${report.summary.totalConstraints}`);
   lines.push('');
 

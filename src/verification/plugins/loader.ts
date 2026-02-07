@@ -192,7 +192,10 @@ export class PluginLoader {
    * @param params - Parameters to validate
    * @returns Validation result with success flag and error message if failed
    */
-  validateParams(id: string, params: Record<string, unknown> | undefined): { success: true } | { success: false; error: string } {
+  validateParams(
+    id: string,
+    params: Record<string, unknown> | undefined
+  ): { success: true } | { success: false; error: string } {
     const plugin = this.plugins.get(id);
 
     if (!plugin) {
@@ -210,18 +213,34 @@ export class PluginLoader {
     }
 
     // Validate that paramsSchema is a Zod schema
-    if (typeof plugin.paramsSchema !== 'object' || !plugin.paramsSchema || !('parse' in plugin.paramsSchema)) {
-      return { success: false, error: `Plugin ${id} has invalid paramsSchema (must be a Zod schema)` };
+    if (
+      typeof plugin.paramsSchema !== 'object' ||
+      !plugin.paramsSchema ||
+      !('parse' in plugin.paramsSchema)
+    ) {
+      return {
+        success: false,
+        error: `Plugin ${id} has invalid paramsSchema (must be a Zod schema)`,
+      };
     }
 
     // Narrow to a parse-capable schema after validating the contract at runtime.
-    const schema = plugin.paramsSchema as { parse: (data: unknown) => unknown; safeParse?: (data: unknown) => { success: boolean; error?: { issues: Array<{ message: string; path: Array<string | number> }> } } };
+    const schema = plugin.paramsSchema as {
+      parse: (data: unknown) => unknown;
+      safeParse?: (data: unknown) => {
+        success: boolean;
+        error?: { issues: Array<{ message: string; path: Array<string | number> }> };
+      };
+    };
 
     // Use safeParse if available, otherwise catch parse errors
     if (schema.safeParse) {
       const result = schema.safeParse(params);
       if (!result.success) {
-        const errors = result.error?.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ') || 'Validation failed';
+        const errors =
+          result.error?.issues
+            .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+            .join(', ') || 'Validation failed';
         return { success: false, error: `Invalid params for ${id}: ${errors}` };
       }
     } else {

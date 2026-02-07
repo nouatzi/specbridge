@@ -77,7 +77,7 @@ export class AutofixEngine {
     violations: Violation[],
     options: { dryRun?: boolean; interactive?: boolean } = {}
   ): Promise<AutofixResult> {
-    const fixable = violations.filter(v => v.autofix && v.autofix.edits.length > 0);
+    const fixable = violations.filter((v) => v.autofix && v.autofix.edits.length > 0);
     const byFile = new Map<string, Violation[]>();
     for (const v of fixable) {
       const list = byFile.get(v.file) ?? [];
@@ -99,7 +99,9 @@ export class AutofixEngine {
           continue;
         }
         if (options.interactive) {
-          const ok = await confirmFix(`Apply fix: ${fix.description} (${filePath}:${violation.line ?? 1})?`);
+          const ok = await confirmFix(
+            `Apply fix: ${fix.description} (${filePath}:${violation.line ?? 1})?`
+          );
           if (!ok) {
             skippedViolations++;
             continue;

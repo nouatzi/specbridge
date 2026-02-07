@@ -114,14 +114,18 @@ export function gamma() {
     expect(analysis.affectedFiles.some((f) => f.path.endsWith('beta.ts'))).toBe(true);
     expect(['low', 'medium', 'high']).toContain(analysis.estimatedEffort);
     expect(analysis.migrationSteps.length).toBeGreaterThan(0);
-    expect(analysis.migrationSteps.some((step) => step.description.includes('verification'))).toBe(true);
+    expect(analysis.migrationSteps.some((step) => step.description.includes('verification'))).toBe(
+      true
+    );
   });
 
   it('returns empty affected set for unknown decision IDs', async () => {
     const registry = createRegistry({ basePath: testDir });
     const engine = createPropagationEngine(registry);
 
-    const analysis = await engine.analyzeImpact('does-not-exist', 'created', config, { cwd: testDir });
+    const analysis = await engine.analyzeImpact('does-not-exist', 'created', config, {
+      cwd: testDir,
+    });
 
     expect(analysis.decision).toBe('does-not-exist');
     expect(analysis.affectedFiles).toEqual([]);

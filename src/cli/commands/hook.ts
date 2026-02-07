@@ -24,8 +24,7 @@ exit $?
 `;
 
 export function createHookCommand(): Command {
-  const hookCommand = new Command('hook')
-    .description('Manage Git hooks for verification');
+  const hookCommand = new Command('hook').description('Manage Git hooks for verification');
 
   hookCommand
     .command('install')
@@ -37,7 +36,7 @@ export function createHookCommand(): Command {
       const cwd = process.cwd();
 
       // Check if specbridge is initialized
-      if (!await pathExists(getSpecBridgeDir(cwd))) {
+      if (!(await pathExists(getSpecBridgeDir(cwd)))) {
         throw new NotInitializedError();
       }
 
@@ -59,12 +58,14 @@ export function createHookCommand(): Command {
           console.log('');
           console.log(chalk.cyan('Add this to your lefthook.yml:'));
           console.log('');
-          console.log(chalk.dim(`pre-commit:
+          console.log(
+            chalk.dim(`pre-commit:
   commands:
     specbridge:
       glob: "*.{ts,tsx}"
       run: npx specbridge hook run --level commit --files {staged_files}
-`));
+`)
+          );
           return;
         } else {
           // Check for .husky directory
@@ -77,12 +78,14 @@ export function createHookCommand(): Command {
             console.log('');
             console.log(chalk.cyan('Add this to your lefthook.yml:'));
             console.log('');
-            console.log(chalk.dim(`pre-commit:
+            console.log(
+              chalk.dim(`pre-commit:
   commands:
     specbridge:
       glob: "*.{ts,tsx}"
       run: npx specbridge hook run --level commit --files {staged_files}
-`));
+`)
+            );
             return;
           } else {
             // Default to .git/hooks
@@ -93,7 +96,7 @@ export function createHookCommand(): Command {
         }
 
         // Check if hook already exists
-        if (await pathExists(hookPath) && !options.force) {
+        if ((await pathExists(hookPath)) && !options.force) {
           spinner.fail('Hook already exists');
           console.log(chalk.yellow(`Use --force to overwrite: ${hookPath}`));
           return;
@@ -129,7 +132,7 @@ export function createHookCommand(): Command {
       const cwd = process.cwd();
 
       // Check if specbridge is initialized
-      if (!await pathExists(getSpecBridgeDir(cwd))) {
+      if (!(await pathExists(getSpecBridgeDir(cwd)))) {
         throw new NotInitializedError();
       }
 
@@ -139,7 +142,7 @@ export function createHookCommand(): Command {
 
         // Parse files
         let files = options.files
-          ? options.files.split(/[\s,]+/).filter(f => f.length > 0)
+          ? options.files.split(/[\s,]+/).filter((f) => f.length > 0)
           : undefined;
 
         if (!files || files.length === 0) {
@@ -149,7 +152,11 @@ export function createHookCommand(): Command {
           const execFileAsync = promisify(execFile);
 
           try {
-            const { stdout } = await execFileAsync('git', ['diff', '--cached', '--name-only', '--diff-filter=AM'], { cwd });
+            const { stdout } = await execFileAsync(
+              'git',
+              ['diff', '--cached', '--name-only', '--diff-filter=AM'],
+              { cwd }
+            );
             files = stdout
               .trim()
               .split('\n')

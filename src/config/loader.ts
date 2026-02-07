@@ -15,12 +15,12 @@ export async function loadConfig(basePath: string = process.cwd()): Promise<Spec
   const configPath = getConfigPath(basePath);
 
   // Check if specbridge is initialized
-  if (!await pathExists(specbridgeDir)) {
+  if (!(await pathExists(specbridgeDir))) {
     throw new NotInitializedError();
   }
 
   // Check if config file exists
-  if (!await pathExists(configPath)) {
+  if (!(await pathExists(configPath))) {
     // Return default config if no config file
     return defaultConfig;
   }
@@ -32,7 +32,7 @@ export async function loadConfig(basePath: string = process.cwd()): Promise<Spec
   // Validate config
   const result = validateConfig(parsed);
   if (!result.success) {
-    const errors = result.errors.issues.map(e => `${e.path.join('.')}: ${e.message}`);
+    const errors = result.errors.issues.map((e) => `${e.path.join('.')}: ${e.message}`);
     throw new ConfigError(`Invalid configuration in ${configPath}`, { errors });
   }
 

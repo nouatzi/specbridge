@@ -170,9 +170,7 @@ export class CodeScanner {
     for (const { path, sourceFile } of this.scannedFiles.values()) {
       for (const importDecl of sourceFile.getImportDeclarations()) {
         const module = importDecl.getModuleSpecifierValue();
-        const namedImports = importDecl
-          .getNamedImports()
-          .map((n) => n.getName());
+        const namedImports = importDecl.getNamedImports().map((n) => n.getName());
 
         imports.push({
           file: path,

@@ -37,7 +37,9 @@ const program = new Command();
 
 program
   .name('specbridge')
-  .description('Architecture Decision Runtime - Transform architectural decisions into executable, verifiable constraints')
+  .description(
+    'Architecture Decision Runtime - Transform architectural decisions into executable, verifiable constraints'
+  )
   .version(packageJson.version);
 
 // Register commands

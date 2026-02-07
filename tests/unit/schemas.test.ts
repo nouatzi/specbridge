@@ -2,7 +2,10 @@
  * Schema validation tests
  */
 import { describe, it, expect } from 'vitest';
-import { validateDecision, formatValidationErrors } from '../../src/core/schemas/decision.schema.js';
+import {
+  validateDecision,
+  formatValidationErrors,
+} from '../../src/core/schemas/decision.schema.js';
 import { validateConfig } from '../../src/core/schemas/config.schema.js';
 
 describe('Decision Schema', () => {
@@ -152,7 +155,7 @@ describe('Decision Schema', () => {
     if (!result.success) {
       const errors = formatValidationErrors(result.errors);
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors.some(e => e.includes('metadata'))).toBe(true);
+      expect(errors.some((e) => e.includes('metadata'))).toBe(true);
     }
   });
 });

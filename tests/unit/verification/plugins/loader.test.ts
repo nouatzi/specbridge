@@ -5,7 +5,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { PluginLoader, getPluginLoader, resetPluginLoader } from '../../../../src/verification/plugins/loader.js';
+import {
+  PluginLoader,
+  getPluginLoader,
+  resetPluginLoader,
+} from '../../../../src/verification/plugins/loader.js';
 
 describe('PluginLoader', () => {
   let testDir: string;
@@ -447,11 +451,17 @@ describe('PluginLoader', () => {
       }
 
       // Invalid params - wrong type
-      const invalidResult2 = loader.validateParams('with-schema', { threshold: 'not a number', pattern: 'test' });
+      const invalidResult2 = loader.validateParams('with-schema', {
+        threshold: 'not a number',
+        pattern: 'test',
+      });
       expect(invalidResult2.success).toBe(false);
 
       // Invalid params - out of range
-      const invalidResult3 = loader.validateParams('with-schema', { threshold: 150, pattern: 'test' });
+      const invalidResult3 = loader.validateParams('with-schema', {
+        threshold: 150,
+        pattern: 'test',
+      });
       expect(invalidResult3.success).toBe(false);
     });
 

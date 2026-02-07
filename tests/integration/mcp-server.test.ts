@@ -59,7 +59,12 @@ export function test() {
     const registeredTools = new Map<string, (...args: unknown[]) => Promise<unknown>>();
 
     vi.spyOn(internalServer, 'registerResource').mockImplementation(
-      (name: string, _uri: unknown, _meta: unknown, handler: (...args: unknown[]) => Promise<unknown>) => {
+      (
+        name: string,
+        _uri: unknown,
+        _meta: unknown,
+        handler: (...args: unknown[]) => Promise<unknown>
+      ) => {
         registeredResources.set(name, handler);
       }
     );
@@ -88,7 +93,12 @@ export function test() {
     const registeredTools = new Map<string, (...args: unknown[]) => Promise<any>>();
 
     vi.spyOn(internalServer, 'registerResource').mockImplementation(
-      (name: string, _uri: unknown, _meta: unknown, handler: (...args: unknown[]) => Promise<any>) => {
+      (
+        name: string,
+        _uri: unknown,
+        _meta: unknown,
+        handler: (...args: unknown[]) => Promise<any>
+      ) => {
         registeredResources.set(name, handler);
       }
     );

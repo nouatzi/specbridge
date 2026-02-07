@@ -77,4 +77,3 @@ describe('AutofixEngine', () => {
     expect(updated).toContain('from "./dep"');
   });
 });
-

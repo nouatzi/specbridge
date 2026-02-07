@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { parseYaml, stringifyYaml, parseYamlDocument, updateYamlDocument } from '../../../src/utils/yaml';
+import {
+  parseYaml,
+  stringifyYaml,
+  parseYamlDocument,
+  updateYamlDocument,
+} from '../../../src/utils/yaml';
 
 describe('YAML Utilities', () => {
   describe('parseYaml', () => {

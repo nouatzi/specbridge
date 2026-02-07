@@ -16,7 +16,7 @@ export const promptCommand = new Command('prompt')
   .action(async (templateName: string, file: string, options: { decision?: string }) => {
     const cwd = process.cwd();
 
-    if (!await pathExists(getSpecBridgeDir(cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
       throw new NotInitializedError();
     }
 
@@ -34,4 +34,3 @@ export const promptCommand = new Command('prompt')
     const prompt = tpl.generate(context, { decisionId: options.decision });
     console.log(prompt);
   });
-

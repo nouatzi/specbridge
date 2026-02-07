@@ -1,8 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Decision } from '../../../src/core/types/index.js';
 
-type ResourceHandler = (uri: URL, variables?: Record<string, string | string[]>) => Promise<{ contents: Array<{ text: string }> }>;
-type ToolHandler = (args: Record<string, unknown>) => Promise<{ content: Array<{ type: string; text: string }> }>;
+type ResourceHandler = (
+  uri: URL,
+  variables?: Record<string, string | string[]>
+) => Promise<{ contents: Array<{ text: string }> }>;
+type ToolHandler = (
+  args: Record<string, unknown>
+) => Promise<{ content: Array<{ type: string; text: string }> }>;
 
 interface MockState {
   resources: Map<string, ResourceHandler>;
@@ -47,11 +52,7 @@ vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => {
       state.resources.set(name, handler);
     }
 
-    registerTool(
-      name: string,
-      _meta: object,
-      handler: ToolHandler
-    ): void {
+    registerTool(name: string, _meta: object, handler: ToolHandler): void {
       state.tools.set(name, handler);
     }
 
@@ -166,7 +167,15 @@ describe('SpecBridgeMcpServer (unit)', () => {
     });
 
     generateFormattedContextMock.mockResolvedValue('context');
-    engineVerifyMock.mockResolvedValue({ success: true, violations: [], checked: 0, passed: 0, failed: 0, skipped: 0, duration: 1 });
+    engineVerifyMock.mockResolvedValue({
+      success: true,
+      violations: [],
+      checked: 0,
+      passed: 0,
+      failed: 0,
+      skipped: 0,
+      duration: 1,
+    });
     createVerificationEngineMock.mockReturnValue({ verify: engineVerifyMock });
     generateReportMock.mockResolvedValue({
       timestamp: '2026-02-07T00:00:00.000Z',

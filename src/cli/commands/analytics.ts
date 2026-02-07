@@ -25,7 +25,7 @@ export const analyticsCommand = new Command('analytics')
     const cwd = process.cwd();
 
     // Check if specbridge is initialized
-    if (!await pathExists(getSpecBridgeDir(cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
       throw new NotInitializedError();
     }
 
@@ -70,15 +70,23 @@ export const analyticsCommand = new Command('analytics')
         console.log(`  Current Violations: ${metrics.totalViolations}`);
         console.log(`  Average Compliance: ${metrics.averageComplianceScore.toFixed(1)}%`);
 
-        const trendEmoji = metrics.trendDirection === 'up' ? '📈' : metrics.trendDirection === 'down' ? '📉' : '➡️';
-        const trendColor = metrics.trendDirection === 'up' ? chalk.green : metrics.trendDirection === 'down' ? chalk.red : chalk.yellow;
-        console.log(`  ${trendColor(`${trendEmoji} Trend: ${metrics.trendDirection.toUpperCase()}`)}`);
+        const trendEmoji =
+          metrics.trendDirection === 'up' ? '📈' : metrics.trendDirection === 'down' ? '📉' : '➡️';
+        const trendColor =
+          metrics.trendDirection === 'up'
+            ? chalk.green
+            : metrics.trendDirection === 'down'
+              ? chalk.red
+              : chalk.yellow;
+        console.log(
+          `  ${trendColor(`${trendEmoji} Trend: ${metrics.trendDirection.toUpperCase()}`)}`
+        );
 
         // Show history
         if (metrics.history.length > 0) {
           console.log(chalk.bold('\nCompliance History:'));
           const recentHistory = metrics.history.slice(-10); // Show last 10 entries
-          recentHistory.forEach(h => {
+          recentHistory.forEach((h) => {
             const icon = h.violations === 0 ? '✅' : '⚠️';
             console.log(`  ${icon} ${h.date}: ${h.compliance}% (${h.violations} violations)`);
           });
@@ -94,9 +102,17 @@ export const analyticsCommand = new Command('analytics')
         console.log(`  Average Compliance: ${summary.averageCompliance}%`);
         console.log(`  Critical Issues: ${summary.criticalIssues}`);
 
-        const trendEmoji = summary.overallTrend === 'up' ? '📈' : summary.overallTrend === 'down' ? '📉' : '➡️';
-        const trendColor = summary.overallTrend === 'up' ? chalk.green : summary.overallTrend === 'down' ? chalk.red : chalk.yellow;
-        console.log(`  ${trendColor(`${trendEmoji} Overall Trend: ${summary.overallTrend.toUpperCase()}`)}`);
+        const trendEmoji =
+          summary.overallTrend === 'up' ? '📈' : summary.overallTrend === 'down' ? '📉' : '➡️';
+        const trendColor =
+          summary.overallTrend === 'up'
+            ? chalk.green
+            : summary.overallTrend === 'down'
+              ? chalk.red
+              : chalk.yellow;
+        console.log(
+          `  ${trendColor(`${trendEmoji} Overall Trend: ${summary.overallTrend.toUpperCase()}`)}`
+        );
 
         // Top performers
         if (summary.topDecisions.length > 0) {
@@ -121,13 +137,13 @@ export const analyticsCommand = new Command('analytics')
           const insights = summary.insights;
 
           // Group by type
-          const warnings = insights.filter(i => i.type === 'warning');
-          const successes = insights.filter(i => i.type === 'success');
-          const infos = insights.filter(i => i.type === 'info');
+          const warnings = insights.filter((i) => i.type === 'warning');
+          const successes = insights.filter((i) => i.type === 'success');
+          const infos = insights.filter((i) => i.type === 'info');
 
           if (warnings.length > 0) {
             console.log(chalk.red('⚠️  Warnings:'));
-            warnings.forEach(i => {
+            warnings.forEach((i) => {
               console.log(`  • ${i.message}`);
               if (i.details) {
                 console.log(chalk.gray(`    ${i.details}`));
@@ -138,7 +154,7 @@ export const analyticsCommand = new Command('analytics')
 
           if (successes.length > 0) {
             console.log(chalk.green('✅ Positive Trends:'));
-            successes.forEach(i => {
+            successes.forEach((i) => {
               console.log(`  • ${i.message}`);
               if (i.details) {
                 console.log(chalk.gray(`    ${i.details}`));
@@ -149,7 +165,7 @@ export const analyticsCommand = new Command('analytics')
 
           if (infos.length > 0) {
             console.log(chalk.blue('💡 Suggestions:'));
-            infos.forEach(i => {
+            infos.forEach((i) => {
               console.log(`  • ${i.message}`);
               if (i.details) {
                 console.log(chalk.gray(`    ${i.details}`));
@@ -164,7 +180,9 @@ export const analyticsCommand = new Command('analytics')
       const latestEntry = history[history.length - 1];
       const oldestEntry = history[0];
       if (latestEntry && oldestEntry) {
-        console.log(chalk.gray(`\nData range: ${latestEntry.timestamp} to ${oldestEntry.timestamp}`));
+        console.log(
+          chalk.gray(`\nData range: ${latestEntry.timestamp} to ${oldestEntry.timestamp}`)
+        );
       }
       console.log(chalk.gray(`Analyzing ${history.length} report(s) over ${days} days\n`));
     } catch (error) {

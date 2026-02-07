@@ -31,8 +31,8 @@ export class ErrorsAnalyzer implements Analyzer {
 
   private analyzeCustomErrorClasses(scanner: CodeScanner): Pattern | null {
     const classes = scanner.findClasses();
-    const errorClasses = classes.filter(c =>
-      c.name.endsWith('Error') || c.name.endsWith('Exception')
+    const errorClasses = classes.filter(
+      (c) => c.name.endsWith('Error') || c.name.endsWith('Exception')
     );
 
     if (errorClasses.length < 2) return null;
@@ -42,7 +42,7 @@ export class ErrorsAnalyzer implements Analyzer {
     const baseCount: Map<string, number> = new Map();
 
     for (const errorClass of errorClasses) {
-      const file = files.find(f => f.path === errorClass.file);
+      const file = files.find((f) => f.path === errorClass.file);
       if (!file) continue;
 
       const classDecl = file.sourceFile.getClass(errorClass.name);
@@ -77,7 +77,7 @@ export class ErrorsAnalyzer implements Analyzer {
         description: `Custom errors extend a common base class (${customBaseName})`,
         confidence,
         occurrences: maxCount,
-        examples: errorClasses.slice(0, 3).map(c => ({
+        examples: errorClasses.slice(0, 3).map((c) => ({
           file: c.file,
           line: c.line,
           snippet: `class ${c.name} extends ${customBaseName}`,
@@ -102,7 +102,7 @@ export class ErrorsAnalyzer implements Analyzer {
         description: 'Custom error classes are used for domain-specific errors',
         confidence,
         occurrences: errorClasses.length,
-        examples: errorClasses.slice(0, 3).map(c => ({
+        examples: errorClasses.slice(0, 3).map((c) => ({
           file: c.file,
           line: c.line,
           snippet: `class ${c.name}`,
@@ -125,7 +125,7 @@ export class ErrorsAnalyzer implements Analyzer {
     if (tryCatchBlocks.length < 3) return null;
 
     // Check how many rethrow vs swallow
-    const rethrowCount = tryCatchBlocks.filter(b => b.hasThrow).length;
+    const rethrowCount = tryCatchBlocks.filter((b) => b.hasThrow).length;
     const swallowCount = tryCatchBlocks.length - rethrowCount;
 
     if (rethrowCount >= 3 && rethrowCount > swallowCount) {
@@ -138,9 +138,9 @@ export class ErrorsAnalyzer implements Analyzer {
         confidence,
         occurrences: rethrowCount,
         examples: tryCatchBlocks
-          .filter(b => b.hasThrow)
+          .filter((b) => b.hasThrow)
           .slice(0, 3)
-          .map(b => ({
+          .map((b) => ({
             file: b.file,
             line: b.line,
             snippet: 'try { ... } catch (e) { ... throw ... }',

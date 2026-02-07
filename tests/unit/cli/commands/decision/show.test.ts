@@ -37,7 +37,7 @@ vi.mock('chalk', () => {
 });
 
 vi.mock('table', () => ({
-  table: vi.fn((data) => data.map(row => row.join(' | ')).join('\n')),
+  table: vi.fn((data) => data.map((row) => row.join(' | ')).join('\n')),
 }));
 
 describe('decision show command', () => {
@@ -77,23 +77,17 @@ describe('decision show command', () => {
   it('should show decision details', async () => {
     await showDecision.parseAsync(['node', 'test', 'test-001']);
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Test Decision')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Test Decision'));
   });
 
   it('should output JSON with --json flag', async () => {
     await showDecision.parseAsync(['node', 'test', 'test-001', '--json']);
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('"test-001"')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('"test-001"'));
   });
 
   it('should handle non-existent decision', async () => {
-    await expect(
-      showDecision.parseAsync(['node', 'test', 'non-existent'])
-    ).rejects.toThrow();
+    await expect(showDecision.parseAsync(['node', 'test', 'non-existent'])).rejects.toThrow();
   });
 
   it('should display decision owners', async () => {
@@ -128,8 +122,6 @@ describe('decision show command', () => {
     expect(consoleLogSpy).toHaveBeenCalled();
     expect(consoleLogSpy.mock.calls.length).toBeGreaterThan(0);
   });
-
-
 
   it('should call console.log for output', async () => {
     consoleLogSpy.mockClear();

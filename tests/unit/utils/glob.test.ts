@@ -51,20 +51,15 @@ describe('Glob Utilities', () => {
 
   describe('Path Normalization', () => {
     it('should match absolute paths against relative patterns', () => {
-      const result = matchesPattern(
-        '/home/user/project/src/app.ts',
-        'src/**/*.ts',
-        { cwd: '/home/user/project' }
-      );
+      const result = matchesPattern('/home/user/project/src/app.ts', 'src/**/*.ts', {
+        cwd: '/home/user/project',
+      });
       expect(result).toBe(true);
     });
 
     it('should handle paths with backslashes', () => {
       // Test that backslashes in relative paths are normalized to forward slashes
-      const result = matchesPattern(
-        'src\\app.ts',
-        'src/**/*.ts'
-      );
+      const result = matchesPattern('src\\app.ts', 'src/**/*.ts');
       expect(result).toBe(true);
     });
 
@@ -74,7 +69,9 @@ describe('Glob Utilities', () => {
 
     it('should normalize paths correctly', () => {
       // Test Unix absolute path
-      expect(normalizePath('/home/user/project/src/app.ts', '/home/user/project')).toBe('src/app.ts');
+      expect(normalizePath('/home/user/project/src/app.ts', '/home/user/project')).toBe(
+        'src/app.ts'
+      );
 
       // Test relative path
       expect(normalizePath('src/app.ts', '/home/user/project')).toBe('src/app.ts');

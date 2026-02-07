@@ -54,15 +54,27 @@ describe('decision create command', () => {
     rmSync(join(testDir, '.specbridge'), { recursive: true, force: true });
 
     await expect(
-      createDecision.parseAsync(['node', 'test', 'new-001', '--title', 'Test', '--summary', 'Test summary'])
+      createDecision.parseAsync([
+        'node',
+        'test',
+        'new-001',
+        '--title',
+        'Test',
+        '--summary',
+        'Test summary',
+      ])
     ).rejects.toThrow(NotInitializedError);
   });
 
   it('should create decision file', async () => {
     await createDecision.parseAsync([
-      'node', 'test', 'new-decision',
-      '--title', 'New Decision',
-      '--summary', 'This is a new decision',
+      'node',
+      'test',
+      'new-decision',
+      '--title',
+      'New Decision',
+      '--summary',
+      'This is a new decision',
     ]);
 
     const filePath = join(testDir, '.specbridge', 'decisions', 'new-decision.decision.yaml');
@@ -76,11 +88,17 @@ describe('decision create command', () => {
 
   it('should use custom type and severity', async () => {
     await createDecision.parseAsync([
-      'node', 'test', 'critical-decision',
-      '--title', 'Critical Decision',
-      '--summary', 'Critical decision',
-      '--type', 'invariant',
-      '--severity', 'critical',
+      'node',
+      'test',
+      'critical-decision',
+      '--title',
+      'Critical Decision',
+      '--summary',
+      'Critical decision',
+      '--type',
+      'invariant',
+      '--severity',
+      'critical',
     ]);
 
     const filePath = join(testDir, '.specbridge', 'decisions', 'critical-decision.decision.yaml');
@@ -92,9 +110,13 @@ describe('decision create command', () => {
   it('should reject invalid ID format', async () => {
     try {
       await createDecision.parseAsync([
-        'node', 'test', 'Invalid_ID',
-        '--title', 'Test',
-        '--summary', 'Test summary',
+        'node',
+        'test',
+        'Invalid_ID',
+        '--title',
+        'Test',
+        '--summary',
+        'Test summary',
       ]);
       // If we get here, the test should fail
       expect.fail('Expected process.exit to be called');
@@ -102,25 +124,31 @@ describe('decision create command', () => {
       expect(error.message).toBe('process.exit called');
     }
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('lowercase alphanumeric')
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('lowercase alphanumeric'));
   });
 
   it('should reject duplicate ID', async () => {
     // Create first decision
     await createDecision.parseAsync([
-      'node', 'test', 'duplicate',
-      '--title', 'First',
-      '--summary', 'First decision',
+      'node',
+      'test',
+      'duplicate',
+      '--title',
+      'First',
+      '--summary',
+      'First decision',
     ]);
 
     // Try to create duplicate
     try {
       await createDecision.parseAsync([
-        'node', 'test', 'duplicate',
-        '--title', 'Second',
-        '--summary', 'Second decision',
+        'node',
+        'test',
+        'duplicate',
+        '--title',
+        'Second',
+        '--summary',
+        'Second decision',
       ]);
       // If we get here, the test should fail
       expect.fail('Expected process.exit to be called');
@@ -128,8 +156,6 @@ describe('decision create command', () => {
       expect(error.message).toBe('process.exit called');
     }
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('already exists')
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('already exists'));
   });
 });

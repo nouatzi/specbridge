@@ -3,7 +3,9 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import type { Decision, Violation } from '../../../src/core/types/index.js';
 
 interface CallbackState {
-  onInitialize?: () => Promise<{ capabilities: { textDocumentSync: number; codeActionProvider: boolean } }>;
+  onInitialize?: () => Promise<{
+    capabilities: { textDocumentSync: number; codeActionProvider: boolean };
+  }>;
   onDidOpen?: (event: { document: TextDocument }) => void;
   onDidChangeContent?: (event: { document: TextDocument }) => void;
   onDidClose?: (event: { document: TextDocument }) => void;
@@ -63,13 +65,20 @@ vi.mock('vscode-languageserver/node.js', () => {
 
   return {
     createConnection: () => ({
-      onInitialize: (handler: () => Promise<{ capabilities: { textDocumentSync: number; codeActionProvider: boolean } }>) => {
+      onInitialize: (
+        handler: () => Promise<{
+          capabilities: { textDocumentSync: number; codeActionProvider: boolean };
+        }>
+      ) => {
         state.onInitialize = handler;
       },
       onCodeAction: (handler: (params: { textDocument: { uri: string } }) => unknown[]) => {
         state.onCodeAction = handler;
       },
-      sendDiagnostics: (payload: { uri: string; diagnostics: Array<{ severity: number; message: string }> }) => {
+      sendDiagnostics: (payload: {
+        uri: string;
+        diagnostics: Array<{ severity: number; message: string }>;
+      }) => {
         state.diagnostics.push(payload);
       },
       listen: () => {},
@@ -220,10 +229,46 @@ describe('SpecBridgeLspServer (unit)', () => {
     state.documents.set(uri, doc);
 
     state.verifierViolations = [
-      { decisionId: 'lsp-001', constraintId: 'c-1', type: 'convention', severity: 'critical', message: 'critical', file: '/repo/src/example.ts', line: 1, column: 1 },
-      { decisionId: 'lsp-001', constraintId: 'c-1', type: 'convention', severity: 'high', message: 'high', file: '/repo/src/example.ts', line: 1, column: 1 },
-      { decisionId: 'lsp-001', constraintId: 'c-1', type: 'convention', severity: 'medium', message: 'medium', file: '/repo/src/example.ts', line: 1, column: 1 },
-      { decisionId: 'lsp-001', constraintId: 'c-1', type: 'convention', severity: 'low', message: 'low', file: '/repo/src/example.ts', line: 1, column: 1 },
+      {
+        decisionId: 'lsp-001',
+        constraintId: 'c-1',
+        type: 'convention',
+        severity: 'critical',
+        message: 'critical',
+        file: '/repo/src/example.ts',
+        line: 1,
+        column: 1,
+      },
+      {
+        decisionId: 'lsp-001',
+        constraintId: 'c-1',
+        type: 'convention',
+        severity: 'high',
+        message: 'high',
+        file: '/repo/src/example.ts',
+        line: 1,
+        column: 1,
+      },
+      {
+        decisionId: 'lsp-001',
+        constraintId: 'c-1',
+        type: 'convention',
+        severity: 'medium',
+        message: 'medium',
+        file: '/repo/src/example.ts',
+        line: 1,
+        column: 1,
+      },
+      {
+        decisionId: 'lsp-001',
+        constraintId: 'c-1',
+        type: 'convention',
+        severity: 'low',
+        message: 'low',
+        file: '/repo/src/example.ts',
+        line: 1,
+        column: 1,
+      },
     ];
 
     await (server as unknown as LspServerInternals).validateDocument(doc);

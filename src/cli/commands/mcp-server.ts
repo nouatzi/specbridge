@@ -32,4 +32,3 @@ export const mcpServerCommand = new Command('mcp-server')
     console.error('SpecBridge MCP server starting (stdio)...');
     await server.startStdio();
   });
-

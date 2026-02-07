@@ -86,7 +86,10 @@ export class InferenceError extends SpecBridgeError {
  * File system errors
  */
 export class FileSystemError extends SpecBridgeError {
-  constructor(message: string, public readonly path: string) {
+  constructor(
+    message: string,
+    public readonly path: string
+  ) {
     super(message, 'FILE_SYSTEM_ERROR', { path });
     this.name = 'FileSystemError';
   }
@@ -163,7 +166,8 @@ export function formatError(error: Error): string {
       }
     }
     if (error instanceof DecisionValidationError && error.validationErrors.length > 0) {
-      message += '\nValidation errors:\n' + error.validationErrors.map(e => `  - ${e}`).join('\n');
+      message +=
+        '\nValidation errors:\n' + error.validationErrors.map((e) => `  - ${e}`).join('\n');
     }
     if (error.suggestion) {
       message += `\nSuggestion: ${error.suggestion}`;

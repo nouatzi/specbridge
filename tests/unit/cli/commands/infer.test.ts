@@ -101,9 +101,7 @@ describe('infer command', () => {
   it('should throw NotInitializedError when not initialized', async () => {
     rmSync(join(testDir, '.specbridge'), { recursive: true, force: true });
 
-    await expect(
-      inferCommand.parseAsync(['node', 'test'])
-    ).rejects.toThrow(NotInitializedError);
+    await expect(inferCommand.parseAsync(['node', 'test'])).rejects.toThrow(NotInitializedError);
   });
 
   it('should run inference with default options', async () => {
@@ -135,18 +133,14 @@ describe('infer command', () => {
   it('should output JSON with --json flag', async () => {
     await inferCommand.parseAsync(['node', 'test', '--json']);
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('"patterns"')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('"patterns"'));
   });
 
   it('should save results with --save flag', async () => {
     await inferCommand.parseAsync(['node', 'test', '--save']);
 
     const inferredDir = join(testDir, '.specbridge', 'inferred');
-    const files = await import('node:fs/promises').then(fs =>
-      fs.readdir(inferredDir)
-    );
+    const files = await import('node:fs/promises').then((fs) => fs.readdir(inferredDir));
 
     expect(files.includes('patterns.json')).toBe(true);
   });

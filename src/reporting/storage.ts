@@ -49,7 +49,7 @@ export class ReportStorage {
    * Load the most recent report
    */
   async loadLatest(): Promise<StoredReport | null> {
-    if (!await pathExists(this.storageDir)) {
+    if (!(await pathExists(this.storageDir))) {
       return null;
     }
 
@@ -60,7 +60,7 @@ export class ReportStorage {
 
     // Sort files by date (descending)
     const sortedFiles = files
-      .filter(f => f.startsWith('report-') && f.endsWith('.json'))
+      .filter((f) => f.startsWith('report-') && f.endsWith('.json'))
       .sort()
       .reverse();
 
@@ -87,7 +87,7 @@ export class ReportStorage {
    * Uses parallel I/O for better performance
    */
   async loadHistory(days: number = 30): Promise<StoredReport[]> {
-    if (!await pathExists(this.storageDir)) {
+    if (!(await pathExists(this.storageDir))) {
       return [];
     }
 
@@ -95,7 +95,7 @@ export class ReportStorage {
 
     // Filter report files and sort by date
     const reportFiles = files
-      .filter(f => f.startsWith('report-') && f.endsWith('.json'))
+      .filter((f) => f.startsWith('report-') && f.endsWith('.json'))
       .sort()
       .reverse(); // Most recent first
 
@@ -129,7 +129,7 @@ export class ReportStorage {
   async loadByDate(date: string): Promise<ComplianceReport | null> {
     const filepath = join(this.storageDir, `report-${date}.json`);
 
-    if (!await pathExists(filepath)) {
+    if (!(await pathExists(filepath))) {
       return null;
     }
 
@@ -141,15 +141,15 @@ export class ReportStorage {
    * Get all available report dates
    */
   async getAvailableDates(): Promise<string[]> {
-    if (!await pathExists(this.storageDir)) {
+    if (!(await pathExists(this.storageDir))) {
       return [];
     }
 
     const files = await readFilesInDir(this.storageDir);
 
     return files
-      .filter(f => f.startsWith('report-') && f.endsWith('.json'))
-      .map(f => f.replace('report-', '').replace('.json', ''))
+      .filter((f) => f.startsWith('report-') && f.endsWith('.json'))
+      .map((f) => f.replace('report-', '').replace('.json', ''))
       .sort()
       .reverse();
   }
@@ -158,13 +158,13 @@ export class ReportStorage {
    * Clear old reports (keep only the most recent N days)
    */
   async cleanup(keepDays: number = 90): Promise<number> {
-    if (!await pathExists(this.storageDir)) {
+    if (!(await pathExists(this.storageDir))) {
       return 0;
     }
 
     const files = await readFilesInDir(this.storageDir);
     const reportFiles = files
-      .filter(f => f.startsWith('report-') && f.endsWith('.json'))
+      .filter((f) => f.startsWith('report-') && f.endsWith('.json'))
       .sort()
       .reverse();
 

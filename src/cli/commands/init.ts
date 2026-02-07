@@ -34,7 +34,7 @@ export const initCommand = new Command('init')
     const specbridgeDir = getSpecBridgeDir(cwd);
 
     // Check if already initialized
-    if (!options.force && await pathExists(specbridgeDir)) {
+    if (!options.force && (await pathExists(specbridgeDir))) {
       throw new AlreadyInitializedError(specbridgeDir);
     }
 

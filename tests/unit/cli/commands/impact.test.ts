@@ -87,18 +87,18 @@ constraints:
   });
 
   it('should have --change option', () => {
-    const option = impactCommand.options.find(opt => opt.long === '--change');
+    const option = impactCommand.options.find((opt) => opt.long === '--change');
     expect(option).toBeDefined();
     expect(option?.defaultValue).toBe('modified');
   });
 
   it('should have --json option', () => {
-    const option = impactCommand.options.find(opt => opt.long === '--json');
+    const option = impactCommand.options.find((opt) => opt.long === '--json');
     expect(option).toBeDefined();
   });
 
   it('should have --show-steps option', () => {
-    const option = impactCommand.options.find(opt => opt.long === '--show-steps');
+    const option = impactCommand.options.find((opt) => opt.long === '--show-steps');
     expect(option).toBeDefined();
     expect(option?.defaultValue).toBe(true);
   });

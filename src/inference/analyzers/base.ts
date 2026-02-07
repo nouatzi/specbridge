@@ -70,11 +70,7 @@ export function calculateConfidence(
 /**
  * Extract a code snippet around a line
  */
-export function extractSnippet(
-  content: string,
-  line: number,
-  contextLines: number = 1
-): string {
+export function extractSnippet(content: string, line: number, contextLines: number = 1): string {
   const lines = content.split('\n');
   const start = Math.max(0, line - 1 - contextLines);
   const end = Math.min(lines.length, line + contextLines);

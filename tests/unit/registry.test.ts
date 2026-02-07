@@ -81,10 +81,7 @@ describe('Registry', () => {
       },
     };
 
-    await writeFile(
-      join(TEST_DIR, '.specbridge', 'config.yaml'),
-      stringifyYaml(config)
-    );
+    await writeFile(join(TEST_DIR, '.specbridge', 'config.yaml'), stringifyYaml(config));
   });
 
   afterEach(async () => {
@@ -253,7 +250,7 @@ describe('Registry', () => {
       });
 
       expect(filtered.length).toBeGreaterThanOrEqual(1);
-      expect(filtered.some(d => d.metadata.id === 'test-003')).toBe(true);
+      expect(filtered.some((d) => d.metadata.id === 'test-003')).toBe(true);
     });
 
     it('should filter by all criteria combined', async () => {
@@ -389,13 +386,15 @@ describe('Registry', () => {
       const registry = createRegistry({ basePath: TEST_DIR });
       await registry.load();
 
-      const allConstraints = registry.getAll().flatMap(d =>
-        d.constraints.map(c => ({ decisionId: d.metadata.id, constraintId: c.id }))
-      );
+      const allConstraints = registry
+        .getAll()
+        .flatMap((d) =>
+          d.constraints.map((c) => ({ decisionId: d.metadata.id, constraintId: c.id }))
+        );
 
       // Constraint IDs should be unique within a decision
       const decision = registry.get('test-001');
-      const constraintIds = decision.constraints.map(c => c.id);
+      const constraintIds = decision.constraints.map((c) => c.id);
       expect(new Set(constraintIds).size).toBe(constraintIds.length);
     });
   });
@@ -557,7 +556,7 @@ describe('Registry', () => {
       });
 
       expect(Array.isArray(constraints)).toBe(true);
-      constraints.forEach(c => {
+      constraints.forEach((c) => {
         if (c.severity) {
           expect(['critical']).toContain(c.severity);
         }
@@ -573,7 +572,7 @@ describe('Registry', () => {
       });
 
       expect(Array.isArray(constraints)).toBe(true);
-      constraints.forEach(c => {
+      constraints.forEach((c) => {
         expect(['invariant']).toContain(c.type);
       });
     });

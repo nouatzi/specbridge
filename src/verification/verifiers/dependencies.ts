@@ -33,7 +33,11 @@ function joinLike(fromFilePath: string, relative: string): string {
   return path.posix.normalize(path.posix.join(dir, relNorm));
 }
 
-function resolveToSourceFilePath(project: Project, fromFilePath: string, moduleSpec: string): string | null {
+function resolveToSourceFilePath(
+  project: Project,
+  fromFilePath: string,
+  moduleSpec: string
+): string | null {
   if (!moduleSpec.startsWith('.')) return null;
 
   const candidates: string[] = [];
@@ -176,7 +180,9 @@ function parseBannedDependency(rule: string): string | null {
 
 function parseLayerRule(rule: string): { fromLayer: string; toLayer: string } | null {
   // Use bounded quantifiers to prevent ReDoS
-  const m = rule.match(/(\w+)\s{1,5}layer\s{1,5}cannot\s{1,5}depend\s{1,5}on\s{1,5}(\w+)\s{1,5}layer/i);
+  const m = rule.match(
+    /(\w+)\s{1,5}layer\s{1,5}cannot\s{1,5}depend\s{1,5}on\s{1,5}(\w+)\s{1,5}layer/i
+  );
   const fromLayer = m?.[1]?.toLowerCase();
   const toLayer = m?.[2]?.toLowerCase();
   if (!fromLayer || !toLayer) return null;
@@ -209,7 +215,8 @@ export class DependencyVerifier implements Verifier {
 
       for (const scc of sccs) {
         const first = scc[0];
-        const hasSelfLoop = first !== undefined && scc.length === 1 && (graph.get(first)?.has(first) ?? false);
+        const hasSelfLoop =
+          first !== undefined && scc.length === 1 && (graph.get(first)?.has(first) ?? false);
         const isCycle = scc.length > 1 || hasSelfLoop;
         if (!isCycle) continue;
 
@@ -219,16 +226,19 @@ export class DependencyVerifier implements Verifier {
         const sorted = [...scc].sort();
         if (sorted[0] !== current) continue;
 
-        violations.push(createViolation({
-          decisionId,
-          constraintId: constraint.id,
-          type: constraint.type,
-          severity: constraint.severity,
-          message: `Circular dependency detected across: ${sorted.join(' -> ')}`,
-          file: filePath,
-          line: 1,
-          suggestion: 'Break the cycle by extracting shared abstractions or reversing the dependency',
-        }));
+        violations.push(
+          createViolation({
+            decisionId,
+            constraintId: constraint.id,
+            type: constraint.type,
+            severity: constraint.severity,
+            message: `Circular dependency detected across: ${sorted.join(' -> ')}`,
+            file: filePath,
+            line: 1,
+            suggestion:
+              'Break the cycle by extracting shared abstractions or reversing the dependency',
+          })
+        );
       }
     }
 
@@ -241,16 +251,18 @@ export class DependencyVerifier implements Verifier {
         if (!resolved) continue;
 
         if (fileInLayer(resolved, layerRule.toLayer)) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Layer violation: ${layerRule.fromLayer} depends on ${layerRule.toLayer} via import "${moduleSpec}"`,
-            file: filePath,
-            line: importDecl.getStartLineNumber(),
-            suggestion: `Refactor to remove dependency from ${layerRule.fromLayer} to ${layerRule.toLayer}`,
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Layer violation: ${layerRule.fromLayer} depends on ${layerRule.toLayer} via import "${moduleSpec}"`,
+              file: filePath,
+              line: importDecl.getStartLineNumber(),
+              suggestion: `Refactor to remove dependency from ${layerRule.fromLayer} to ${layerRule.toLayer}`,
+            })
+          );
         }
       }
     }
@@ -262,16 +274,18 @@ export class DependencyVerifier implements Verifier {
       for (const importDecl of sourceFile.getImportDeclarations()) {
         const moduleSpec = importDecl.getModuleSpecifierValue();
         if (moduleSpec.toLowerCase().includes(bannedLower)) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Banned dependency import detected: "${moduleSpec}"`,
-            file: filePath,
-            line: importDecl.getStartLineNumber(),
-            suggestion: `Remove or replace dependency "${banned}"`,
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Banned dependency import detected: "${moduleSpec}"`,
+              file: filePath,
+              line: importDecl.getStartLineNumber(),
+              suggestion: `Remove or replace dependency "${banned}"`,
+            })
+          );
         }
       }
     }
@@ -284,16 +298,19 @@ export class DependencyVerifier implements Verifier {
         if (!moduleSpec.startsWith('.')) continue;
         const depth = (moduleSpec.match(/\.\.\//g) || []).length;
         if (depth > maxDepth) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Import depth ${depth} exceeds maximum ${maxDepth}: "${moduleSpec}"`,
-            file: filePath,
-            line: importDecl.getStartLineNumber(),
-            suggestion: 'Use a shallower module boundary (or introduce a public entrypoint for this dependency)',
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Import depth ${depth} exceeds maximum ${maxDepth}: "${moduleSpec}"`,
+              file: filePath,
+              line: importDecl.getStartLineNumber(),
+              suggestion:
+                'Use a shallower module boundary (or introduce a public entrypoint for this dependency)',
+            })
+          );
         }
       }
     }

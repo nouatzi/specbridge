@@ -67,10 +67,7 @@ describe('Verification Performance Benchmarks', () => {
     mkdirSync(srcDir, { recursive: true });
 
     for (let i = 0; i < 20; i++) {
-      writeFileSync(
-        join(srcDir, `file${i}.ts`),
-        `export class TestClass${i} {}`
-      );
+      writeFileSync(join(srcDir, `file${i}.ts`), `export class TestClass${i} {}`);
     }
 
     const registry = createRegistry({ basePath: testDir });
@@ -95,7 +92,7 @@ describe('Verification Performance Benchmarks', () => {
     console.log(`\nInstance Pooling Benchmark:`);
     console.log(`  With pooling:    ${duration1}ms`);
     console.log(`  First run:       ${duration2}ms`);
-    console.log(`  Improvement:     ${((duration2 - duration1) / duration2 * 100).toFixed(1)}%`);
+    console.log(`  Improvement:     ${(((duration2 - duration1) / duration2) * 100).toFixed(1)}%`);
 
     // With pooling should be at least as fast
     expect(duration1).toBeLessThanOrEqual(duration2 * 1.1); // Allow 10% variance

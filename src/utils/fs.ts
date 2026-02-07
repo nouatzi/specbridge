@@ -60,9 +60,7 @@ export async function readFilesInDir(
 ): Promise<string[]> {
   try {
     const entries = await readdir(dirPath, { withFileTypes: true });
-    const files = entries
-      .filter((entry) => entry.isFile())
-      .map((entry) => entry.name);
+    const files = entries.filter((entry) => entry.isFile()).map((entry) => entry.name);
 
     if (filter) {
       return files.filter(filter);

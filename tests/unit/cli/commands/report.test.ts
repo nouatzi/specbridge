@@ -91,9 +91,7 @@ describe('report command', () => {
   it('should throw NotInitializedError when not initialized', async () => {
     rmSync(join(testDir, '.specbridge'), { recursive: true, force: true });
 
-    await expect(
-      reportCommand.parseAsync(['node', 'test'])
-    ).rejects.toThrow(NotInitializedError);
+    await expect(reportCommand.parseAsync(['node', 'test'])).rejects.toThrow(NotInitializedError);
   });
 
   it('should generate report with default console format', async () => {
@@ -115,9 +113,7 @@ describe('report command', () => {
   it('should output JSON with --format json', async () => {
     await reportCommand.parseAsync(['node', 'test', '--format', 'json']);
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('"project"')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('"project"'));
   });
 
   it('should include all decisions with --all flag', async () => {
@@ -137,10 +133,8 @@ describe('report command', () => {
     await reportCommand.parseAsync(['node', 'test', '--save']);
 
     const reportsDir = join(testDir, '.specbridge', 'reports');
-    const files = await import('node:fs/promises').then(fs =>
-      fs.readdir(reportsDir)
-    );
+    const files = await import('node:fs/promises').then((fs) => fs.readdir(reportsDir));
 
-    expect(files.some(f => f.includes('health'))).toBe(true);
+    expect(files.some((f) => f.includes('health'))).toBe(true);
   });
 });

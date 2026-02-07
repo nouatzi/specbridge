@@ -55,28 +55,28 @@ export class StructureAnalyzer implements Analyzer {
     for (const { name, description } of commonDirs) {
       const count = dirCounts.get(name);
       if (count && count >= 3) {
-        const exampleFiles = files
-          .filter(f => basename(dirname(f.path)) === name)
-          .slice(0, 3);
+        const exampleFiles = files.filter((f) => basename(dirname(f.path)) === name).slice(0, 3);
 
-        patterns.push(createPattern(this.id, {
-          id: `structure-dir-${name}`,
-          name: `${name}/ Directory Convention`,
-          description,
-          confidence: Math.min(100, 60 + count * 5),
-          occurrences: count,
-          examples: exampleFiles.map(f => ({
-            file: f.path,
-            line: 1,
-            snippet: basename(f.path),
-          })),
-          suggestedConstraint: {
-            type: 'convention',
-            rule: `${name.charAt(0).toUpperCase() + name.slice(1)} should be placed in the ${name}/ directory`,
-            severity: 'low',
-            scope: `src/**/${name}/**/*.ts`,
-          },
-        }));
+        patterns.push(
+          createPattern(this.id, {
+            id: `structure-dir-${name}`,
+            name: `${name}/ Directory Convention`,
+            description,
+            confidence: Math.min(100, 60 + count * 5),
+            occurrences: count,
+            examples: exampleFiles.map((f) => ({
+              file: f.path,
+              line: 1,
+              snippet: basename(f.path),
+            })),
+            suggestedConstraint: {
+              type: 'convention',
+              rule: `${name.charAt(0).toUpperCase() + name.slice(1)} should be placed in the ${name}/ directory`,
+              severity: 'low',
+              scope: `src/**/${name}/**/*.ts`,
+            },
+          })
+        );
       }
     }
 
@@ -90,32 +90,58 @@ export class StructureAnalyzer implements Analyzer {
     const suffixPatterns: { suffix: string; pattern: RegExp; description: string }[] = [
       { suffix: '.test.ts', pattern: /\.test\.ts$/, description: 'Test files use .test.ts suffix' },
       { suffix: '.spec.ts', pattern: /\.spec\.ts$/, description: 'Test files use .spec.ts suffix' },
-      { suffix: '.types.ts', pattern: /\.types\.ts$/, description: 'Type definition files use .types.ts suffix' },
-      { suffix: '.utils.ts', pattern: /\.utils\.ts$/, description: 'Utility files use .utils.ts suffix' },
-      { suffix: '.service.ts', pattern: /\.service\.ts$/, description: 'Service files use .service.ts suffix' },
-      { suffix: '.controller.ts', pattern: /\.controller\.ts$/, description: 'Controller files use .controller.ts suffix' },
-      { suffix: '.model.ts', pattern: /\.model\.ts$/, description: 'Model files use .model.ts suffix' },
-      { suffix: '.schema.ts', pattern: /\.schema\.ts$/, description: 'Schema files use .schema.ts suffix' },
+      {
+        suffix: '.types.ts',
+        pattern: /\.types\.ts$/,
+        description: 'Type definition files use .types.ts suffix',
+      },
+      {
+        suffix: '.utils.ts',
+        pattern: /\.utils\.ts$/,
+        description: 'Utility files use .utils.ts suffix',
+      },
+      {
+        suffix: '.service.ts',
+        pattern: /\.service\.ts$/,
+        description: 'Service files use .service.ts suffix',
+      },
+      {
+        suffix: '.controller.ts',
+        pattern: /\.controller\.ts$/,
+        description: 'Controller files use .controller.ts suffix',
+      },
+      {
+        suffix: '.model.ts',
+        pattern: /\.model\.ts$/,
+        description: 'Model files use .model.ts suffix',
+      },
+      {
+        suffix: '.schema.ts',
+        pattern: /\.schema\.ts$/,
+        description: 'Schema files use .schema.ts suffix',
+      },
     ];
 
     for (const { suffix, pattern, description } of suffixPatterns) {
-      const matchingFiles = files.filter(f => pattern.test(f.path));
+      const matchingFiles = files.filter((f) => pattern.test(f.path));
 
       if (matchingFiles.length >= 3) {
         const confidence = Math.min(100, 60 + matchingFiles.length * 3);
 
-        patterns.push(createPattern(this.id, {
-          id: `structure-suffix-${suffix.replace(/\./g, '-')}`,
-          name: `${suffix} File Naming`,
-          description,
-          confidence,
-          occurrences: matchingFiles.length,
-          examples: matchingFiles.slice(0, 3).map(f => ({
-            file: f.path,
-            line: 1,
-            snippet: basename(f.path),
-          })),
-        }));
+        patterns.push(
+          createPattern(this.id, {
+            id: `structure-suffix-${suffix.replace(/\./g, '-')}`,
+            name: `${suffix} File Naming`,
+            description,
+            confidence,
+            occurrences: matchingFiles.length,
+            examples: matchingFiles.slice(0, 3).map((f) => ({
+              file: f.path,
+              line: 1,
+              snippet: basename(f.path),
+            })),
+          })
+        );
       }
     }
 
@@ -124,8 +150,8 @@ export class StructureAnalyzer implements Analyzer {
 
   private analyzeColocation(files: ScannedFile[]): Pattern | null {
     // Check if test files are colocated with source files
-    const testFiles = files.filter(f => /\.(test|spec)\.tsx?$/.test(f.path));
-    const sourceFiles = files.filter(f => !/\.(test|spec)\.tsx?$/.test(f.path));
+    const testFiles = files.filter((f) => /\.(test|spec)\.tsx?$/.test(f.path));
+    const sourceFiles = files.filter((f) => !/\.(test|spec)\.tsx?$/.test(f.path));
 
     if (testFiles.length < 3) return null;
 
@@ -138,7 +164,7 @@ export class StructureAnalyzer implements Analyzer {
 
       // Check if corresponding source file is in same directory
       const hasColocatedSource = sourceFiles.some(
-        s => dirname(s.path) === testDir && basename(s.path).startsWith(testName)
+        (s) => dirname(s.path) === testDir && basename(s.path).startsWith(testName)
       );
 
       if (hasColocatedSource) {

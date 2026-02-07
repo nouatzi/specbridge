@@ -28,7 +28,7 @@ describe('Propagation Graph', () => {
       summary: `Summary for ${id}`,
       rationale: `Rationale for ${id}`,
     },
-    constraints: constraints.map(c => ({
+    constraints: constraints.map((c) => ({
       id: c.id,
       type: 'convention' as const,
       rule: `Rule for ${c.id}`,
@@ -42,11 +42,7 @@ describe('Propagation Graph', () => {
 
   describe('buildDependencyGraph', () => {
     it('should create nodes for decisions, constraints, and files', async () => {
-      const decisions = [
-        createDecision('dec-001', [
-          { id: 'c1', scope: '**/*.ts' },
-        ]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }])];
       const files = ['src/test.ts', 'src/other.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -76,11 +72,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should link constraints to matching files', async () => {
-      const decisions = [
-        createDecision('dec-001', [
-          { id: 'c1', scope: '**/*.ts' },
-        ]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }])];
       const files = ['src/test.ts', 'src/test.js', 'src/other.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -92,11 +84,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should build decisionToFiles mapping', async () => {
-      const decisions = [
-        createDecision('dec-001', [
-          { id: 'c1', scope: 'src/**/*.ts' },
-        ]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: 'src/**/*.ts' }])];
       const files = ['src/test.ts', 'lib/other.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -132,9 +120,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should handle empty files list', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }])];
 
       const graph = await buildDependencyGraph(decisions, []);
 
@@ -188,16 +174,8 @@ describe('Propagation Graph', () => {
     });
 
     it('should handle complex glob patterns', async () => {
-      const decisions = [
-        createDecision('dec-001', [
-          { id: 'c1', scope: 'src/**/services/*.ts' },
-        ]),
-      ];
-      const files = [
-        'src/services/user.ts',
-        'src/api/services/auth.ts',
-        'src/utils/helper.ts',
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: 'src/**/services/*.ts' }])];
+      const files = ['src/services/user.ts', 'src/api/services/auth.ts', 'src/utils/helper.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
       const affectedFiles = graph.decisionToFiles.get('dec-001');
@@ -208,11 +186,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should handle negation patterns', async () => {
-      const decisions = [
-        createDecision('dec-001', [
-          { id: 'c1', scope: '**/*.ts' },
-        ]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }])];
       const files = ['src/test.ts', 'src/test.spec.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -222,9 +196,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should create file nodes for unmatched files', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }])];
       const files = ['src/test.ts', 'README.md', 'package.json'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -234,9 +206,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should handle large number of files', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }])];
       const files = Array.from({ length: 1000 }, (_, i) => `src/file${i}.ts`);
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -259,9 +229,7 @@ describe('Propagation Graph', () => {
 
   describe('getAffectedFiles', () => {
     it('should return files affected by a decision', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: 'src/**/*.ts' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: 'src/**/*.ts' }])];
       const files = ['src/test.ts', 'src/other.ts', 'lib/test.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -280,9 +248,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should return empty array for decision with no matching files', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: 'nonexistent/**' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: 'nonexistent/**' }])];
       const files = ['src/test.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -292,9 +258,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should handle decision affecting multiple files', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }])];
       const files = ['a.ts', 'b.ts', 'c.ts', 'd.js'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -330,9 +294,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should return empty array for file with no affecting decisions', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: 'src/**' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: 'src/**' }])];
       const files = ['lib/test.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -358,9 +320,7 @@ describe('Propagation Graph', () => {
 
   describe('getTransitiveDependencies', () => {
     it('should return direct dependencies', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: 'src/**/*.ts' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: 'src/**/*.ts' }])];
       const files = ['src/test.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -380,9 +340,7 @@ describe('Propagation Graph', () => {
 
     it('should handle cycles in graph', async () => {
       // Create a minimal graph with potential cycle
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }])];
       const files = ['test.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -422,9 +380,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should handle file nodes with no outgoing edges', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }])];
       const files = ['test.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -434,9 +390,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should handle visited set parameter', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }])];
       const files = ['test.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -447,9 +401,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should handle large dependency trees', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }])];
       const files = Array.from({ length: 100 }, (_, i) => `file${i}.ts`);
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -459,9 +411,7 @@ describe('Propagation Graph', () => {
     });
 
     it('should handle constraint nodes', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: 'src/**/*.ts' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: 'src/**/*.ts' }])];
       const files = ['src/a.ts', 'src/b.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);
@@ -475,9 +425,7 @@ describe('Propagation Graph', () => {
 
   describe('Graph structure integrity', () => {
     it('should maintain consistent node types', async () => {
-      const decisions = [
-        createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }]),
-      ];
+      const decisions = [createDecision('dec-001', [{ id: 'c1', scope: '**/*.ts' }])];
       const files = ['test.ts'];
 
       const graph = await buildDependencyGraph(decisions, files);

@@ -26,7 +26,8 @@ export async function generateContext(
   config: SpecBridgeConfig,
   options: ContextOptions = {}
 ): Promise<AgentContext> {
-  const { includeRationale = config.agent?.includeRationale ?? true, cwd = process.cwd() } = options;
+  const { includeRationale = config.agent?.includeRationale ?? true, cwd = process.cwd() } =
+    options;
 
   // Load registry
   const registry = createRegistry({ basePath: cwd });
@@ -101,8 +102,8 @@ export function formatContextAsMarkdown(context: AgentContext): string {
     lines.push('');
 
     for (const constraint of decision.constraints) {
-      const typeEmoji = constraint.type === 'invariant' ? '🔒' :
-                       constraint.type === 'convention' ? '📋' : '💡';
+      const typeEmoji =
+        constraint.type === 'invariant' ? '🔒' : constraint.type === 'convention' ? '📋' : '💡';
       const severityBadge = `[${constraint.severity.toUpperCase()}]`;
 
       lines.push(`- ${typeEmoji} **${severityBadge}** ${constraint.rule}`);
@@ -134,11 +135,11 @@ export function formatContextAsMcp(context: AgentContext): object {
     version: '1.0',
     file: context.file,
     timestamp: context.generatedAt,
-    decisions: context.applicableDecisions.map(d => ({
+    decisions: context.applicableDecisions.map((d) => ({
       id: d.id,
       title: d.title,
       summary: d.summary,
-      constraints: d.constraints.map(c => ({
+      constraints: d.constraints.map((c) => ({
         id: c.id,
         type: c.type,
         severity: c.severity,
@@ -188,12 +189,12 @@ export class AgentContextGenerator {
     const { decisions, filePattern, format = 'markdown', concise = false, minSeverity } = options;
 
     // Filter deprecated decisions
-    const activeDecisions = decisions.filter(d => d.metadata.status !== 'deprecated');
+    const activeDecisions = decisions.filter((d) => d.metadata.status !== 'deprecated');
 
     // Filter by file pattern if provided
     let filteredDecisions = activeDecisions;
     if (filePattern) {
-      filteredDecisions = activeDecisions.filter(d =>
+      filteredDecisions = activeDecisions.filter((d) =>
         d.constraints.some((c: Constraint) => matchesPattern(filePattern, c.scope))
       );
     }
@@ -203,13 +204,15 @@ export class AgentContextGenerator {
       const severityOrder = { low: 0, medium: 1, high: 2, critical: 3 };
       const minLevel = severityOrder[minSeverity as keyof typeof severityOrder] || 0;
 
-      filteredDecisions = filteredDecisions.map(d => ({
-        ...d,
-        constraints: d.constraints.filter((c: Constraint) => {
-          const level = severityOrder[c.severity as keyof typeof severityOrder] || 0;
-          return level >= minLevel;
-        }),
-      })).filter(d => d.constraints.length > 0);
+      filteredDecisions = filteredDecisions
+        .map((d) => ({
+          ...d,
+          constraints: d.constraints.filter((c: Constraint) => {
+            const level = severityOrder[c.severity as keyof typeof severityOrder] || 0;
+            return level >= minLevel;
+          }),
+        }))
+        .filter((d) => d.constraints.length > 0);
     }
 
     // Format output
@@ -283,13 +286,10 @@ export class AgentContextGenerator {
   /**
    * Extract relevant decisions for a specific file
    */
-  extractRelevantDecisions(options: {
-    decisions: Decision[];
-    filePath: string;
-  }): Decision[] {
+  extractRelevantDecisions(options: { decisions: Decision[]; filePath: string }): Decision[] {
     const { decisions, filePath } = options;
 
-    return decisions.filter(d =>
+    return decisions.filter((d) =>
       d.constraints.some((c: Constraint) => matchesPattern(filePath, c.scope))
     );
   }

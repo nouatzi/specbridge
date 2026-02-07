@@ -58,28 +58,36 @@ function createHarness(server: SpecBridgeLspServer): Harness {
     documentStore: new Map<string, TextDocument>(),
   };
 
-  vi.spyOn(connection, 'onInitialize').mockImplementation((handler: (params: unknown) => Promise<any>) => {
-    harness.onInitialize = handler;
-  });
+  vi.spyOn(connection, 'onInitialize').mockImplementation(
+    (handler: (params: unknown) => Promise<any>) => {
+      harness.onInitialize = handler;
+    }
+  );
   vi.spyOn(connection, 'onCodeAction').mockImplementation((handler: (params: any) => unknown[]) => {
     harness.onCodeAction = handler;
   });
-  vi.spyOn(connection, 'sendDiagnostics').mockImplementation((payload: { uri: string; diagnostics: unknown[] }) => {
-    harness.sentDiagnostics.push(payload);
-  });
+  vi.spyOn(connection, 'sendDiagnostics').mockImplementation(
+    (payload: { uri: string; diagnostics: unknown[] }) => {
+      harness.sentDiagnostics.push(payload);
+    }
+  );
   vi.spyOn(connection, 'listen').mockImplementation(() => {});
 
-  vi.spyOn(documents, 'onDidOpen').mockImplementation((handler: (event: { document: TextDocument }) => void) => {
-    harness.onDidOpen = handler;
-  });
+  vi.spyOn(documents, 'onDidOpen').mockImplementation(
+    (handler: (event: { document: TextDocument }) => void) => {
+      harness.onDidOpen = handler;
+    }
+  );
   vi.spyOn(documents, 'onDidChangeContent').mockImplementation(
     (handler: (event: { document: TextDocument }) => void) => {
       harness.onDidChangeContent = handler;
     }
   );
-  vi.spyOn(documents, 'onDidClose').mockImplementation((handler: (event: { document: TextDocument }) => void) => {
-    harness.onDidClose = handler;
-  });
+  vi.spyOn(documents, 'onDidClose').mockImplementation(
+    (handler: (event: { document: TextDocument }) => void) => {
+      harness.onDidClose = handler;
+    }
+  );
   vi.spyOn(documents, 'listen').mockImplementation(() => {});
   vi.spyOn(documents, 'get').mockImplementation((uri: string) => harness.documentStore.get(uri));
 

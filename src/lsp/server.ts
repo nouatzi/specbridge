@@ -1,7 +1,14 @@
 /**
  * SpecBridge Language Server (LSP)
  */
-import { createConnection, ProposedFeatures, TextDocuments, TextDocumentSyncKind, DiagnosticSeverity, CodeActionKind } from 'vscode-languageserver/node.js';
+import {
+  createConnection,
+  ProposedFeatures,
+  TextDocuments,
+  TextDocumentSyncKind,
+  DiagnosticSeverity,
+  CodeActionKind,
+} from 'vscode-languageserver/node.js';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -10,7 +17,10 @@ import chalk from 'chalk';
 import { loadConfig } from '../config/loader.js';
 import { createRegistry, type Registry } from '../registry/registry.js';
 import { getSpecBridgeDir, pathExists } from '../utils/fs.js';
-import { selectVerifierForConstraint, type VerificationContext } from '../verification/verifiers/index.js';
+import {
+  selectVerifierForConstraint,
+  type VerificationContext,
+} from '../verification/verifiers/index.js';
 import { shouldApplyConstraintToFile } from '../verification/applicability.js';
 import { getPluginLoader } from '../verification/plugins/loader.js';
 import type { Decision, Violation, Severity } from '../core/types/index.js';
@@ -151,7 +161,7 @@ export class SpecBridgeLspServer {
 
   private async initializeWorkspace(): Promise<void> {
     // Ensure initialized (but keep server alive if not).
-    if (!await pathExists(getSpecBridgeDir(this.cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(this.cwd)))) {
       const err = new NotInitializedError();
       this.initError = err.message;
       if (this.options.verbose) this.connection.console.error(chalk.red(this.initError));
@@ -166,7 +176,8 @@ export class SpecBridgeLspServer {
         await getPluginLoader().loadPlugins(this.cwd);
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        if (this.options.verbose) this.connection.console.error(chalk.red(`Plugin load failed: ${msg}`));
+        if (this.options.verbose)
+          this.connection.console.error(chalk.red(`Plugin load failed: ${msg}`));
       }
 
       this.registry = createRegistry({ basePath: this.cwd });
@@ -179,13 +190,15 @@ export class SpecBridgeLspServer {
         const rootPath = path.isAbsolute(root) ? root : path.join(this.cwd, root);
         // If root is a glob, fall back to adding the directory portion.
         const dir = rootPath.includes('*') ? rootPath.split('*')[0] : rootPath;
-        if (dir && await pathExists(dir)) {
+        if (dir && (await pathExists(dir))) {
           this.project.addSourceFilesAtPaths(path.join(dir, '**/*.{ts,tsx,js,jsx}'));
         }
       }
 
       if (this.options.verbose) {
-        this.connection.console.log(chalk.dim(`Loaded ${this.decisions.length} active decision(s)`));
+        this.connection.console.log(
+          chalk.dim(`Loaded ${this.decisions.length} active decision(s)`)
+        );
       }
     } catch (error) {
       this.initError = error instanceof Error ? error.message : String(error);
@@ -208,7 +221,11 @@ export class SpecBridgeLspServer {
       for (const constraint of decision.constraints) {
         if (!shouldApplyConstraintToFile({ filePath, constraint, cwd: this.cwd })) continue;
 
-        const verifier = selectVerifierForConstraint(constraint.rule, constraint.verifier, constraint.check);
+        const verifier = selectVerifierForConstraint(
+          constraint.rule,
+          constraint.verifier,
+          constraint.check
+        );
         if (!verifier) continue;
 
         const ctx: VerificationContext = {

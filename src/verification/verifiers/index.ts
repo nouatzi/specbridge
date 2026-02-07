@@ -109,19 +109,42 @@ export function selectVerifierForConstraint(
   // Priority 3: Auto-select based on rule content
   const lowerRule = rule.toLowerCase();
 
-  if (lowerRule.includes('dependency') || lowerRule.includes('circular dependenc') || lowerRule.includes('import depth') || (lowerRule.includes('layer') && lowerRule.includes('depend on'))) {
+  if (
+    lowerRule.includes('dependency') ||
+    lowerRule.includes('circular dependenc') ||
+    lowerRule.includes('import depth') ||
+    (lowerRule.includes('layer') && lowerRule.includes('depend on'))
+  ) {
     return getVerifier('dependencies');
   }
 
-  if (lowerRule.includes('cyclomatic') || lowerRule.includes('complexity') || lowerRule.includes('nesting') || lowerRule.includes('parameters') || lowerRule.includes('file size')) {
+  if (
+    lowerRule.includes('cyclomatic') ||
+    lowerRule.includes('complexity') ||
+    lowerRule.includes('nesting') ||
+    lowerRule.includes('parameters') ||
+    lowerRule.includes('file size')
+  ) {
     return getVerifier('complexity');
   }
 
-  if (lowerRule.includes('security') || lowerRule.includes('secret') || lowerRule.includes('password') || lowerRule.includes('token') || lowerRule.includes('xss') || lowerRule.includes('sql') || lowerRule.includes('eval')) {
+  if (
+    lowerRule.includes('security') ||
+    lowerRule.includes('secret') ||
+    lowerRule.includes('password') ||
+    lowerRule.includes('token') ||
+    lowerRule.includes('xss') ||
+    lowerRule.includes('sql') ||
+    lowerRule.includes('eval')
+  ) {
     return getVerifier('security');
   }
 
-  if (lowerRule.includes('endpoint') || lowerRule.includes('rest') || (lowerRule.includes('api') && lowerRule.includes('path'))) {
+  if (
+    lowerRule.includes('endpoint') ||
+    lowerRule.includes('rest') ||
+    (lowerRule.includes('api') && lowerRule.includes('path'))
+  ) {
     return getVerifier('api');
   }
 

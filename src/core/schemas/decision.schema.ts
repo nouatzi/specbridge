@@ -17,7 +17,10 @@ export const VerificationFrequencySchema = z.enum(['commit', 'pr', 'daily', 'wee
 
 // Decision metadata
 export const DecisionMetadataSchema = z.object({
-  id: z.string().min(1).regex(/^[a-z0-9-]+$/, 'ID must be lowercase alphanumeric with hyphens'),
+  id: z
+    .string()
+    .min(1)
+    .regex(/^[a-z0-9-]+$/, 'ID must be lowercase alphanumeric with hyphens'),
   title: z.string().min(1).max(200),
   status: DecisionStatusSchema,
   owners: z.array(z.string().min(1)).min(1),
@@ -51,7 +54,10 @@ export const ConstraintCheckSchema = z.object({
 
 // Single constraint
 export const ConstraintSchema = z.object({
-  id: z.string().min(1).regex(/^[a-z0-9-]+$/, 'Constraint ID must be lowercase alphanumeric with hyphens'),
+  id: z
+    .string()
+    .min(1)
+    .regex(/^[a-z0-9-]+$/, 'Constraint ID must be lowercase alphanumeric with hyphens'),
   type: ConstraintTypeSchema,
   rule: z.string().min(1),
   severity: SeveritySchema,
@@ -83,9 +89,11 @@ export const DecisionSchema = z.object({
   metadata: DecisionMetadataSchema,
   decision: DecisionContentSchema,
   constraints: z.array(ConstraintSchema).min(1),
-  verification: z.object({
-    automated: z.array(VerificationConfigSchema).optional(),
-  }).optional(),
+  verification: z
+    .object({
+      automated: z.array(VerificationConfigSchema).optional(),
+    })
+    .optional(),
   links: LinksSchema.optional(),
 });
 
@@ -105,7 +113,9 @@ export type DecisionTypeSchema = z.infer<typeof DecisionSchema>;
 /**
  * Validate a decision document
  */
-export function validateDecision(data: unknown): { success: true; data: DecisionTypeSchema } | { success: false; errors: z.ZodError } {
+export function validateDecision(
+  data: unknown
+): { success: true; data: DecisionTypeSchema } | { success: false; errors: z.ZodError } {
   const result = DecisionSchema.safeParse(data);
   if (result.success) {
     return { success: true, data: result.data };

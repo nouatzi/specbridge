@@ -6,7 +6,12 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { join } from 'node:path';
 import { validateDecisionFile } from '../../../registry/loader.js';
-import { getDecisionsDir, readFilesInDir, pathExists, getSpecBridgeDir } from '../../../utils/fs.js';
+import {
+  getDecisionsDir,
+  readFilesInDir,
+  pathExists,
+  getSpecBridgeDir,
+} from '../../../utils/fs.js';
 import { NotInitializedError } from '../../../core/errors/index.js';
 
 interface ValidateOptions {
@@ -20,7 +25,7 @@ export const validateDecisions = new Command('validate')
     const cwd = process.cwd();
 
     // Check if specbridge is initialized
-    if (!await pathExists(getSpecBridgeDir(cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
       throw new NotInitializedError();
     }
 
@@ -33,9 +38,8 @@ export const validateDecisions = new Command('validate')
         files = [options.file];
       } else {
         const decisionsDir = getDecisionsDir(cwd);
-        const decisionFiles = await readFilesInDir(
-          decisionsDir,
-          (f) => f.endsWith('.decision.yaml')
+        const decisionFiles = await readFilesInDir(decisionsDir, (f) =>
+          f.endsWith('.decision.yaml')
         );
         files = decisionFiles.map((f) => join(decisionsDir, f));
       }

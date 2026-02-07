@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Decision, SpecBridgeConfig, Violation } from '../../../src/core/types/index.js';
 
-const { createVerificationEngineMock, verifyMock, globMock, buildDependencyGraphMock, getAffectedFilesMock } = vi.hoisted(() => ({
+const {
+  createVerificationEngineMock,
+  verifyMock,
+  globMock,
+  buildDependencyGraphMock,
+  getAffectedFilesMock,
+} = vi.hoisted(() => ({
   createVerificationEngineMock: vi.fn(),
   verifyMock: vi.fn(),
   globMock: vi.fn(),
@@ -98,7 +104,12 @@ describe('PropagationEngine', () => {
     createVerificationEngineMock.mockReturnValue({
       verify: verifyMock,
     });
-    globMock.mockResolvedValue(['/repo/src/a.ts', '/repo/src/b.ts', '/repo/src/c.ts', '/repo/src/d.ts']);
+    globMock.mockResolvedValue([
+      '/repo/src/a.ts',
+      '/repo/src/b.ts',
+      '/repo/src/c.ts',
+      '/repo/src/d.ts',
+    ]);
     buildDependencyGraphMock.mockResolvedValue(new Map<string, Set<string>>());
   });
 

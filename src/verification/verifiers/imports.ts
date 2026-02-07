@@ -16,7 +16,11 @@ export class ImportsVerifier implements Verifier {
     const rule = constraint.rule.toLowerCase();
 
     // Check for required .js extensions in relative imports (ESM-friendly)
-    if ((rule.includes('.js') && rule.includes('extension')) || rule.includes('esm') || rule.includes('add .js')) {
+    if (
+      (rule.includes('.js') && rule.includes('extension')) ||
+      rule.includes('esm') ||
+      rule.includes('add .js')
+    ) {
       for (const importDecl of sourceFile.getImportDeclarations()) {
         const moduleSpec = importDecl.getModuleSpecifierValue();
         if (!moduleSpec.startsWith('.')) continue;
@@ -38,20 +42,22 @@ export class ImportsVerifier implements Verifier {
         const start = ms.getStart() + 1; // inside quotes
         const end = ms.getEnd() - 1;
 
-        violations.push(createViolation({
-          decisionId,
-          constraintId: constraint.id,
-          type: constraint.type,
-          severity: constraint.severity,
-          message: `Relative import "${moduleSpec}" should include a .js extension`,
-          file: filePath,
-          line: importDecl.getStartLineNumber(),
-          suggestion: `Update to "${suggested}"`,
-          autofix: {
-            description: 'Add/normalize .js extension in import specifier',
-            edits: [{ start, end, text: suggested }],
-          },
-        }));
+        violations.push(
+          createViolation({
+            decisionId,
+            constraintId: constraint.id,
+            type: constraint.type,
+            severity: constraint.severity,
+            message: `Relative import "${moduleSpec}" should include a .js extension`,
+            file: filePath,
+            line: importDecl.getStartLineNumber(),
+            suggestion: `Update to "${suggested}"`,
+            autofix: {
+              description: 'Add/normalize .js extension in import specifier',
+              edits: [{ start, end, text: suggested }],
+            },
+          })
+        );
       }
     }
 
@@ -67,16 +73,18 @@ export class ImportsVerifier implements Verifier {
         if (moduleSpec.match(/\.(ts|js|tsx|jsx)$/) || moduleSpec.match(/\/[^/]+$/)) {
           // Could be a direct file import - flag if not index
           if (!moduleSpec.endsWith('/index') && !moduleSpec.endsWith('index')) {
-            violations.push(createViolation({
-              decisionId,
-              constraintId: constraint.id,
-              type: constraint.type,
-              severity: constraint.severity,
-              message: `Import from "${moduleSpec}" should use barrel (index) import`,
-              file: filePath,
-              line: importDecl.getStartLineNumber(),
-              suggestion: 'Import from the parent directory index file instead',
-            }));
+            violations.push(
+              createViolation({
+                decisionId,
+                constraintId: constraint.id,
+                type: constraint.type,
+                severity: constraint.severity,
+                message: `Import from "${moduleSpec}" should use barrel (index) import`,
+                file: filePath,
+                line: importDecl.getStartLineNumber(),
+                suggestion: 'Import from the parent directory index file instead',
+              })
+            );
           }
         }
       }
@@ -89,16 +97,18 @@ export class ImportsVerifier implements Verifier {
 
         // Check for deeply nested relative imports
         if (moduleSpec.match(/^\.\.\/\.\.\/\.\.\//)) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Deep relative import "${moduleSpec}" should use path alias`,
-            file: filePath,
-            line: importDecl.getStartLineNumber(),
-            suggestion: 'Use path alias (e.g., @/module) for deep imports',
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Deep relative import "${moduleSpec}" should use path alias`,
+              file: filePath,
+              line: importDecl.getStartLineNumber(),
+              suggestion: 'Use path alias (e.g., @/module) for deep imports',
+            })
+          );
         }
       }
     }
@@ -113,16 +123,18 @@ export class ImportsVerifier implements Verifier {
         const moduleSpec = importDecl.getModuleSpecifierValue();
         if (moduleSpec.includes(currentFilename.split('/').pop() || '')) {
           // Potential self-reference, might indicate circular dependency
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Possible circular import detected: "${moduleSpec}"`,
-            file: filePath,
-            line: importDecl.getStartLineNumber(),
-            suggestion: 'Review import structure for circular dependencies',
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Possible circular import detected: "${moduleSpec}"`,
+              file: filePath,
+              line: importDecl.getStartLineNumber(),
+              suggestion: 'Review import structure for circular dependencies',
+            })
+          );
         }
       }
     }
@@ -132,16 +144,18 @@ export class ImportsVerifier implements Verifier {
       for (const importDecl of sourceFile.getImportDeclarations()) {
         const namespaceImport = importDecl.getNamespaceImport();
         if (namespaceImport) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Namespace import "* as ${namespaceImport.getText()}" should use named imports`,
-            file: filePath,
-            line: importDecl.getStartLineNumber(),
-            suggestion: 'Use specific named imports instead of namespace import',
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Namespace import "* as ${namespaceImport.getText()}" should use named imports`,
+              file: filePath,
+              line: importDecl.getStartLineNumber(),
+              suggestion: 'Use specific named imports instead of namespace import',
+            })
+          );
         }
       }
     }

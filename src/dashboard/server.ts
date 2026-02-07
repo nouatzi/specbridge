@@ -59,14 +59,11 @@ class DashboardServer {
     await this.refreshCache();
 
     // Background refresh
-    this.refreshInterval = setInterval(
-      () => {
-        void this.refreshCache().catch((error: unknown) => {
-          this.logger.error({ error }, 'Background cache refresh failed');
-        });
-      },
-      this.CACHE_TTL
-    );
+    this.refreshInterval = setInterval(() => {
+      void this.refreshCache().catch((error: unknown) => {
+        this.logger.error({ error }, 'Background cache refresh failed');
+      });
+    }, this.CACHE_TTL);
   }
 
   /**
@@ -392,10 +389,12 @@ class DashboardServer {
   private setupStaticFiles(): void {
     // Serve static frontend files
     const publicDir = join(__dirname, 'public');
-    this.app.use(express.static(publicDir, {
-      maxAge: '1h', // Cache static assets
-      etag: true,
-    }));
+    this.app.use(
+      express.static(publicDir, {
+        maxAge: '1h', // Cache static assets
+        etag: true,
+      })
+    );
 
     // Fallback to index.html for SPA routing
     this.app.get('/{*path}', (_req: Request, res: Response) => {

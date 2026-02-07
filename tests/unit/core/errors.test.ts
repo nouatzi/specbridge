@@ -101,11 +101,7 @@ describe('Core Error Classes', () => {
 
     it('should include validation errors in details', () => {
       const validationErrors = ['Error 1', 'Error 2'];
-      const error = new DecisionValidationError(
-        'Validation failed',
-        'dec-001',
-        validationErrors
-      );
+      const error = new DecisionValidationError('Validation failed', 'dec-001', validationErrors);
 
       expect(error.details).toEqual({
         decisionId: 'dec-001',
@@ -121,11 +117,7 @@ describe('Core Error Classes', () => {
 
     it('should handle many validation errors', () => {
       const validationErrors = Array.from({ length: 10 }, (_, i) => `Error ${i}`);
-      const error = new DecisionValidationError(
-        'Multiple errors',
-        'dec-001',
-        validationErrors
-      );
+      const error = new DecisionValidationError('Multiple errors', 'dec-001', validationErrors);
 
       expect(error.validationErrors.length).toBe(10);
     });
@@ -373,11 +365,10 @@ describe('Core Error Classes', () => {
     });
 
     it('should exclude validationErrors from details section', () => {
-      const error = new DecisionValidationError(
-        'Validation failed',
-        'dec-001',
-        ['Error 1', 'Error 2']
-      );
+      const error = new DecisionValidationError('Validation failed', 'dec-001', [
+        'Error 1',
+        'Error 2',
+      ]);
       const formatted = formatError(error);
 
       // validationErrors should not appear in details section
@@ -385,11 +376,10 @@ describe('Core Error Classes', () => {
     });
 
     it('should format DecisionValidationError with validation errors list', () => {
-      const error = new DecisionValidationError(
-        'Validation failed',
-        'dec-001',
-        ['Missing title', 'Invalid status']
-      );
+      const error = new DecisionValidationError('Validation failed', 'dec-001', [
+        'Missing title',
+        'Invalid status',
+      ]);
       const formatted = formatError(error);
 
       expect(formatted).toContain('Validation errors:');
@@ -439,10 +429,7 @@ describe('Core Error Classes', () => {
     });
 
     it('should handle multiline error messages', () => {
-      const error = new SpecBridgeError(
-        'Line 1\nLine 2\nLine 3',
-        'MULTILINE_ERROR'
-      );
+      const error = new SpecBridgeError('Line 1\nLine 2\nLine 3', 'MULTILINE_ERROR');
       const formatted = formatError(error);
 
       expect(formatted).toContain('Line 1');
@@ -451,10 +438,7 @@ describe('Core Error Classes', () => {
     });
 
     it('should handle special characters in error messages', () => {
-      const error = new SpecBridgeError(
-        'Error with special chars: <>&"\'',
-        'SPECIAL_CHARS'
-      );
+      const error = new SpecBridgeError('Error with special chars: <>&"\'', 'SPECIAL_CHARS');
       const formatted = formatError(error);
 
       expect(formatted).toContain('Error with special chars: <>&"\'');

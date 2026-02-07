@@ -19,12 +19,7 @@ export async function glob(
   patterns: string | string[],
   options: GlobOptions = {}
 ): Promise<string[]> {
-  const {
-    cwd = process.cwd(),
-    ignore = [],
-    absolute = false,
-    onlyFiles = true,
-  } = options;
+  const { cwd = process.cwd(), ignore = [], absolute = false, onlyFiles = true } = options;
 
   return fg(patterns, {
     cwd,

@@ -128,7 +128,9 @@ function mockReport(timestamp: string, compliance = 94): ComplianceReport {
   } as unknown as ComplianceReport;
 }
 
-async function startHttpServer(app: Application): Promise<{ baseUrl: string; close: () => Promise<void> }> {
+async function startHttpServer(
+  app: Application
+): Promise<{ baseUrl: string; close: () => Promise<void> }> {
   const server = app.listen(0, '127.0.0.1');
   await once(server, 'listening');
   const address = server.address() as AddressInfo | null;
@@ -175,7 +177,9 @@ describe('DashboardServer (unit)', () => {
     loadByDateMock.mockResolvedValue(mockReport('2026-02-06T10:00:00.000Z', 92));
     registryLoadMock.mockResolvedValue(undefined);
     registryGetAllMock.mockReturnValue([mockDecision('dash-001')]);
-    registryGetMock.mockImplementation((id: string) => (id === 'dash-001' ? mockDecision(id) : null));
+    registryGetMock.mockImplementation((id: string) =>
+      id === 'dash-001' ? mockDecision(id) : null
+    );
     generateSummaryMock.mockResolvedValue({ trends: [] });
     analyzeDecisionMock.mockResolvedValue({ id: 'dash-001', score: 90 });
     detectDriftMock.mockResolvedValue({ trend: 'stable' });
@@ -250,7 +254,9 @@ describe('DashboardServer (unit)', () => {
 
   it('serves report history and dates endpoints with success and failure cases', async () => {
     await dashboard.start();
-    loadHistoryMock.mockResolvedValueOnce([{ timestamp: '2026-02-07', report: mockReport('2026-02-07T10:00:00.000Z') }]);
+    loadHistoryMock.mockResolvedValueOnce([
+      { timestamp: '2026-02-07', report: mockReport('2026-02-07T10:00:00.000Z') },
+    ]);
     const http = await startHttpServer(dashboard.getApp());
 
     const okHistory = await fetch(`${http.baseUrl}/api/report/history?days=7`);
@@ -341,7 +347,9 @@ describe('DashboardServer (unit)', () => {
     const noSummary = await fetch(`${http.baseUrl}/api/analytics/summary?days=30`);
     expect(noSummary.status).toBe(404);
 
-    loadHistoryMock.mockResolvedValueOnce([{ timestamp: '2026-02-07', report: mockReport('2026-02-07T10:00:00.000Z') }]);
+    loadHistoryMock.mockResolvedValueOnce([
+      { timestamp: '2026-02-07', report: mockReport('2026-02-07T10:00:00.000Z') },
+    ]);
     generateSummaryMock.mockResolvedValueOnce({ avg: 90 });
     const summary = await fetch(`${http.baseUrl}/api/analytics/summary?days=30`);
     expect(summary.status).toBe(200);
@@ -351,10 +359,14 @@ describe('DashboardServer (unit)', () => {
     expect(summaryFail.status).toBe(500);
 
     loadHistoryMock.mockResolvedValueOnce([]);
-    const noDecisionMetrics = await fetch(`${http.baseUrl}/api/analytics/decision/dash-001?days=30`);
+    const noDecisionMetrics = await fetch(
+      `${http.baseUrl}/api/analytics/decision/dash-001?days=30`
+    );
     expect(noDecisionMetrics.status).toBe(404);
 
-    loadHistoryMock.mockResolvedValueOnce([{ timestamp: '2026-02-07', report: mockReport('2026-02-07T10:00:00.000Z') }]);
+    loadHistoryMock.mockResolvedValueOnce([
+      { timestamp: '2026-02-07', report: mockReport('2026-02-07T10:00:00.000Z') },
+    ]);
     analyzeDecisionMock.mockResolvedValueOnce({ id: 'dash-001', trend: 'improving' });
     const decisionMetrics = await fetch(`${http.baseUrl}/api/analytics/decision/dash-001?days=30`);
     expect(decisionMetrics.status).toBe(200);
@@ -366,7 +378,9 @@ describe('DashboardServer (unit)', () => {
     await dashboard.start();
     const http = await startHttpServer(dashboard.getApp());
 
-    loadHistoryMock.mockResolvedValueOnce([{ timestamp: '2026-02-07', report: mockReport('2026-02-07T10:00:00.000Z') }]);
+    loadHistoryMock.mockResolvedValueOnce([
+      { timestamp: '2026-02-07', report: mockReport('2026-02-07T10:00:00.000Z') },
+    ]);
     const drift404 = await fetch(`${http.baseUrl}/api/drift?days=2`);
     expect(drift404.status).toBe(404);
 
@@ -378,7 +392,9 @@ describe('DashboardServer (unit)', () => {
     const drift200 = await fetch(`${http.baseUrl}/api/drift?days=2`);
     expect(drift200.status).toBe(200);
 
-    loadHistoryMock.mockResolvedValueOnce([{ timestamp: '2026-02-07', report: mockReport('2026-02-07T10:00:00.000Z') }]);
+    loadHistoryMock.mockResolvedValueOnce([
+      { timestamp: '2026-02-07', report: mockReport('2026-02-07T10:00:00.000Z') },
+    ]);
     const trend404 = await fetch(`${http.baseUrl}/api/trend?days=2`);
     expect(trend404.status).toBe(404);
 

@@ -40,7 +40,7 @@ function printDecision(decision: Decision): void {
   console.log(chalk.bold('Status:'), getStatusBadge(metadata.status));
   console.log(chalk.bold('Owners:'), metadata.owners.join(', '));
   if (metadata.tags && metadata.tags.length > 0) {
-    console.log(chalk.bold('Tags:'), metadata.tags.map(t => chalk.cyan(t)).join(', '));
+    console.log(chalk.bold('Tags:'), metadata.tags.map((t) => chalk.cyan(t)).join(', '));
   }
   if (metadata.createdAt) {
     console.log(chalk.bold('Created:'), metadata.createdAt);

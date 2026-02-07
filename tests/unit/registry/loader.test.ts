@@ -4,7 +4,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { join } from 'node:path';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
-import { loadDecisionFile, loadDecisionsFromDir, validateDecisionFile } from '../../../src/registry/loader';
+import {
+  loadDecisionFile,
+  loadDecisionsFromDir,
+  validateDecisionFile,
+} from '../../../src/registry/loader';
 import { stringifyYaml } from '../../../src/utils/yaml';
 
 const TEST_DIR = join(process.cwd(), 'tests', 'fixtures', 'loader-test');
@@ -368,7 +372,10 @@ describe('Decision Loader', () => {
     it('should handle multiple errors gracefully', async () => {
       // Create multiple invalid files
       await writeFile(join(TEST_DIR, 'invalid1.decision.yaml'), 'invalid yaml {{{');
-      await writeFile(join(TEST_DIR, 'invalid2.decision.yaml'), stringifyYaml({ invalid: 'schema' }));
+      await writeFile(
+        join(TEST_DIR, 'invalid2.decision.yaml'),
+        stringifyYaml({ invalid: 'schema' })
+      );
 
       const result = await loadDecisionsFromDir(TEST_DIR);
 

@@ -16,10 +16,13 @@ describe('ApiVerifier', () => {
   });
 
   it('should flag non-kebab-case endpoints', async () => {
-    const sf = project.createSourceFile('src/routes.ts', `
+    const sf = project.createSourceFile(
+      'src/routes.ts',
+      `
       app.get('/user_settings', () => {});
       router.post('/UserSettings', () => {});
-    `);
+    `
+    );
 
     const ctx: VerificationContext = {
       filePath: sf.getFilePath(),
@@ -40,9 +43,12 @@ describe('ApiVerifier', () => {
   });
 
   it('should accept kebab-case endpoints with params', async () => {
-    const sf = project.createSourceFile('src/routes.ts', `
+    const sf = project.createSourceFile(
+      'src/routes.ts',
+      `
       app.get('/user-settings/:id', () => {});
-    `);
+    `
+    );
 
     const ctx: VerificationContext = {
       filePath: sf.getFilePath(),
@@ -61,4 +67,3 @@ describe('ApiVerifier', () => {
     expect(violations).toHaveLength(0);
   });
 });
-

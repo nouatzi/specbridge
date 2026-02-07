@@ -65,7 +65,7 @@ export const listDecisions = new Command('list')
 
     for (const decision of decisions) {
       const statusColor = getStatusColor(decision.metadata.status);
-      const constraintTypes = getConstraintTypeSummary(decision.constraints.map(c => c.type));
+      const constraintTypes = getConstraintTypeSummary(decision.constraints.map((c) => c.type));
 
       data.push([
         decision.metadata.id,
@@ -76,26 +76,28 @@ export const listDecisions = new Command('list')
       ]);
     }
 
-    console.log(table(data, {
-      border: {
-        topBody: '',
-        topJoin: '',
-        topLeft: '',
-        topRight: '',
-        bottomBody: '',
-        bottomJoin: '',
-        bottomLeft: '',
-        bottomRight: '',
-        bodyLeft: '',
-        bodyRight: '',
-        bodyJoin: '  ',
-        joinBody: '',
-        joinLeft: '',
-        joinRight: '',
-        joinJoin: '',
-      },
-      drawHorizontalLine: (index) => index === 1,
-    }));
+    console.log(
+      table(data, {
+        border: {
+          topBody: '',
+          topJoin: '',
+          topLeft: '',
+          topRight: '',
+          bottomBody: '',
+          bottomJoin: '',
+          bottomLeft: '',
+          bottomRight: '',
+          bodyLeft: '',
+          bodyRight: '',
+          bodyJoin: '  ',
+          joinBody: '',
+          joinLeft: '',
+          joinRight: '',
+          joinJoin: '',
+        },
+        drawHorizontalLine: (index) => index === 1,
+      })
+    );
 
     console.log(chalk.dim(`Total: ${decisions.length} decision(s)`));
   });

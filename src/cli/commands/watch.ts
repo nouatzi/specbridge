@@ -18,7 +18,7 @@ export const watchCommand = new Command('watch')
   .action(async (options: { level?: string; debounce?: string }) => {
     const cwd = process.cwd();
 
-    if (!await pathExists(getSpecBridgeDir(cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
       throw new NotInitializedError();
     }
 
@@ -70,4 +70,3 @@ export const watchCommand = new Command('watch')
       }, debounceMs);
     });
   });
-

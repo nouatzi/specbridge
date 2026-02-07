@@ -39,7 +39,7 @@ export async function buildDependencyGraph(
     nodes.set(decisionId, {
       type: 'decision',
       id: decision.metadata.id,
-      edges: decision.constraints.map(c => `constraint:${decision.metadata.id}/${c.id}`),
+      edges: decision.constraints.map((c) => `constraint:${decision.metadata.id}/${c.id}`),
     });
 
     // Add constraint nodes
@@ -93,10 +93,7 @@ export async function buildDependencyGraph(
 /**
  * Get files affected by a decision
  */
-export function getAffectedFiles(
-  graph: DependencyGraph,
-  decisionId: string
-): string[] {
+export function getAffectedFiles(graph: DependencyGraph, decisionId: string): string[] {
   const files = graph.decisionToFiles.get(decisionId);
   return files ? Array.from(files) : [];
 }
@@ -104,10 +101,7 @@ export function getAffectedFiles(
 /**
  * Get decisions affecting a file
  */
-export function getAffectingDecisions(
-  graph: DependencyGraph,
-  filePath: string
-): string[] {
+export function getAffectingDecisions(graph: DependencyGraph, filePath: string): string[] {
   const decisions = graph.fileToDecisions.get(filePath);
   return decisions ? Array.from(decisions) : [];
 }

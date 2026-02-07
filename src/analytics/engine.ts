@@ -53,10 +53,7 @@ export class AnalyticsEngine {
   /**
    * Analyze a specific decision across historical reports
    */
-  async analyzeDecision(
-    decisionId: string,
-    history: StoredReport[]
-  ): Promise<DecisionMetrics> {
+  async analyzeDecision(decisionId: string, history: StoredReport[]): Promise<DecisionMetrics> {
     if (history.length === 0) {
       throw new Error('No historical reports provided');
     }
@@ -68,7 +65,7 @@ export class AnalyticsEngine {
     }> = [];
 
     for (const { timestamp, report } of history) {
-      const decision = report.byDecision.find(d => d.decisionId === decisionId);
+      const decision = report.byDecision.find((d) => d.decisionId === decisionId);
       if (decision) {
         decisionHistory.push({ date: timestamp, data: decision });
       }
@@ -108,7 +105,7 @@ export class AnalyticsEngine {
     }
 
     // Build history summary
-    const historyData = decisionHistory.map(h => ({
+    const historyData = decisionHistory.map((h) => ({
       date: h.date,
       compliance: h.data.compliance,
       violations: h.data.violations,
@@ -187,31 +184,31 @@ export class AnalyticsEngine {
     }
 
     // Insight: Decision-specific issues
-    const problematicDecisions = latest.byDecision.filter(d => d.compliance < 50);
+    const problematicDecisions = latest.byDecision.filter((d) => d.compliance < 50);
     if (problematicDecisions.length > 0) {
       insights.push({
         type: 'warning',
         category: 'hotspot',
         message: `${problematicDecisions.length} decision(s) have less than 50% compliance`,
-        details: problematicDecisions.map(d => `${d.title} (${d.compliance}%)`).join(', '),
+        details: problematicDecisions.map((d) => `${d.title} (${d.compliance}%)`).join(', '),
       });
     }
 
     // Insight: High compliance decisions
-    const excellentDecisions = latest.byDecision.filter(d => d.compliance === 100);
+    const excellentDecisions = latest.byDecision.filter((d) => d.compliance === 100);
     if (excellentDecisions.length > 0) {
       insights.push({
         type: 'success',
         category: 'compliance',
         message: `${excellentDecisions.length} decision(s) have 100% compliance`,
-        details: excellentDecisions.map(d => d.title).join(', '),
+        details: excellentDecisions.map((d) => d.title).join(', '),
       });
     }
 
     // Insight: Compare to average
     const avgCompliance = latest.summary.compliance;
-    const decisionsAboveAvg = latest.byDecision.filter(d => d.compliance > avgCompliance);
-    const decisionsBelowAvg = latest.byDecision.filter(d => d.compliance < avgCompliance);
+    const decisionsAboveAvg = latest.byDecision.filter((d) => d.compliance > avgCompliance);
+    const decisionsBelowAvg = latest.byDecision.filter((d) => d.compliance < avgCompliance);
 
     if (decisionsBelowAvg.length > decisionsAboveAvg.length) {
       insights.push({
@@ -285,21 +282,22 @@ export class AnalyticsEngine {
     }
 
     // Find top and bottom performers
-    const sortedByCompliance = [...latest.byDecision].sort(
-      (a, b) => b.compliance - a.compliance
-    );
+    const sortedByCompliance = [...latest.byDecision].sort((a, b) => b.compliance - a.compliance);
 
-    const topDecisions = sortedByCompliance.slice(0, 5).map(d => ({
+    const topDecisions = sortedByCompliance.slice(0, 5).map((d) => ({
       decisionId: d.decisionId,
       title: d.title,
       compliance: d.compliance,
     }));
 
-    const bottomDecisions = sortedByCompliance.slice(-5).reverse().map(d => ({
-      decisionId: d.decisionId,
-      title: d.title,
-      compliance: d.compliance,
-    }));
+    const bottomDecisions = sortedByCompliance
+      .slice(-5)
+      .reverse()
+      .map((d) => ({
+        decisionId: d.decisionId,
+        title: d.title,
+        compliance: d.compliance,
+      }));
 
     // Generate insights
     const insights = await this.generateInsights(history);

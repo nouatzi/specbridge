@@ -68,9 +68,7 @@ describe('decision validate command', () => {
     const filePath = join(testDir, '.specbridge', 'decisions', 'valid-001.decision.yaml');
     await validateDecisions.parseAsync(['node', 'test', '--file', filePath]);
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('valid')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('valid'));
   });
 
   it('should validate all decisions with --all flag', async () => {
@@ -79,9 +77,7 @@ describe('decision validate command', () => {
 
     await validateDecisions.parseAsync(['node', 'test', '--file', filePath]);
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('valid')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('valid'));
   });
 
   it('should detect invalid decision file', async () => {

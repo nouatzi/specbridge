@@ -27,11 +27,13 @@ const InferenceConfigSchema = z.object({
 
 // Verification configuration
 const VerificationConfigSchema = z.object({
-  levels: z.object({
-    commit: LevelConfigSchema.optional(),
-    pr: LevelConfigSchema.optional(),
-    full: LevelConfigSchema.optional(),
-  }).optional(),
+  levels: z
+    .object({
+      commit: LevelConfigSchema.optional(),
+      pr: LevelConfigSchema.optional(),
+      full: LevelConfigSchema.optional(),
+    })
+    .optional(),
 });
 
 // Agent configuration
@@ -54,7 +56,9 @@ export type SpecBridgeConfigType = z.infer<typeof SpecBridgeConfigSchema>;
 /**
  * Validate configuration
  */
-export function validateConfig(data: unknown): { success: true; data: SpecBridgeConfigType } | { success: false; errors: z.ZodError } {
+export function validateConfig(
+  data: unknown
+): { success: true; data: SpecBridgeConfigType } | { success: false; errors: z.ZodError } {
   const result = SpecBridgeConfigSchema.safeParse(data);
   if (result.success) {
     return { success: true, data: result.data };

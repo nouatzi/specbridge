@@ -24,7 +24,7 @@ export const contextCommand = new Command('context')
     const cwd = process.cwd();
 
     // Check if specbridge is initialized
-    if (!await pathExists(getSpecBridgeDir(cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
       throw new NotInitializedError();
     }
 

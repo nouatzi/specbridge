@@ -19,16 +19,15 @@ describe('RegexVerifier', () => {
     it('should have correct id, name, and description', () => {
       expect(verifier.id).toBe('regex');
       expect(verifier.name).toBe('Regex Pattern Verifier');
-      expect(verifier.description).toBe('Verifies code against regex patterns specified in constraints');
+      expect(verifier.description).toBe(
+        'Verifies code against regex patterns specified in constraints'
+      );
     });
   });
 
   describe('forbidden patterns (must not contain)', () => {
     it('should detect forbidden pattern with "must not contain"', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `const password = "secret123";`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `const password = "secret123";`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -52,10 +51,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should detect forbidden pattern with "must not match"', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `eval("dangerous code");`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `eval("dangerous code");`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -77,10 +73,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should detect forbidden pattern with "must not use"', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `var oldStyle = true;`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `var oldStyle = true;`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -102,10 +95,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should detect forbidden pattern with "forbidden:" prefix', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `// TODO: fix this later`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `// TODO: fix this later`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -189,10 +179,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should accept code without forbidden pattern', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `const credentials = getFromEnv();`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `const credentials = getFromEnv();`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -213,10 +200,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should handle invalid regex gracefully', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `const x = 1;`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `const x = 1;`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -239,10 +223,7 @@ describe('RegexVerifier', () => {
 
   describe('required patterns (should contain)', () => {
     it('should detect missing required pattern with "should contain"', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `export const x = 1;`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `export const x = 1;`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -266,10 +247,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should detect missing required pattern with "must contain"', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `export function process() {}`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `export function process() {}`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -291,10 +269,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should detect missing required pattern with "should match"', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `const x = 1;`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `const x = 1;`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -316,10 +291,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should detect missing required pattern with "required:" prefix', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `export const x = 1;`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `export const x = 1;`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -370,10 +342,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should handle invalid regex in required pattern gracefully', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `const x = 1;`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `const x = 1;`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -396,10 +365,7 @@ describe('RegexVerifier', () => {
 
   describe('pattern extraction edge cases', () => {
     it('should handle rule with no regex pattern', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `const x = 1;`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `const x = 1;`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -441,10 +407,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should handle case-insensitive rule keywords', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `const password = "secret";`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `const password = "secret";`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -466,10 +429,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should prefer "must not" over "should" when both present', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `const x = 1;`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `const x = 1;`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -493,10 +453,7 @@ describe('RegexVerifier', () => {
 
   describe('complex regex patterns', () => {
     it('should handle regex with special characters', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `const regex = /test/;`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `const regex = /test/;`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -518,10 +475,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should handle multiline patterns', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `const x = 1; const y = 2;`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `const x = 1; const y = 2;`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -542,10 +496,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should handle word boundaries in patterns', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `const passwordHash = "hashed";`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `const passwordHash = "hashed";`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -568,10 +519,7 @@ describe('RegexVerifier', () => {
 
   describe('violation structure', () => {
     it('should populate violation with correct fields for forbidden pattern', async () => {
-      const sourceFile = project.createSourceFile(
-        'src/auth.ts',
-        `const password = "secret";`
-      );
+      const sourceFile = project.createSourceFile('src/auth.ts', `const password = "secret";`);
 
       const context: VerificationContext = {
         filePath: 'src/auth.ts',
@@ -663,10 +611,7 @@ describe('RegexVerifier', () => {
     });
 
     it('should require copyright header', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `export const x = 1;`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `export const x = 1;`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',

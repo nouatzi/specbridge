@@ -139,7 +139,11 @@ export class SpecBridgeMcpServer {
           format: z.enum(['markdown', 'json', 'mcp']).optional().default('markdown'),
         },
       },
-      async (args: { filePath: string; includeRationale?: boolean; format?: 'markdown' | 'json' | 'mcp' }) => {
+      async (args: {
+        filePath: string;
+        includeRationale?: boolean;
+        format?: 'markdown' | 'json' | 'mcp';
+      }) => {
         const text = await generateFormattedContext(args.filePath, config, {
           includeRationale: args.includeRationale,
           format: args.format,
@@ -191,7 +195,10 @@ export class SpecBridgeMcpServer {
           includeAll: z.boolean().optional().default(false),
         },
       },
-      async (args: { format?: 'summary' | 'detailed' | 'json' | 'markdown'; includeAll?: boolean }) => {
+      async (args: {
+        format?: 'summary' | 'detailed' | 'json' | 'markdown';
+        includeAll?: boolean;
+      }) => {
         const report = await generateReport(config, { cwd: this.cwd, includeAll: args.includeAll });
 
         if (args.format === 'json') {

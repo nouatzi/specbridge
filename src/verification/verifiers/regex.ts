@@ -38,16 +38,18 @@ export class RegexVerifier implements Verifier {
           const beforeMatch = fileText.substring(0, match.index);
           const lineNumber = beforeMatch.split('\n').length;
 
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Found forbidden pattern: "${match[0]}"`,
-            file: filePath,
-            line: lineNumber,
-            suggestion: `Remove or replace the pattern matching /${patternToForbid}/`,
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Found forbidden pattern: "${match[0]}"`,
+              file: filePath,
+              line: lineNumber,
+              suggestion: `Remove or replace the pattern matching /${patternToForbid}/`,
+            })
+          );
         }
       } catch {
         // Invalid regex, skip
@@ -60,15 +62,17 @@ export class RegexVerifier implements Verifier {
       try {
         const regex = new RegExp(patternToRequire);
         if (!regex.test(fileText)) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `File does not contain required pattern: /${patternToRequire}/`,
-            file: filePath,
-            suggestion: `Add code matching /${patternToRequire}/`,
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `File does not contain required pattern: /${patternToRequire}/`,
+              file: filePath,
+              suggestion: `Add code matching /${patternToRequire}/`,
+            })
+          );
         }
       } catch {
         // Invalid regex, skip

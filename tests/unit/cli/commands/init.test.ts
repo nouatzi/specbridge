@@ -95,9 +95,7 @@ describe('init command', () => {
     await initCommand.parseAsync(['node', 'test']);
 
     // Second init should throw
-    await expect(
-      initCommand.parseAsync(['node', 'test'])
-    ).rejects.toThrow(AlreadyInitializedError);
+    await expect(initCommand.parseAsync(['node', 'test'])).rejects.toThrow(AlreadyInitializedError);
   });
 
   it('should force reinit with --force flag', async () => {

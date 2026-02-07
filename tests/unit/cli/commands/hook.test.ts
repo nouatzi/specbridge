@@ -98,9 +98,9 @@ describe('hook command - install', () => {
   it.sequential('should throw NotInitializedError when not initialized', async () => {
     rmSync(join(testDir, '.specbridge'), { recursive: true, force: true });
 
-    await expect(
-      hookCommand.parseAsync(['node', 'test', 'install'])
-    ).rejects.toThrow(NotInitializedError);
+    await expect(hookCommand.parseAsync(['node', 'test', 'install'])).rejects.toThrow(
+      NotInitializedError
+    );
   });
 
   it.sequential('should install hook to .git/hooks when no hook manager detected', async () => {
@@ -148,9 +148,7 @@ describe('hook command - install', () => {
 
     await hookCommand.parseAsync(['node', 'test', 'install', '--lefthook']);
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('lefthook.yml')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('lefthook.yml'));
   });
 
   it.sequential('should overwrite existing hook with --force flag', async () => {
@@ -210,9 +208,13 @@ describe('hook command - run', () => {
   it.sequential('should run verification on staged files', async () => {
     try {
       await hookCommand.parseAsync([
-        'node', 'test', 'run',
-        '--level', 'commit',
-        '--files', 'src/test.ts,src/app.ts',
+        'node',
+        'test',
+        'run',
+        '--level',
+        'commit',
+        '--files',
+        'src/test.ts,src/app.ts',
       ]);
     } catch (error: any) {
       // Expect process.exit to be called
@@ -396,22 +398,14 @@ describe('hook command - run edge cases', () => {
     }
 
     // Should display violation count
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('2 violation(s) found')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('2 violation(s) found'));
 
     // Should display file with line number
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('src/app.ts:42')
-    );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('src/utils.ts:15')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('src/app.ts:42'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('src/utils.ts:15'));
 
     // Should suggest running verify for details
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('specbridge verify')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('specbridge verify'));
 
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
@@ -442,9 +436,7 @@ describe('hook command - run edge cases', () => {
     }
 
     // Should display file without line number
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('src/test.ts:')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('src/test.ts:'));
   });
 });
 
@@ -480,11 +472,7 @@ describe('hook command - lefthook auto-detection', () => {
     await hookCommand.parseAsync(['node', 'test', 'install']);
 
     // Should show lefthook config
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('lefthook.yml')
-    );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('pre-commit:')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('lefthook.yml'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('pre-commit:'));
   });
 });

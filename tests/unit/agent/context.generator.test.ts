@@ -51,10 +51,7 @@ describe('AgentContextGenerator', () => {
 
   describe('generateContext', () => {
     it('should generate context for all decisions', () => {
-      const decisions = [
-        createTestDecision('test-001'),
-        createTestDecision('test-002'),
-      ];
+      const decisions = [createTestDecision('test-001'), createTestDecision('test-002')];
 
       const context = generator.generateContext({ decisions });
 
@@ -426,7 +423,7 @@ describe('AgentContextGenerator', () => {
 
         const context = await generateContext('src/test.ts', config, { cwd: testDir });
 
-        const decision = context.applicableDecisions.find(d => d.id === 'multi-001');
+        const decision = context.applicableDecisions.find((d) => d.id === 'multi-001');
         expect(decision?.constraints.length).toBeGreaterThanOrEqual(2);
       });
     });
@@ -544,9 +541,7 @@ describe('AgentContextGenerator', () => {
               id: 'test-001',
               title: 'Test',
               summary: 'Summary',
-              constraints: [
-                { id: 'c1', type: 'invariant', rule: 'Rule', severity: 'critical' },
-              ],
+              constraints: [{ id: 'c1', type: 'invariant', rule: 'Rule', severity: 'critical' }],
             },
           ],
           generatedAt: new Date().toISOString(),
@@ -631,9 +626,7 @@ describe('AgentContextGenerator', () => {
               id: 'test-001',
               title: 'Test',
               summary: 'Summary',
-              constraints: [
-                { id: 'c1', type: 'invariant', rule: 'Rule', severity: 'critical' },
-              ],
+              constraints: [{ id: 'c1', type: 'invariant', rule: 'Rule', severity: 'critical' }],
             },
           ],
           generatedAt: new Date().toISOString(),
@@ -679,9 +672,7 @@ describe('AgentContextGenerator', () => {
               id: 'd2',
               title: 'Decision 2',
               summary: 'S2',
-              constraints: [
-                { id: 'c3', type: 'guideline', rule: 'R3', severity: 'low' },
-              ],
+              constraints: [{ id: 'c3', type: 'guideline', rule: 'R3', severity: 'low' }],
             },
           ],
           generatedAt: new Date().toISOString(),
@@ -697,7 +688,9 @@ describe('AgentContextGenerator', () => {
 
     describe('generateFormattedContext', () => {
       it('should generate markdown format by default', async () => {
-        const result = await generateFormattedContext('src/auth/login.ts', config, { cwd: testDir });
+        const result = await generateFormattedContext('src/auth/login.ts', config, {
+          cwd: testDir,
+        });
 
         expect(result).toContain('# Architectural Constraints');
       });

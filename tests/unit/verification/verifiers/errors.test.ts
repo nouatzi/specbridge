@@ -25,10 +25,7 @@ describe('ErrorsVerifier', () => {
 
   describe('error class hierarchy', () => {
     it('should detect error class not extending base', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `class ValidationError {}`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `class ValidationError {}`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -52,10 +49,7 @@ describe('ErrorsVerifier', () => {
     });
 
     it('should detect error class with Exception suffix', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `class InvalidInputException {}`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `class InvalidInputException {}`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -125,10 +119,7 @@ describe('ErrorsVerifier', () => {
     });
 
     it('should suggest specific base class from rule', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `class ValidationError {}`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `class ValidationError {}`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -151,10 +142,7 @@ describe('ErrorsVerifier', () => {
     });
 
     it('should skip non-error classes', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `class UserManager {}`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `class UserManager {}`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -205,10 +193,7 @@ describe('ErrorsVerifier', () => {
     });
 
     it('should handle anonymous error classes', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `const MyError = class {}`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `const MyError = class {}`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -542,7 +527,7 @@ describe('ErrorsVerifier', () => {
       const violations = await verifier.verify(context);
 
       expect(violations).toHaveLength(2);
-      expect(violations.every(v => v.message.includes('Empty catch block'))).toBe(true);
+      expect(violations.every((v) => v.message.includes('Empty catch block'))).toBe(true);
     });
 
     it('should handle nested try-catch', async () => {
@@ -789,17 +774,14 @@ describe('ErrorsVerifier', () => {
       const violations = await verifier.verify(context);
 
       expect(violations).toHaveLength(2);
-      expect(violations.some(v => v.message.includes('generic Error'))).toBe(true);
-      expect(violations.some(v => v.message.includes('Empty catch block'))).toBe(true);
+      expect(violations.some((v) => v.message.includes('generic Error'))).toBe(true);
+      expect(violations.some((v) => v.message.includes('Empty catch block'))).toBe(true);
     });
   });
 
   describe('edge cases', () => {
     it('should handle file with no errors', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `export const x = 1;`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `export const x = 1;`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -841,10 +823,7 @@ describe('ErrorsVerifier', () => {
     });
 
     it('should return no violations for unmatched rule patterns', async () => {
-      const sourceFile = project.createSourceFile(
-        'test.ts',
-        `class CustomError {}`
-      );
+      const sourceFile = project.createSourceFile('test.ts', `class CustomError {}`);
 
       const context: VerificationContext = {
         filePath: 'test.ts',
@@ -867,10 +846,7 @@ describe('ErrorsVerifier', () => {
 
   describe('violation structure', () => {
     it('should populate violation with correct fields', async () => {
-      const sourceFile = project.createSourceFile(
-        'src/errors.ts',
-        `class ValidationError {}`
-      );
+      const sourceFile = project.createSourceFile('src/errors.ts', `class ValidationError {}`);
 
       const context: VerificationContext = {
         filePath: 'src/errors.ts',

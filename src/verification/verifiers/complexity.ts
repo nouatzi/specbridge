@@ -7,7 +7,13 @@
  * - "Functions must have at most 4 parameters"
  * - "Nesting depth must not exceed 4"
  */
-import { Node, type ArrowFunction, type FunctionDeclaration, type FunctionExpression, type MethodDeclaration } from 'ts-morph';
+import {
+  Node,
+  type ArrowFunction,
+  type FunctionDeclaration,
+  type FunctionExpression,
+  type MethodDeclaration,
+} from 'ts-morph';
 import { SyntaxKind } from 'ts-morph';
 import type { Violation } from '../../core/types/index.js';
 import { type Verifier, type VerificationContext, createViolation } from './base.js';
@@ -58,7 +64,11 @@ function calculateCyclomaticComplexity(fn: Node): number {
 
 function getFunctionDisplayName(fn: Node): string {
   // Best-effort name resolution.
-  if (Node.isFunctionDeclaration(fn) || Node.isMethodDeclaration(fn) || Node.isFunctionExpression(fn)) {
+  if (
+    Node.isFunctionDeclaration(fn) ||
+    Node.isMethodDeclaration(fn) ||
+    Node.isFunctionExpression(fn)
+  ) {
     const name = fn.getName();
     if (typeof name === 'string' && name.length > 0) {
       return name;
@@ -121,26 +131,34 @@ export class ComplexityVerifier implements Verifier {
 
     const maxComplexity = parseLimit(rule, /complexity\s+(?:must\s+)?not\s+exceed\s+(\d+)/i);
     const maxLines = parseLimit(rule, /file\s+size\s+(?:must\s+)?not\s+exceed\s+(\d+)\s+lines?/i);
-    const maxParams = parseLimit(rule, /at\s+most\s+(\d+)\s+parameters?/i) ?? parseLimit(rule, /parameters?\s+(?:must\s+)?not\s+exceed\s+(\d+)/i);
+    const maxParams =
+      parseLimit(rule, /at\s+most\s+(\d+)\s+parameters?/i) ??
+      parseLimit(rule, /parameters?\s+(?:must\s+)?not\s+exceed\s+(\d+)/i);
     const maxNesting = parseLimit(rule, /nesting\s+depth\s+(?:must\s+)?not\s+exceed\s+(\d+)/i);
 
     if (maxLines !== null) {
       const lineCount = getFileLineCount(sourceFile.getFullText());
       if (lineCount > maxLines) {
-        violations.push(createViolation({
-          decisionId,
-          constraintId: constraint.id,
-          type: constraint.type,
-          severity: constraint.severity,
-          message: `File has ${lineCount} lines which exceeds maximum ${maxLines}`,
-          file: filePath,
-          line: 1,
-          suggestion: 'Split the file into smaller modules',
-        }));
+        violations.push(
+          createViolation({
+            decisionId,
+            constraintId: constraint.id,
+            type: constraint.type,
+            severity: constraint.severity,
+            message: `File has ${lineCount} lines which exceeds maximum ${maxLines}`,
+            file: filePath,
+            line: 1,
+            suggestion: 'Split the file into smaller modules',
+          })
+        );
       }
     }
 
-    type FunctionLikeNode = FunctionDeclaration | FunctionExpression | ArrowFunction | MethodDeclaration;
+    type FunctionLikeNode =
+      | FunctionDeclaration
+      | FunctionExpression
+      | ArrowFunction
+      | MethodDeclaration;
     const functionLikes: FunctionLikeNode[] = [
       ...sourceFile.getDescendantsOfKind(SyntaxKind.FunctionDeclaration),
       ...sourceFile.getDescendantsOfKind(SyntaxKind.FunctionExpression),
@@ -154,48 +172,54 @@ export class ComplexityVerifier implements Verifier {
       if (maxComplexity !== null) {
         const complexity = calculateCyclomaticComplexity(fn);
         if (complexity > maxComplexity) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Function ${fnName} has cyclomatic complexity ${complexity} which exceeds maximum ${maxComplexity}`,
-            file: filePath,
-            line: fn.getStartLineNumber(),
-            suggestion: 'Refactor to reduce branching or extract smaller functions',
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Function ${fnName} has cyclomatic complexity ${complexity} which exceeds maximum ${maxComplexity}`,
+              file: filePath,
+              line: fn.getStartLineNumber(),
+              suggestion: 'Refactor to reduce branching or extract smaller functions',
+            })
+          );
         }
       }
 
       if (maxParams !== null) {
         const paramCount = fn.getParameters().length;
         if (paramCount > maxParams) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Function ${fnName} has ${paramCount} parameters which exceeds maximum ${maxParams}`,
-            file: filePath,
-            line: fn.getStartLineNumber(),
-            suggestion: 'Consider grouping parameters into an options object',
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Function ${fnName} has ${paramCount} parameters which exceeds maximum ${maxParams}`,
+              file: filePath,
+              line: fn.getStartLineNumber(),
+              suggestion: 'Consider grouping parameters into an options object',
+            })
+          );
         }
       }
 
       if (maxNesting !== null) {
         const depth = maxNestingDepth(fn);
         if (depth > maxNesting) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Function ${fnName} has nesting depth ${depth} which exceeds maximum ${maxNesting}`,
-            file: filePath,
-            line: fn.getStartLineNumber(),
-            suggestion: 'Reduce nesting by using early returns or extracting functions',
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Function ${fnName} has nesting depth ${depth} which exceeds maximum ${maxNesting}`,
+              file: filePath,
+              line: fn.getStartLineNumber(),
+              suggestion: 'Reduce nesting by using early returns or extracting functions',
+            })
+          );
         }
       }
     }

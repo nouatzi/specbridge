@@ -19,7 +19,9 @@ describe('NamingVerifier', () => {
     it('should have correct id, name, and description', () => {
       expect(verifier.id).toBe('naming');
       expect(verifier.name).toBe('Naming Convention Verifier');
-      expect(verifier.description).toBe('Verifies naming conventions for classes, functions, and variables');
+      expect(verifier.description).toBe(
+        'Verifies naming conventions for classes, functions, and variables'
+      );
     });
   });
 

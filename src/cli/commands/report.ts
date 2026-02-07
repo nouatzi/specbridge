@@ -39,7 +39,7 @@ export const reportCommand = new Command('report')
     const cwd = process.cwd();
 
     // Check if specbridge is initialized
-    if (!await pathExists(getSpecBridgeDir(cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
       throw new NotInitializedError();
     }
 
@@ -72,32 +72,56 @@ export const reportCommand = new Command('report')
         const history = await storage.loadHistory(days);
 
         if (history.length < 2) {
-          console.log(chalk.yellow(`Not enough data for trend analysis. Found ${history.length} report(s), need at least 2.`));
+          console.log(
+            chalk.yellow(
+              `Not enough data for trend analysis. Found ${history.length} report(s), need at least 2.`
+            )
+          );
         } else {
           const trend = await analyzeTrend(history);
 
-          console.log(chalk.bold(`Period: ${trend.period.start} to ${trend.period.end} (${trend.period.days} days)`));
-          console.log(`\nOverall Compliance: ${trend.overall.startCompliance}% → ${trend.overall.endCompliance}% (${trend.overall.change > 0 ? '+' : ''}${trend.overall.change.toFixed(1)}%)`);
+          console.log(
+            chalk.bold(
+              `Period: ${trend.period.start} to ${trend.period.end} (${trend.period.days} days)`
+            )
+          );
+          console.log(
+            `\nOverall Compliance: ${trend.overall.startCompliance}% → ${trend.overall.endCompliance}% (${trend.overall.change > 0 ? '+' : ''}${trend.overall.change.toFixed(1)}%)`
+          );
 
-          const trendEmoji = trend.overall.trend === 'improving' ? '📈' : trend.overall.trend === 'degrading' ? '📉' : '➡️';
-          const trendColor = trend.overall.trend === 'improving' ? chalk.green : trend.overall.trend === 'degrading' ? chalk.red : chalk.yellow;
+          const trendEmoji =
+            trend.overall.trend === 'improving'
+              ? '📈'
+              : trend.overall.trend === 'degrading'
+                ? '📉'
+                : '➡️';
+          const trendColor =
+            trend.overall.trend === 'improving'
+              ? chalk.green
+              : trend.overall.trend === 'degrading'
+                ? chalk.red
+                : chalk.yellow;
           console.log(trendColor(`${trendEmoji} Trend: ${trend.overall.trend.toUpperCase()}`));
 
           // Show top degraded decisions
-          const degrading = trend.decisions.filter(d => d.trend === 'degrading').slice(0, 3);
+          const degrading = trend.decisions.filter((d) => d.trend === 'degrading').slice(0, 3);
           if (degrading.length > 0) {
             console.log(chalk.red('\n⚠️  Most Degraded Decisions:'));
-            degrading.forEach(d => {
-              console.log(`  • ${d.title}: ${d.startCompliance}% → ${d.endCompliance}% (${d.change.toFixed(1)}%)`);
+            degrading.forEach((d) => {
+              console.log(
+                `  • ${d.title}: ${d.startCompliance}% → ${d.endCompliance}% (${d.change.toFixed(1)}%)`
+              );
             });
           }
 
           // Show top improved decisions
-          const improving = trend.decisions.filter(d => d.trend === 'improving').slice(0, 3);
+          const improving = trend.decisions.filter((d) => d.trend === 'improving').slice(0, 3);
           if (improving.length > 0) {
             console.log(chalk.green('\n✅ Most Improved Decisions:'));
-            improving.forEach(d => {
-              console.log(`  • ${d.title}: ${d.startCompliance}% → ${d.endCompliance}% (+${d.change.toFixed(1)}%)`);
+            improving.forEach((d) => {
+              console.log(
+                `  • ${d.title}: ${d.startCompliance}% → ${d.endCompliance}% (+${d.change.toFixed(1)}%)`
+              );
             });
           }
         }
@@ -124,11 +148,21 @@ export const reportCommand = new Command('report')
 
           const drift = await detectDrift(currentEntry.report, previousEntry.report);
 
-          console.log(chalk.bold(`Comparing: ${previousEntry.timestamp} vs ${currentEntry.timestamp}`));
-          console.log(`\nCompliance Change: ${drift.complianceChange > 0 ? '+' : ''}${drift.complianceChange.toFixed(1)}%`);
+          console.log(
+            chalk.bold(`Comparing: ${previousEntry.timestamp} vs ${currentEntry.timestamp}`)
+          );
+          console.log(
+            `\nCompliance Change: ${drift.complianceChange > 0 ? '+' : ''}${drift.complianceChange.toFixed(1)}%`
+          );
 
-          const driftEmoji = drift.trend === 'improving' ? '📈' : drift.trend === 'degrading' ? '📉' : '➡️';
-          const driftColor = drift.trend === 'improving' ? chalk.green : drift.trend === 'degrading' ? chalk.red : chalk.yellow;
+          const driftEmoji =
+            drift.trend === 'improving' ? '📈' : drift.trend === 'degrading' ? '📉' : '➡️';
+          const driftColor =
+            drift.trend === 'improving'
+              ? chalk.green
+              : drift.trend === 'degrading'
+                ? chalk.red
+                : chalk.yellow;
           console.log(driftColor(`${driftEmoji} Overall Trend: ${drift.trend.toUpperCase()}`));
 
           // Show violation changes
@@ -149,7 +183,9 @@ export const reportCommand = new Command('report')
           }
 
           if (drift.summary.fixedViolations.total > 0) {
-            console.log(chalk.green(`\n✅ Fixed Violations: ${drift.summary.fixedViolations.total}`));
+            console.log(
+              chalk.green(`\n✅ Fixed Violations: ${drift.summary.fixedViolations.total}`)
+            );
             if (drift.summary.fixedViolations.critical > 0) {
               console.log(`  • Critical: ${drift.summary.fixedViolations.critical}`);
             }
@@ -167,8 +203,10 @@ export const reportCommand = new Command('report')
           // Show most degraded decisions
           if (drift.mostDegraded.length > 0) {
             console.log(chalk.red('\n📉 Most Degraded:'));
-            drift.mostDegraded.forEach(d => {
-              console.log(`  • ${d.title}: ${d.previousCompliance}% → ${d.currentCompliance}% (${d.complianceChange.toFixed(1)}%)`);
+            drift.mostDegraded.forEach((d) => {
+              console.log(
+                `  • ${d.title}: ${d.previousCompliance}% → ${d.currentCompliance}% (${d.complianceChange.toFixed(1)}%)`
+              );
               if (d.newViolations > 0) {
                 console.log(`    +${d.newViolations} new violation(s)`);
               }
@@ -178,8 +216,10 @@ export const reportCommand = new Command('report')
           // Show most improved decisions
           if (drift.mostImproved.length > 0) {
             console.log(chalk.green('\n📈 Most Improved:'));
-            drift.mostImproved.forEach(d => {
-              console.log(`  • ${d.title}: ${d.previousCompliance}% → ${d.currentCompliance}% (+${d.complianceChange.toFixed(1)}%)`);
+            drift.mostImproved.forEach((d) => {
+              console.log(
+                `  • ${d.title}: ${d.previousCompliance}% → ${d.currentCompliance}% (+${d.complianceChange.toFixed(1)}%)`
+              );
               if (d.fixedViolations > 0) {
                 console.log(`    -${d.fixedViolations} fixed violation(s)`);
               }
@@ -220,10 +260,9 @@ export const reportCommand = new Command('report')
 
       // Save to file
       if (options.output || options.save) {
-        const outputPath = options.output || join(
-          getReportsDir(cwd),
-          `health-${new Date().toISOString().split('T')[0]}.${extension}`
-        );
+        const outputPath =
+          options.output ||
+          join(getReportsDir(cwd), `health-${new Date().toISOString().split('T')[0]}.${extension}`);
 
         await writeTextFile(outputPath, output);
         console.log(chalk.green(`\nReport saved to: ${outputPath}`));

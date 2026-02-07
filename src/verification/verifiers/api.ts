@@ -48,16 +48,18 @@ export class ApiVerifier implements Verifier {
       if (typeof pathValue !== 'string') continue;
 
       if (!isKebabPath(pathValue)) {
-        violations.push(createViolation({
-          decisionId,
-          constraintId: constraint.id,
-          type: constraint.type,
-          severity: constraint.severity,
-          message: `Endpoint path "${pathValue}" is not kebab-case`,
-          file: filePath,
-          line: call.getStartLineNumber(),
-          suggestion: 'Use lowercase and hyphens in static path segments (e.g., /user-settings)',
-        }));
+        violations.push(
+          createViolation({
+            decisionId,
+            constraintId: constraint.id,
+            type: constraint.type,
+            severity: constraint.severity,
+            message: `Endpoint path "${pathValue}" is not kebab-case`,
+            file: filePath,
+            line: call.getStartLineNumber(),
+            suggestion: 'Use lowercase and hyphens in static path segments (e.g., /user-settings)',
+          })
+        );
       }
     }
 

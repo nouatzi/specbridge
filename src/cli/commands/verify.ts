@@ -31,7 +31,10 @@ export const verifyCommand = new Command('verify')
   .option('-l, --level <level>', 'Verification level (commit, pr, full)', 'full')
   .option('-f, --files <patterns>', 'Comma-separated file patterns to check')
   .option('-d, --decisions <ids>', 'Comma-separated decision IDs to check')
-  .option('-s, --severity <levels>', 'Comma-separated severity levels (critical, high, medium, low)')
+  .option(
+    '-s, --severity <levels>',
+    'Comma-separated severity levels (critical, high, medium, low)'
+  )
   .option('--json', 'Output as JSON')
   .option('--incremental', 'Only verify changed files (git diff --name-only --diff-filter=AM HEAD)')
   .option('--explain', 'Show detailed explanation of verification process')
@@ -42,7 +45,7 @@ export const verifyCommand = new Command('verify')
     const cwd = process.cwd();
 
     // Check if specbridge is initialized
-    if (!await pathExists(getSpecBridgeDir(cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
       throw new NotInitializedError();
     }
 
@@ -54,9 +57,9 @@ export const verifyCommand = new Command('verify')
 
       // Parse options
       const level = (options.level || 'full') as VerificationLevel;
-      let files = options.files?.split(',').map(f => f.trim());
-      const decisions = options.decisions?.split(',').map(d => d.trim());
-      const severity = options.severity?.split(',').map(s => s.trim() as Severity);
+      let files = options.files?.split(',').map((f) => f.trim());
+      const decisions = options.decisions?.split(',').map((d) => d.trim());
+      const severity = options.severity?.split(',').map((s) => s.trim() as Severity);
 
       if (options.incremental) {
         const changed = await getChangedFiles(cwd);
@@ -82,7 +85,7 @@ export const verifyCommand = new Command('verify')
       // Apply auto-fixes (optional)
       let fixResult: AutofixResult | undefined;
       if (options.fix && result.violations.length > 0) {
-        const fixableCount = result.violations.filter(v => v.autofix).length;
+        const fixableCount = result.violations.filter((v) => v.autofix).length;
 
         if (fixableCount === 0) {
           spinner.stop();
@@ -169,7 +172,15 @@ export const verifyCommand = new Command('verify')
   });
 
 function printResult(
-  result: { success: boolean; violations: Violation[]; checked: number; passed: number; failed: number; skipped: number; duration: number },
+  result: {
+    success: boolean;
+    violations: Violation[];
+    checked: number;
+    passed: number;
+    failed: number;
+    skipped: number;
+    duration: number;
+  },
   level: VerificationLevel
 ): void {
   console.log('');
@@ -197,9 +208,7 @@ function printResult(
       const severityColor = getSeverityColor(v.severity);
       const location = v.line ? `:${v.line}${v.column ? `:${v.column}` : ''}` : '';
 
-      console.log(
-        `  ${typeIcon} ${severityColor(`[${v.severity}]`)} ${v.message}`
-      );
+      console.log(`  ${typeIcon} ${severityColor(`[${v.severity}]`)} ${v.message}`);
       console.log(chalk.dim(`    ${v.decisionId}/${v.constraintId}${location}`));
 
       if (v.suggestion) {
@@ -211,13 +220,15 @@ function printResult(
   }
 
   // Summary
-  const criticalCount = result.violations.filter(v => v.severity === 'critical').length;
-  const highCount = result.violations.filter(v => v.severity === 'high').length;
-  const mediumCount = result.violations.filter(v => v.severity === 'medium').length;
-  const lowCount = result.violations.filter(v => v.severity === 'low').length;
+  const criticalCount = result.violations.filter((v) => v.severity === 'critical').length;
+  const highCount = result.violations.filter((v) => v.severity === 'high').length;
+  const mediumCount = result.violations.filter((v) => v.severity === 'medium').length;
+  const lowCount = result.violations.filter((v) => v.severity === 'low').length;
 
   console.log(chalk.bold('Summary:'));
-  console.log(`  Files: ${result.checked} checked, ${result.passed} passed, ${result.failed} failed`);
+  console.log(
+    `  Files: ${result.checked} checked, ${result.passed} passed, ${result.failed} failed`
+  );
 
   const violationParts: string[] = [];
   if (criticalCount > 0) violationParts.push(chalk.red(`${criticalCount} critical`));
@@ -230,11 +241,12 @@ function printResult(
 
   if (!result.success) {
     console.log('');
-    const blockingTypes = level === 'commit'
-      ? 'invariant or critical'
-      : level === 'pr'
-        ? 'invariant, critical, or high'
-        : 'invariant';
+    const blockingTypes =
+      level === 'commit'
+        ? 'invariant or critical'
+        : level === 'pr'
+          ? 'invariant, critical, or high'
+          : 'invariant';
     console.log(chalk.red(`✗ Verification failed. ${blockingTypes} violations must be resolved.`));
   }
 }

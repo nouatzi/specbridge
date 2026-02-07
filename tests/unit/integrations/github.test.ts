@@ -28,4 +28,3 @@ describe('formatViolationsForGitHub', () => {
     expect(md).toContain('src/a.ts:1');
   });
 });
-

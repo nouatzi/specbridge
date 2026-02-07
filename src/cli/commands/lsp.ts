@@ -10,4 +10,3 @@ export const lspCommand = new Command('lsp')
   .action(async (options: { verbose?: boolean }) => {
     await startLspServer({ cwd: process.cwd(), verbose: Boolean(options.verbose) });
   });
-

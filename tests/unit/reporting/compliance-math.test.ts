@@ -4,7 +4,6 @@
 import { describe, it, expect } from 'vitest';
 
 describe('Compliance Math - Severity-Weighted Formula', () => {
-
   describe('v2.0 Formula', () => {
     it('should calculate compliance for critical violations', () => {
       // Pure unit test of the formula
@@ -107,9 +106,7 @@ describe('Compliance Math - Severity-Weighted Formula', () => {
     it('should use simple count-based formula', () => {
       // Pure unit test of the formula
       const legacyFormula = (violationCount: number) => {
-        return violationCount === 0
-          ? 100
-          : Math.max(0, 100 - Math.min(violationCount * 10, 100));
+        return violationCount === 0 ? 100 : Math.max(0, 100 - Math.min(violationCount * 10, 100));
       };
 
       expect(legacyFormula(0)).toBe(100);
@@ -147,7 +144,7 @@ describe('Compliance Math - Severity-Weighted Formula', () => {
       const v1 = 100 - 50;
 
       // v2.0: 5 low violations = 90% (100 - 10)
-      const v2 = 100 - (2 * 5);
+      const v2 = 100 - 2 * 5;
 
       expect(v2).toBeGreaterThan(v1);
     });
@@ -156,7 +153,7 @@ describe('Compliance Math - Severity-Weighted Formula', () => {
       const weights = { critical: 40, high: 25, medium: 10, low: 2 };
 
       // Scenario 1: 1 critical + 2 high
-      const scenario1 = weights.critical + (weights.high * 2);
+      const scenario1 = weights.critical + weights.high * 2;
       const compliance1 = 100 - scenario1; // 100 - 90 = 10%
 
       // Scenario 2: 10 medium
@@ -233,8 +230,7 @@ describe('Compliance Math - Severity-Weighted Formula', () => {
       const weights = { critical: 40, high: 25, medium: 10, low: 2 };
 
       // 1 of each
-      const totalScore =
-        weights.critical + weights.high + weights.medium + weights.low;
+      const totalScore = weights.critical + weights.high + weights.medium + weights.low;
       // 40 + 25 + 10 + 2 = 77
 
       const compliance = Math.max(0, 100 - totalScore);

@@ -104,7 +104,7 @@ export class PropagationEngine {
     }
 
     // Build affected files list
-    const affectedFiles: AffectedFile[] = affectedFilePaths.map(path => ({
+    const affectedFiles: AffectedFile[] = affectedFilePaths.map((path) => ({
       path,
       violations: fileViolations.get(path)?.total || 0,
       autoFixable: fileViolations.get(path)?.autoFixable || 0,
@@ -115,7 +115,7 @@ export class PropagationEngine {
 
     // Estimate effort
     const totalViolations = result.violations.length;
-    const totalAutoFixable = result.violations.filter(v => v.autofix).length;
+    const totalAutoFixable = result.violations.filter((v) => v.autofix).length;
     const manualFixes = totalViolations - totalAutoFixable;
 
     let estimatedEffort: 'low' | 'medium' | 'high';
@@ -128,10 +128,7 @@ export class PropagationEngine {
     }
 
     // Generate migration steps
-    const migrationSteps = this.generateMigrationSteps(
-      affectedFiles,
-      totalAutoFixable > 0
-    );
+    const migrationSteps = this.generateMigrationSteps(affectedFiles, totalAutoFixable > 0);
 
     return {
       decision: decisionId,
@@ -157,29 +154,27 @@ export class PropagationEngine {
       steps.push({
         order: order++,
         description: 'Run auto-fix for mechanical violations',
-        files: affectedFiles.filter(f => f.autoFixable > 0).map(f => f.path),
+        files: affectedFiles.filter((f) => f.autoFixable > 0).map((f) => f.path),
         automated: true,
       });
     }
 
     // Step 2: Manual fixes for remaining violations
-    const filesWithManualFixes = affectedFiles.filter(
-      f => f.violations > f.autoFixable
-    );
+    const filesWithManualFixes = affectedFiles.filter((f) => f.violations > f.autoFixable);
 
     if (filesWithManualFixes.length > 0) {
       // Group by severity/priority
-      const highPriority = filesWithManualFixes.filter(f => f.violations > 5);
+      const highPriority = filesWithManualFixes.filter((f) => f.violations > 5);
       const mediumPriority = filesWithManualFixes.filter(
-        f => f.violations <= 5 && f.violations > 1
+        (f) => f.violations <= 5 && f.violations > 1
       );
-      const lowPriority = filesWithManualFixes.filter(f => f.violations === 1);
+      const lowPriority = filesWithManualFixes.filter((f) => f.violations === 1);
 
       if (highPriority.length > 0) {
         steps.push({
           order: order++,
           description: 'Fix high-violation files first',
-          files: highPriority.map(f => f.path),
+          files: highPriority.map((f) => f.path),
           automated: false,
         });
       }
@@ -188,7 +183,7 @@ export class PropagationEngine {
         steps.push({
           order: order++,
           description: 'Fix medium-violation files',
-          files: mediumPriority.map(f => f.path),
+          files: mediumPriority.map((f) => f.path),
           automated: false,
         });
       }
@@ -197,7 +192,7 @@ export class PropagationEngine {
         steps.push({
           order: order++,
           description: 'Fix remaining files',
-          files: lowPriority.map(f => f.path),
+          files: lowPriority.map((f) => f.path),
           automated: false,
         });
       }

@@ -30,7 +30,7 @@ export const inferCommand = new Command('infer')
     const cwd = process.cwd();
 
     // Check if specbridge is initialized
-    if (!await pathExists(getSpecBridgeDir(cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
       throw new NotInitializedError();
     }
 
@@ -43,7 +43,7 @@ export const inferCommand = new Command('infer')
       // Parse options
       const minConfidence = parseInt(options.minConfidence || '50', 10);
       const analyzerList = options.analyzers
-        ? options.analyzers.split(',').map(a => a.trim())
+        ? options.analyzers.split(',').map((a) => a.trim())
         : config.inference?.analyzers || getAnalyzerIds();
 
       spinner.text = `Scanning codebase (analyzers: ${analyzerList.join(', ')})...`;
@@ -85,7 +85,9 @@ export const inferCommand = new Command('infer')
         console.log('');
         console.log(chalk.cyan('Next steps:'));
         console.log('  Review detected patterns and create decisions for important ones.');
-        console.log(`  Use ${chalk.bold('specbridge decision create <id>')} to create a new decision.`);
+        console.log(
+          `  Use ${chalk.bold('specbridge decision create <id>')} to create a new decision.`
+        );
       }
     } catch (error) {
       spinner.fail('Inference failed');
@@ -97,16 +99,15 @@ function printPatterns(patterns: Pattern[]): void {
   console.log(chalk.bold(`\nDetected ${patterns.length} pattern(s):\n`));
 
   for (const pattern of patterns) {
-    const confidenceColor = pattern.confidence >= 80
-      ? chalk.green
-      : pattern.confidence >= 60
-        ? chalk.yellow
-        : chalk.dim;
+    const confidenceColor =
+      pattern.confidence >= 80 ? chalk.green : pattern.confidence >= 60 ? chalk.yellow : chalk.dim;
 
     console.log(chalk.bold(`${pattern.name}`));
     console.log(chalk.dim(`  ID: ${pattern.id}`));
     console.log(`  ${pattern.description}`);
-    console.log(`  Confidence: ${confidenceColor(`${pattern.confidence}%`)} (${pattern.occurrences} occurrences)`);
+    console.log(
+      `  Confidence: ${confidenceColor(`${pattern.confidence}%`)} (${pattern.occurrences} occurrences)`
+    );
     console.log(chalk.dim(`  Analyzer: ${pattern.analyzer}`));
 
     if (pattern.examples.length > 0) {
@@ -119,9 +120,11 @@ function printPatterns(patterns: Pattern[]): void {
 
     if (pattern.suggestedConstraint) {
       const typeColor =
-        pattern.suggestedConstraint.type === 'invariant' ? chalk.red :
-        pattern.suggestedConstraint.type === 'convention' ? chalk.yellow :
-        chalk.green;
+        pattern.suggestedConstraint.type === 'invariant'
+          ? chalk.red
+          : pattern.suggestedConstraint.type === 'convention'
+            ? chalk.yellow
+            : chalk.green;
 
       console.log(chalk.cyan('  Suggested constraint:'));
       console.log(`    Type: ${typeColor(pattern.suggestedConstraint.type || 'convention')}`);

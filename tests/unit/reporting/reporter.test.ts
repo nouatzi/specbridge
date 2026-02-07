@@ -39,7 +39,8 @@ describe('Reporter', () => {
       },
     ];
 
-    const violations = overrides.violations !== undefined ? overrides.violations : defaultViolations;
+    const violations =
+      overrides.violations !== undefined ? overrides.violations : defaultViolations;
 
     return {
       violations,
@@ -182,7 +183,10 @@ describe('Reporter', () => {
 
     it('should calculate overall compliance rate', () => {
       const results = [
-        createTestResult({ violations: [], summary: { ...createTestResult().summary, totalViolations: 0 } }),
+        createTestResult({
+          violations: [],
+          summary: { ...createTestResult().summary, totalViolations: 0 },
+        }),
         createTestResult({ violations: [{}, {}] as any }),
       ];
 
@@ -195,8 +199,14 @@ describe('Reporter', () => {
 
     it('should show trend over time', () => {
       const results = [
-        createTestResult({ summary: { ...createTestResult().summary, totalViolations: 10 }, violations: Array(10).fill({}) as any }),
-        createTestResult({ summary: { ...createTestResult().summary, totalViolations: 5 }, violations: Array(5).fill({}) as any }),
+        createTestResult({
+          summary: { ...createTestResult().summary, totalViolations: 10 },
+          violations: Array(10).fill({}) as any,
+        }),
+        createTestResult({
+          summary: { ...createTestResult().summary, totalViolations: 5 },
+          violations: Array(5).fill({}) as any,
+        }),
       ];
 
       const report = reporter.generateComplianceReport(results);
@@ -396,9 +406,18 @@ describe('Reporter', () => {
 
     it('should calculate statistics correctly', () => {
       const results = [
-        createTestResult({ summary: { ...createTestResult().summary, totalViolations: 5 }, violations: [{}, {}, {}, {}, {}] as any }),
-        createTestResult({ summary: { ...createTestResult().summary, totalViolations: 10 }, violations: Array(10).fill({}) as any }),
-        createTestResult({ summary: { ...createTestResult().summary, totalViolations: 3 }, violations: [{}, {}, {}] as any }),
+        createTestResult({
+          summary: { ...createTestResult().summary, totalViolations: 5 },
+          violations: [{}, {}, {}, {}, {}] as any,
+        }),
+        createTestResult({
+          summary: { ...createTestResult().summary, totalViolations: 10 },
+          violations: Array(10).fill({}) as any,
+        }),
+        createTestResult({
+          summary: { ...createTestResult().summary, totalViolations: 3 },
+          violations: [{}, {}, {}] as any,
+        }),
       ];
 
       const report = reporter.generateComplianceReport(results);
@@ -423,8 +442,14 @@ describe('Reporter', () => {
 
     it('should handle 100% compliance', () => {
       const results = [
-        createTestResult({ violations: [], summary: { ...createTestResult().summary, totalViolations: 0 } }),
-        createTestResult({ violations: [], summary: { ...createTestResult().summary, totalViolations: 0 } }),
+        createTestResult({
+          violations: [],
+          summary: { ...createTestResult().summary, totalViolations: 0 },
+        }),
+        createTestResult({
+          violations: [],
+          summary: { ...createTestResult().summary, totalViolations: 0 },
+        }),
       ];
 
       const report = reporter.generateComplianceReport(results);
@@ -581,7 +606,9 @@ describe('Reporter', () => {
   });
 
   describe('checkDegradation', () => {
-    const createComplianceReport = (overrides: Partial<ComplianceReport> = {}): ComplianceReport => ({
+    const createComplianceReport = (
+      overrides: Partial<ComplianceReport> = {}
+    ): ComplianceReport => ({
       timestamp: new Date().toISOString(),
       project: 'test-project',
       summary: {
@@ -621,7 +648,7 @@ describe('Reporter', () => {
       const result = checkDegradation(current, previous);
 
       expect(result.degraded).toBe(true);
-      expect(result.details.some(d => d.includes('2 new critical violation(s)'))).toBe(true);
+      expect(result.details.some((d) => d.includes('2 new critical violation(s)'))).toBe(true);
     });
 
     it('should detect new high severity violations', () => {
@@ -635,7 +662,7 @@ describe('Reporter', () => {
       const result = checkDegradation(current, previous);
 
       expect(result.degraded).toBe(true);
-      expect(result.details.some(d => d.includes('3 new high severity violation(s)'))).toBe(true);
+      expect(result.details.some((d) => d.includes('3 new high severity violation(s)'))).toBe(true);
     });
 
     it('should not detect degradation when no previous report', () => {
@@ -687,9 +714,9 @@ describe('Reporter', () => {
 
       expect(result.degraded).toBe(true);
       expect(result.details.length).toBeGreaterThanOrEqual(3);
-      expect(result.details.some(d => d.includes('compliance dropped'))).toBe(true);
-      expect(result.details.some(d => d.includes('critical'))).toBe(true);
-      expect(result.details.some(d => d.includes('high'))).toBe(true);
+      expect(result.details.some((d) => d.includes('compliance dropped'))).toBe(true);
+      expect(result.details.some((d) => d.includes('critical'))).toBe(true);
+      expect(result.details.some((d) => d.includes('high'))).toBe(true);
     });
 
     it('should handle same compliance levels', () => {
@@ -809,7 +836,7 @@ describe('Reporter', () => {
       expect(Array.isArray(report.byDecision)).toBe(true);
 
       // Should include active decisions
-      const activeDecisions = report.byDecision.filter(d => d.status === 'active');
+      const activeDecisions = report.byDecision.filter((d) => d.status === 'active');
       expect(activeDecisions.length).toBeGreaterThan(0);
     });
 
@@ -828,11 +855,11 @@ describe('Reporter', () => {
       const report = await generateReport(config, { cwd: testDir, includeAll: true });
 
       // Should include draft decisions
-      const draftDecisions = report.byDecision.filter(d => d.status === 'draft');
+      const draftDecisions = report.byDecision.filter((d) => d.status === 'draft');
       expect(draftDecisions.length).toBeGreaterThan(0);
 
       // Should include active decisions
-      const activeDecisions = report.byDecision.filter(d => d.status === 'active');
+      const activeDecisions = report.byDecision.filter((d) => d.status === 'active');
       expect(activeDecisions.length).toBeGreaterThan(0);
     });
 
@@ -840,7 +867,7 @@ describe('Reporter', () => {
       const report = await generateReport(config, { cwd: testDir });
 
       // Verify each decision has compliance data
-      report.byDecision.forEach(decision => {
+      report.byDecision.forEach((decision) => {
         expect(decision).toHaveProperty('decisionId');
         expect(decision).toHaveProperty('compliance');
         expect(typeof decision.compliance).toBe('number');
@@ -853,11 +880,11 @@ describe('Reporter', () => {
       const report = await generateReport(config, { cwd: testDir });
 
       // Should not include draft decisions by default
-      const draftDecisions = report.byDecision.filter(d => d.status === 'draft');
+      const draftDecisions = report.byDecision.filter((d) => d.status === 'draft');
       expect(draftDecisions.length).toBe(0);
 
       // Should include active decisions
-      const activeDecisions = report.byDecision.filter(d => d.status === 'active');
+      const activeDecisions = report.byDecision.filter((d) => d.status === 'active');
       expect(activeDecisions.length).toBeGreaterThan(0);
     });
 

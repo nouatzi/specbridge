@@ -143,7 +143,7 @@ describe('ExplainReporter', () => {
     reporter.print();
 
     expect(consoleSpy).toHaveBeenCalled();
-    const output = consoleSpy.mock.calls.map(call => call.join(' ')).join('\n');
+    const output = consoleSpy.mock.calls.map((call) => call.join(' ')).join('\n');
     expect(output).toContain('test.ts');
     expect(output).toContain('test-001/constraint-1');
     expect(output).toContain('Constraint matches file scope');
@@ -157,7 +157,9 @@ describe('ExplainReporter', () => {
 
     reporter.print();
 
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('No constraints were evaluated'));
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('No constraints were evaluated')
+    );
 
     consoleSpy.mockRestore();
   });

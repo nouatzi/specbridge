@@ -60,7 +60,7 @@ export async function generateReport(
 
   for (const decision of decisions) {
     const decisionViolations = result.violations.filter(
-      v => v.decisionId === decision.metadata.id
+      (v) => v.decisionId === decision.metadata.id
     );
 
     const constraintCount = decision.constraints.length;
@@ -74,26 +74,22 @@ export async function generateReport(
 
     if (options.legacyCompliance) {
       // v1.3 formula: Simple count-based
-      compliance = violationCount === 0
-        ? 100
-        : Math.max(0, 100 - Math.min(violationCount * 10, 100));
+      compliance =
+        violationCount === 0 ? 100 : Math.max(0, 100 - Math.min(violationCount * 10, 100));
     } else {
       // v2.0 formula: Severity-weighted with coverage penalty
       const weights = { critical: 40, high: 25, medium: 10, low: 2 };
 
       // Count violations by severity
       const bySeverity = {
-        critical: decisionViolations.filter(v => v.severity === 'critical').length,
-        high: decisionViolations.filter(v => v.severity === 'high').length,
-        medium: decisionViolations.filter(v => v.severity === 'medium').length,
-        low: decisionViolations.filter(v => v.severity === 'low').length,
+        critical: decisionViolations.filter((v) => v.severity === 'critical').length,
+        high: decisionViolations.filter((v) => v.severity === 'high').length,
+        medium: decisionViolations.filter((v) => v.severity === 'medium').length,
+        low: decisionViolations.filter((v) => v.severity === 'low').length,
       };
 
       // Calculate weighted score
-      weightedScore = decisionViolations.reduce(
-        (score, v) => score + weights[v.severity],
-        0
-      );
+      weightedScore = decisionViolations.reduce((score, v) => score + weights[v.severity], 0);
 
       // Base compliance
       compliance = Math.max(0, 100 - weightedScore);
@@ -127,20 +123,21 @@ export async function generateReport(
 
   // Calculate summary
   const totalDecisions = decisions.length;
-  const activeDecisions = decisions.filter(d => d.metadata.status === 'active').length;
+  const activeDecisions = decisions.filter((d) => d.metadata.status === 'active').length;
   const totalConstraints = decisions.reduce((sum, d) => sum + d.constraints.length, 0);
 
   const violationsBySeverity = {
-    critical: result.violations.filter(v => v.severity === 'critical').length,
-    high: result.violations.filter(v => v.severity === 'high').length,
-    medium: result.violations.filter(v => v.severity === 'medium').length,
-    low: result.violations.filter(v => v.severity === 'low').length,
+    critical: result.violations.filter((v) => v.severity === 'critical').length,
+    high: result.violations.filter((v) => v.severity === 'high').length,
+    medium: result.violations.filter((v) => v.severity === 'medium').length,
+    low: result.violations.filter((v) => v.severity === 'low').length,
   };
 
   // Overall compliance score
-  const overallCompliance = byDecision.length > 0
-    ? Math.round(byDecision.reduce((sum, d) => sum + d.compliance, 0) / byDecision.length)
-    : 100;
+  const overallCompliance =
+    byDecision.length > 0
+      ? Math.round(byDecision.reduce((sum, d) => sum + d.compliance, 0) / byDecision.length)
+      : 100;
 
   return {
     timestamp: new Date().toISOString(),
@@ -251,9 +248,10 @@ export class Reporter {
     lines.push(`- Average Violations per Result: ${avgViolations.toFixed(1)}`);
 
     // Calculate compliance percentage (simplified)
-    const complianceRate = results.length > 0
-      ? ((results.filter(r => (r.violations?.length || 0) === 0).length / results.length) * 100)
-      : 100;
+    const complianceRate =
+      results.length > 0
+        ? (results.filter((r) => (r.violations?.length || 0) === 0).length / results.length) * 100
+        : 100;
     lines.push(`- Compliance Rate: ${complianceRate.toFixed(1)}%\n`);
 
     return lines.join('\n');
@@ -271,7 +269,9 @@ export class Reporter {
       lines.push('Summary:');
       lines.push(`  Decisions Checked: ${result.summary.decisionsChecked || 0}`);
       lines.push(`  Files Checked: ${result.summary.filesChecked || 0}`);
-      lines.push(`  Total Violations: ${result.summary.totalViolations || result.violations?.length || 0}`);
+      lines.push(
+        `  Total Violations: ${result.summary.totalViolations || result.violations?.length || 0}`
+      );
       lines.push(`  Critical: ${result.summary.critical || 0}`);
       lines.push(`  High: ${result.summary.high || 0}`);
       lines.push(`  Medium: ${result.summary.medium || 0}`);
@@ -288,7 +288,9 @@ export class Reporter {
 
       result.violations.forEach((v: Violation) => {
         const severity = v.severity.toLowerCase();
-        lines.push(`  [${v.severity.toUpperCase()}] ${v.decisionId} - ${v.constraintId} (${severity})`);
+        lines.push(
+          `  [${v.severity.toUpperCase()}] ${v.decisionId} - ${v.constraintId} (${severity})`
+        );
         lines.push(`    ${v.message}`);
         const file = (v as { location?: { file: string } }).location?.file || v.file;
         const line = (v as { location?: { line?: number } }).location?.line || v.line || 0;
@@ -314,7 +316,9 @@ export class Reporter {
     // Summary
     if (result.summary) {
       lines.push('Summary:');
-      lines.push(`  Total Violations: ${result.summary.totalViolations || result.violations?.length || 0}`);
+      lines.push(
+        `  Total Violations: ${result.summary.totalViolations || result.violations?.length || 0}`
+      );
       lines.push('');
     }
 
@@ -334,7 +338,7 @@ export class Reporter {
         for (const [severity, violations] of grouped.entries()) {
           lines.push(`Severity: ${severity}`);
           lines.push('-'.repeat(30));
-          violations.forEach(v => {
+          violations.forEach((v) => {
             lines.push(`  ${v.decisionId} - ${v.message}`);
           });
           lines.push('');
@@ -353,7 +357,7 @@ export class Reporter {
         for (const [file, violations] of grouped.entries()) {
           lines.push(`File: ${file}`);
           lines.push('-'.repeat(30));
-          violations.forEach(v => {
+          violations.forEach((v) => {
             lines.push(`  [${v.severity}] ${v.message}`);
           });
           lines.push('');
@@ -377,7 +381,9 @@ export class Reporter {
       lines.push('### Summary\n');
       lines.push(`- **Decisions Checked:** ${result.summary.decisionsChecked || 0}`);
       lines.push(`- **Files Checked:** ${result.summary.filesChecked || 0}`);
-      lines.push(`- **Total Violations:** ${result.summary.totalViolations || result.violations?.length || 0}`);
+      lines.push(
+        `- **Total Violations:** ${result.summary.totalViolations || result.violations?.length || 0}`
+      );
       lines.push(`- **Critical:** ${result.summary.critical || 0}`);
       lines.push(`- **High:** ${result.summary.high || 0}`);
       lines.push(`- **Medium:** ${result.summary.medium || 0}`);

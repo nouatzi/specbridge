@@ -26,7 +26,7 @@ export const impactCommand = new Command('impact')
     const cwd = process.cwd();
 
     // Check if specbridge is initialized
-    if (!await pathExists(getSpecBridgeDir(cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
       throw new NotInitializedError();
     }
 
@@ -76,11 +76,12 @@ function printImpactAnalysis(analysis: ImpactAnalysis, showSteps: boolean): void
   console.log(`Change Type: ${changeLabel}`);
 
   // Estimated effort
-  const effortColor = analysis.estimatedEffort === 'high'
-    ? chalk.red
-    : analysis.estimatedEffort === 'medium'
-      ? chalk.yellow
-      : chalk.green;
+  const effortColor =
+    analysis.estimatedEffort === 'high'
+      ? chalk.red
+      : analysis.estimatedEffort === 'medium'
+        ? chalk.yellow
+        : chalk.green;
   console.log(`Estimated Effort: ${effortColor(analysis.estimatedEffort.toUpperCase())}\n`);
 
   // Affected files
@@ -94,9 +95,8 @@ function printImpactAnalysis(analysis: ImpactAnalysis, showSteps: boolean): void
       if (!file) continue;
 
       const violationText = file.violations === 1 ? '1 violation' : `${file.violations} violations`;
-      const autoFixText = file.autoFixable > 0
-        ? chalk.green(` (${file.autoFixable} auto-fixable)`)
-        : '';
+      const autoFixText =
+        file.autoFixable > 0 ? chalk.green(` (${file.autoFixable} auto-fixable)`) : '';
 
       console.log(`  ${chalk.red('●')} ${file.path} - ${violationText}${autoFixText}`);
     }
@@ -142,5 +142,7 @@ function printImpactAnalysis(analysis: ImpactAnalysis, showSteps: boolean): void
   console.log(chalk.bold('Summary:'));
   console.log(`  Total Violations: ${totalViolations}`);
   console.log(`  Auto-fixable: ${chalk.green(totalAutoFixable)}`);
-  console.log(`  Manual Fixes Required: ${manualFixes > 0 ? chalk.yellow(manualFixes) : chalk.green(0)}`);
+  console.log(
+    `  Manual Fixes Required: ${manualFixes > 0 ? chalk.yellow(manualFixes) : chalk.green(0)}`
+  );
 }

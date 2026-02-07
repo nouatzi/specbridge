@@ -8,7 +8,9 @@ import { createDashboardServer, type DashboardServer } from '../../src/dashboard
 import { loadConfig } from '../../src/config/loader.js';
 import { setupTestProject, createDecisionYaml } from '../helpers/setup.js';
 
-async function startHttpServer(server: DashboardServer): Promise<{ baseUrl: string; close: () => Promise<void> }> {
+async function startHttpServer(
+  server: DashboardServer
+): Promise<{ baseUrl: string; close: () => Promise<void> }> {
   const app = server.getApp();
   const httpServer = app.listen(0, '127.0.0.1');
   await once(httpServer, 'listening');
@@ -128,7 +130,9 @@ export class Service {
     expect(decisions.status).toBe(200);
     const decisionsBody = await decisions.json();
     expect(Array.isArray(decisionsBody)).toBe(true);
-    expect(decisionsBody.some((d: { metadata: { id: string } }) => d.metadata.id === 'dash-001')).toBe(true);
+    expect(
+      decisionsBody.some((d: { metadata: { id: string } }) => d.metadata.id === 'dash-001')
+    ).toBe(true);
 
     const existingDecision = await fetch(`${baseUrl}/api/decisions/dash-001`);
     expect(existingDecision.status).toBe(200);

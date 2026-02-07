@@ -45,7 +45,7 @@ export class Registry {
    */
   async load(): Promise<LoadResult> {
     // Check if specbridge is initialized
-    if (!await pathExists(getSpecBridgeDir(this.basePath))) {
+    if (!(await pathExists(getSpecBridgeDir(this.basePath)))) {
       throw new NotInitializedError();
     }
 
@@ -172,18 +172,14 @@ export class Registry {
    * Get decisions by tag
    */
   getByTag(tag: string): Decision[] {
-    return this.getAll().filter(
-      (d) => d.metadata.tags?.includes(tag)
-    );
+    return this.getAll().filter((d) => d.metadata.tags?.includes(tag));
   }
 
   /**
    * Get decisions by owner
    */
   getByOwner(owner: string): Decision[] {
-    return this.getAll().filter(
-      (d) => d.metadata.owners.includes(owner)
-    );
+    return this.getAll().filter((d) => d.metadata.owners.includes(owner));
   }
 
   /**
@@ -198,25 +194,19 @@ export class Registry {
 
       // Filter by tags
       if (filter.tags) {
-        const hasTags = filter.tags.some((tag) =>
-          decision.metadata.tags?.includes(tag)
-        );
+        const hasTags = filter.tags.some((tag) => decision.metadata.tags?.includes(tag));
         if (!hasTags) return false;
       }
 
       // Filter by constraint type
       if (filter.constraintType) {
-        const hasType = decision.constraints.some((c) =>
-          filter.constraintType?.includes(c.type)
-        );
+        const hasType = decision.constraints.some((c) => filter.constraintType?.includes(c.type));
         if (!hasType) return false;
       }
 
       // Filter by severity
       if (filter.severity) {
-        const hasSeverity = decision.constraints.some((c) =>
-          filter.severity?.includes(c.severity)
-        );
+        const hasSeverity = decision.constraints.some((c) => filter.severity?.includes(c.severity));
         if (!hasSeverity) return false;
       }
 

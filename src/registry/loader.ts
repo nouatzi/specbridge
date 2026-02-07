@@ -27,7 +27,7 @@ export interface LoadError {
  * Load a single decision file
  */
 export async function loadDecisionFile(filePath: string): Promise<Decision> {
-  if (!await pathExists(filePath)) {
+  if (!(await pathExists(filePath))) {
     throw new FileSystemError(`Decision file not found: ${filePath}`, filePath);
   }
 
@@ -56,7 +56,7 @@ export async function loadDecisionsFromDir(dirPath: string): Promise<LoadResult>
   const decisions: LoadedDecision[] = [];
   const errors: LoadError[] = [];
 
-  if (!await pathExists(dirPath)) {
+  if (!(await pathExists(dirPath))) {
     return { decisions, errors };
   }
 
@@ -86,7 +86,7 @@ export async function validateDecisionFile(filePath: string): Promise<{
   errors: string[];
 }> {
   try {
-    if (!await pathExists(filePath)) {
+    if (!(await pathExists(filePath))) {
       return { valid: false, errors: [`File not found: ${filePath}`] };
     }
 

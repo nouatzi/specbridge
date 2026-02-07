@@ -198,10 +198,10 @@ describe('ResultsCache', () => {
       ];
 
       // Store both
-      entries.forEach(entry => cache.set(entry.key, entry.violations));
+      entries.forEach((entry) => cache.set(entry.key, entry.violations));
 
       // Retrieve both
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         const result = cache.get(entry.key);
         expect(result).toEqual(entry.violations);
       });
@@ -229,7 +229,7 @@ describe('ResultsCache', () => {
         },
       ];
 
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         cache.set(
           {
             filePath,
@@ -241,7 +241,7 @@ describe('ResultsCache', () => {
         );
       });
 
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         const result = cache.get({
           filePath,
           decisionId: entry.decisionId,

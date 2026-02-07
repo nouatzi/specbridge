@@ -450,7 +450,7 @@ describe('Custom Verifiers Integration', () => {
     const result = await engine.verify(config, { cwd: testDir });
 
     expect(result.violations).toHaveLength(2);
-    expect(result.violations.find(v => v.message === 'VERIFIER 1')).toBeTruthy();
-    expect(result.violations.find(v => v.message === 'VERIFIER 2')).toBeTruthy();
+    expect(result.violations.find((v) => v.message === 'VERIFIER 1')).toBeTruthy();
+    expect(result.violations.find((v) => v.message === 'VERIFIER 2')).toBeTruthy();
   });
 });

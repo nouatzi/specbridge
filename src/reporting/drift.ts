@@ -51,9 +51,7 @@ export async function detectDrift(
 
   // Analyze per-decision drift
   for (const currDecision of current.byDecision) {
-    const prevDecision = previous.byDecision.find(
-      d => d.decisionId === currDecision.decisionId
-    );
+    const prevDecision = previous.byDecision.find((d) => d.decisionId === currDecision.decisionId);
 
     if (!prevDecision) {
       // New decision - treat as stable for now
@@ -132,17 +130,18 @@ export async function detectDrift(
     total: 0,
   };
   fixedViolations.total =
-    fixedViolations.critical +
-    fixedViolations.high +
-    fixedViolations.medium +
-    fixedViolations.low;
+    fixedViolations.critical + fixedViolations.high + fixedViolations.medium + fixedViolations.low;
 
   // Find most improved and most degraded
-  const improving = byDecision.filter(d => d.trend === 'improving');
-  const degrading = byDecision.filter(d => d.trend === 'degrading');
+  const improving = byDecision.filter((d) => d.trend === 'improving');
+  const degrading = byDecision.filter((d) => d.trend === 'degrading');
 
-  const mostImproved = improving.sort((a, b) => b.complianceChange - a.complianceChange).slice(0, 5);
-  const mostDegraded = degrading.sort((a, b) => a.complianceChange - b.complianceChange).slice(0, 5);
+  const mostImproved = improving
+    .sort((a, b) => b.complianceChange - a.complianceChange)
+    .slice(0, 5);
+  const mostDegraded = degrading
+    .sort((a, b) => a.complianceChange - b.complianceChange)
+    .slice(0, 5);
 
   return {
     trend: overallTrend,
@@ -212,7 +211,7 @@ export async function analyzeTrend(
     overallTrend = 'stable';
   }
 
-  const overallDataPoints = sortedReports.map(r => ({
+  const overallDataPoints = sortedReports.map((r) => ({
     date: r.timestamp,
     compliance: r.report.summary.compliance,
   }));
@@ -251,8 +250,8 @@ export async function analyzeTrend(
       trend = 'stable';
     }
 
-    const dataPoints = sortedReports.map(r => {
-      const decision = r.report.byDecision.find(d => d.decisionId === decisionId);
+    const dataPoints = sortedReports.map((r) => {
+      const decision = r.report.byDecision.find((d) => d.decisionId === decisionId);
       return {
         date: r.timestamp,
         compliance: decision?.compliance ?? 0,

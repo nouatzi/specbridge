@@ -29,7 +29,7 @@ describe('Drift Detection', () => {
         },
         compliance: overallCompliance,
       },
-      byDecision: decisions.map(d => ({
+      byDecision: decisions.map((d) => ({
         decisionId: d.id,
         title: d.title,
         status: 'active',
@@ -158,7 +158,7 @@ describe('Drift Detection', () => {
 
       expect(drift.byDecision).toHaveLength(2);
 
-      const newDecision = drift.byDecision.find(d => d.decisionId === 'dec-002');
+      const newDecision = drift.byDecision.find((d) => d.decisionId === 'dec-002');
       expect(newDecision?.trend).toBe('stable');
       expect(newDecision?.complianceChange).toBe(0);
     });
@@ -262,10 +262,10 @@ describe('Drift Detection', () => {
 
       expect(trend.decisions).toHaveLength(2);
 
-      const dec1 = trend.decisions.find(d => d.decisionId === 'dec-001');
+      const dec1 = trend.decisions.find((d) => d.decisionId === 'dec-001');
       expect(dec1?.trend).toBe('improving');
 
-      const dec2 = trend.decisions.find(d => d.decisionId === 'dec-002');
+      const dec2 = trend.decisions.find((d) => d.decisionId === 'dec-002');
       expect(dec2?.trend).toBe('degrading');
     });
 

@@ -21,7 +21,7 @@ export const dashboardCommand = new Command('dashboard')
     const cwd = process.cwd();
 
     // Check if specbridge is initialized
-    if (!await pathExists(getSpecBridgeDir(cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
       throw new NotInitializedError();
     }
 
@@ -48,7 +48,9 @@ export const dashboardCommand = new Command('dashboard')
         // Show helpful endpoints
         console.log(chalk.bold('API Endpoints:'));
         console.log(`  ${chalk.cyan(`http://${host}:${port}/api/health`)} - Health check`);
-        console.log(`  ${chalk.cyan(`http://${host}:${port}/api/report/latest`)} - Latest report (cached)`);
+        console.log(
+          `  ${chalk.cyan(`http://${host}:${port}/api/report/latest`)} - Latest report (cached)`
+        );
         console.log(`  ${chalk.cyan(`http://${host}:${port}/api/decisions`)} - All decisions`);
         console.log(`  ${chalk.cyan(`http://${host}:${port}/api/analytics/summary`)} - Analytics`);
         console.log('');

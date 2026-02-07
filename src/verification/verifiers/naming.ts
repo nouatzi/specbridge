@@ -69,17 +69,19 @@ export class NamingVerifier implements Verifier {
       for (const classDecl of sourceFile.getClasses()) {
         const name = classDecl.getName();
         if (name && !pattern.regex.test(name)) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Class "${name}" does not follow ${pattern.description} naming convention`,
-            file: filePath,
-            line: classDecl.getStartLineNumber(),
-            column: classDecl.getStart() - classDecl.getStartLinePos(),
-            suggestion: `Rename to follow ${pattern.description}`,
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Class "${name}" does not follow ${pattern.description} naming convention`,
+              file: filePath,
+              line: classDecl.getStartLineNumber(),
+              column: classDecl.getStart() - classDecl.getStartLinePos(),
+              suggestion: `Rename to follow ${pattern.description}`,
+            })
+          );
         }
       }
     }
@@ -88,16 +90,18 @@ export class NamingVerifier implements Verifier {
       for (const funcDecl of sourceFile.getFunctions()) {
         const name = funcDecl.getName();
         if (name && !pattern.regex.test(name)) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Function "${name}" does not follow ${pattern.description} naming convention`,
-            file: filePath,
-            line: funcDecl.getStartLineNumber(),
-            suggestion: `Rename to follow ${pattern.description}`,
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Function "${name}" does not follow ${pattern.description} naming convention`,
+              file: filePath,
+              line: funcDecl.getStartLineNumber(),
+              suggestion: `Rename to follow ${pattern.description}`,
+            })
+          );
         }
       }
     }
@@ -106,16 +110,18 @@ export class NamingVerifier implements Verifier {
       for (const interfaceDecl of sourceFile.getInterfaces()) {
         const name = interfaceDecl.getName();
         if (!pattern.regex.test(name)) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Interface "${name}" does not follow ${pattern.description} naming convention`,
-            file: filePath,
-            line: interfaceDecl.getStartLineNumber(),
-            suggestion: `Rename to follow ${pattern.description}`,
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Interface "${name}" does not follow ${pattern.description} naming convention`,
+              file: filePath,
+              line: interfaceDecl.getStartLineNumber(),
+              suggestion: `Rename to follow ${pattern.description}`,
+            })
+          );
         }
       }
     }
@@ -124,16 +130,18 @@ export class NamingVerifier implements Verifier {
       for (const typeAlias of sourceFile.getTypeAliases()) {
         const name = typeAlias.getName();
         if (!pattern.regex.test(name)) {
-          violations.push(createViolation({
-            decisionId,
-            constraintId: constraint.id,
-            type: constraint.type,
-            severity: constraint.severity,
-            message: `Type "${name}" does not follow ${pattern.description} naming convention`,
-            file: filePath,
-            line: typeAlias.getStartLineNumber(),
-            suggestion: `Rename to follow ${pattern.description}`,
-          }));
+          violations.push(
+            createViolation({
+              decisionId,
+              constraintId: constraint.id,
+              type: constraint.type,
+              severity: constraint.severity,
+              message: `Type "${name}" does not follow ${pattern.description} naming convention`,
+              file: filePath,
+              line: typeAlias.getStartLineNumber(),
+              suggestion: `Rename to follow ${pattern.description}`,
+            })
+          );
         }
       }
     }

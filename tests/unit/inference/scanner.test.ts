@@ -42,7 +42,9 @@ describe('CodeScanner', () => {
   });
 
   function addScannedFile(filePath: string, content: string): void {
-    const sourceFile = scanner.getProject().createSourceFile(filePath, content, { overwrite: true });
+    const sourceFile = scanner
+      .getProject()
+      .createSourceFile(filePath, content, { overwrite: true });
     const internals = scanner as unknown as ScannerInternals;
     internals.scannedFiles.set(filePath, {
       path: filePath,
@@ -71,14 +73,8 @@ describe('CodeScanner', () => {
   describe('scan', () => {
     it('should scan files matching patterns', async () => {
       // Create sample files
-      writeFileSync(
-        join(srcDir, 'file1.ts'),
-        'export class TestClass {}'
-      );
-      writeFileSync(
-        join(srcDir, 'file2.ts'),
-        'export function testFunc() {}'
-      );
+      writeFileSync(join(srcDir, 'file1.ts'), 'export class TestClass {}');
+      writeFileSync(join(srcDir, 'file2.ts'), 'export function testFunc() {}');
 
       const result = await scanner.scan({
         sourceRoots: ['src/**/*.ts'],
@@ -180,10 +176,7 @@ describe('CodeScanner', () => {
     it('should handle large number of files', async () => {
       // Create 50 files
       for (let i = 0; i < 50; i++) {
-        writeFileSync(
-          join(srcDir, `file${i}.ts`),
-          `export const value${i} = ${i};`
-        );
+        writeFileSync(join(srcDir, `file${i}.ts`), `export const value${i} = ${i};`);
       }
 
       const result = await scanner.scan({
@@ -222,7 +215,7 @@ describe('CodeScanner', () => {
 
       const files = scanner.getFiles();
       expect(files.length).toBe(2);
-      expect(files.every(f => f.sourceFile)).toBe(true);
+      expect(files.every((f) => f.sourceFile)).toBe(true);
     });
 
     it('should return empty array when no files scanned', () => {
@@ -280,9 +273,9 @@ export class ProductClass {
 
       const classes = scanner.findClasses();
       expect(classes.length).toBe(2);
-      expect(classes.map(c => c.name)).toContain('UserClass');
-      expect(classes.map(c => c.name)).toContain('ProductClass');
-      expect(classes.every(c => c.line > 0)).toBe(true);
+      expect(classes.map((c) => c.name)).toContain('UserClass');
+      expect(classes.map((c) => c.name)).toContain('ProductClass');
+      expect(classes.every((c) => c.line > 0)).toBe(true);
     });
 
     it('should not include anonymous classes', async () => {
@@ -360,7 +353,7 @@ export class TestClass {
       // ts-morph only finds named top-level and nested classes with names
       // InnerClass inside a method may not be detected
       expect(classes.length).toBeGreaterThanOrEqual(1);
-      expect(classes.map(c => c.name)).toContain('OuterClass');
+      expect(classes.map((c) => c.name)).toContain('OuterClass');
     });
   });
 
@@ -379,8 +372,8 @@ function privateFunc() {
 
       const functions = scanner.findFunctions();
       expect(functions.length).toBe(2);
-      expect(functions.map(f => f.name)).toContain('publicFunc');
-      expect(functions.map(f => f.name)).toContain('privateFunc');
+      expect(functions.map((f) => f.name)).toContain('publicFunc');
+      expect(functions.map((f) => f.name)).toContain('privateFunc');
     });
 
     it('should detect exported functions correctly', async () => {
@@ -391,8 +384,8 @@ function notExported() {}`
       );
 
       const functions = scanner.findFunctions();
-      const exported = functions.find(f => f.name === 'exportedFunc');
-      const notExported = functions.find(f => f.name === 'notExported');
+      const exported = functions.find((f) => f.name === 'exportedFunc');
+      const notExported = functions.find((f) => f.name === 'notExported');
 
       expect(exported?.isExported).toBe(true);
       expect(notExported?.isExported).toBe(false);
@@ -410,8 +403,8 @@ const privateArrow = () => 'private';`
 
       const functions = scanner.findFunctions();
       expect(functions.length).toBe(2);
-      expect(functions.map(f => f.name)).toContain('arrowFunc');
-      expect(functions.map(f => f.name)).toContain('privateArrow');
+      expect(functions.map((f) => f.name)).toContain('arrowFunc');
+      expect(functions.map((f) => f.name)).toContain('privateArrow');
     });
 
     it('should detect exported arrow functions', async () => {
@@ -422,8 +415,8 @@ const notExportedArrow = () => {};`
       );
 
       const functions = scanner.findFunctions();
-      const exported = functions.find(f => f.name === 'exportedArrow');
-      const notExported = functions.find(f => f.name === 'notExportedArrow');
+      const exported = functions.find((f) => f.name === 'exportedArrow');
+      const notExported = functions.find((f) => f.name === 'notExportedArrow');
 
       expect(exported?.isExported).toBe(true);
       expect(notExported?.isExported).toBe(false);
@@ -466,15 +459,12 @@ import { baz } from 'module-b';`
 
       const imports = scanner.findImports();
       expect(imports.length).toBe(2);
-      expect(imports.map(i => i.module)).toContain('module-a');
-      expect(imports.map(i => i.module)).toContain('module-b');
+      expect(imports.map((i) => i.module)).toContain('module-a');
+      expect(imports.map((i) => i.module)).toContain('module-b');
     });
 
     it('should capture named imports', async () => {
-      writeFileSync(
-        join(srcDir, 'named.ts'),
-        `import { alpha, beta, gamma } from 'greek';`
-      );
+      writeFileSync(join(srcDir, 'named.ts'), `import { alpha, beta, gamma } from 'greek';`);
 
       await scanner.scan({
         sourceRoots: ['src/**/*.ts'],
@@ -486,10 +476,7 @@ import { baz } from 'module-b';`
     });
 
     it('should handle default imports', async () => {
-      writeFileSync(
-        join(srcDir, 'default.ts'),
-        `import React from 'react';`
-      );
+      writeFileSync(join(srcDir, 'default.ts'), `import React from 'react';`);
 
       await scanner.scan({
         sourceRoots: ['src/**/*.ts'],
@@ -503,10 +490,7 @@ import { baz } from 'module-b';`
     });
 
     it('should handle namespace imports', async () => {
-      writeFileSync(
-        join(srcDir, 'namespace.ts'),
-        `import * as fs from 'node:fs';`
-      );
+      writeFileSync(join(srcDir, 'namespace.ts'), `import * as fs from 'node:fs';`);
 
       await scanner.scan({
         sourceRoots: ['src/**/*.ts'],
@@ -562,9 +546,9 @@ import { nodeBuiltin } from 'node:path';`
 
       const imports = scanner.findImports();
       expect(imports.length).toBe(3);
-      expect(imports.map(i => i.module)).toContain('./local');
-      expect(imports.map(i => i.module)).toContain('external-package');
-      expect(imports.map(i => i.module)).toContain('node:path');
+      expect(imports.map((i) => i.module)).toContain('./local');
+      expect(imports.map((i) => i.module)).toContain('external-package');
+      expect(imports.map((i) => i.module)).toContain('node:path');
     });
   });
 
@@ -590,8 +574,8 @@ interface Product {
 
       const interfaces = scanner.findInterfaces();
       expect(interfaces.length).toBe(2);
-      expect(interfaces.map(i => i.name)).toContain('User');
-      expect(interfaces.map(i => i.name)).toContain('Product');
+      expect(interfaces.map((i) => i.name)).toContain('User');
+      expect(interfaces.map((i) => i.name)).toContain('Product');
     });
 
     it('should return line numbers for interfaces', async () => {
@@ -642,9 +626,9 @@ export type Status = 'active' | 'inactive';`
 
       const types = scanner.findTypeAliases();
       expect(types.length).toBe(3);
-      expect(types.map(t => t.name)).toContain('UserId');
-      expect(types.map(t => t.name)).toContain('ProductId');
-      expect(types.map(t => t.name)).toContain('Status');
+      expect(types.map((t) => t.name)).toContain('UserId');
+      expect(types.map((t) => t.name)).toContain('ProductId');
+      expect(types.map((t) => t.name)).toContain('Status');
     });
 
     it('should return line numbers for type aliases', async () => {
@@ -705,7 +689,7 @@ export function anotherTryCatch() {
 
       const blocks = scanner.findTryCatchBlocks();
       expect(blocks.length).toBe(2);
-      expect(blocks.every(b => b.line > 0)).toBe(true);
+      expect(blocks.every((b) => b.line > 0)).toBe(true);
     });
 
     it('should detect throw statements in catch blocks', async () => {
@@ -736,8 +720,8 @@ export function withoutThrow() {
       const blocks = scanner.findTryCatchBlocks();
       expect(blocks.length).toBe(2);
 
-      const withThrow = blocks.find(b => b.line === 2);
-      const withoutThrow = blocks.find(b => b.line === 10);
+      const withThrow = blocks.find((b) => b.line === 2);
+      const withoutThrow = blocks.find((b) => b.line === 10);
 
       expect(withThrow?.hasThrow).toBe(true);
       expect(withoutThrow?.hasThrow).toBe(false);

@@ -31,7 +31,9 @@ describe('ErrorsAnalyzer', () => {
   describe('analyzeCustomErrorClasses', () => {
     describe('custom base class pattern detection', () => {
       it('should detect custom base class pattern when multiple errors extend common base', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class BaseError extends Error {}
           class ValidationError extends BaseError {}
           class AuthError extends BaseError {}
@@ -50,7 +52,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should include constraint suggestion for custom base pattern', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class AppError extends Error {}
           class NotFoundError extends AppError {}
           class ForbiddenError extends AppError {}
@@ -71,7 +75,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should include examples from error classes', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class DomainError extends Error {}
           class UserError extends DomainError {}
           class SystemError extends DomainError {}
@@ -88,7 +94,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should return null when fewer than 3 errors extend custom base', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class BaseError extends Error {}
           class ValidationError extends BaseError {}
           class AuthError extends BaseError {}
@@ -103,7 +111,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should handle errors extending different custom bases', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class BaseAError extends Error {}
           class BaseBError extends Error {}
           class AuthError extends BaseAError {}
@@ -123,7 +133,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should handle class without extends clause', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class StandaloneError {}
           class AnotherError extends Error {}
         `
@@ -135,7 +147,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should calculate confidence based on ratio of custom base usage', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class CoreError extends Error {}
           class AlphaError extends CoreError {}
           class BetaError extends CoreError {}
@@ -155,7 +169,9 @@ describe('ErrorsAnalyzer', () => {
 
     describe('generic custom error classes pattern', () => {
       it('should detect generic custom error classes when threshold met', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class ValidationError extends Error {}
           class AuthError extends Error {}
           class NotFoundError extends Error {}
@@ -172,7 +188,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should suggest guideline constraint for custom error classes', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class ValidationError extends Error {}
           class AuthError extends Error {}
           class NotFoundError extends Error {}
@@ -190,7 +208,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should include up to 3 examples', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class ValidationError extends Error {}
           class AuthError extends Error {}
           class NotFoundError extends Error {}
@@ -207,7 +227,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should increase confidence with more error classes', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class ValidationError extends Error {}
           class AuthError extends Error {}
           class NotFoundError extends Error {}
@@ -244,7 +266,9 @@ describe('ErrorsAnalyzer', () => {
 
     describe('error class name detection', () => {
       it('should detect classes ending with "Error"', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class ValidationError extends Error {}
           class NetworkError extends Error {}
           class AuthError extends Error {}
@@ -258,7 +282,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should detect classes ending with "Exception"', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class ValidationException extends Error {}
           class AuthException extends Error {}
           class NotFoundException extends Error {}
@@ -273,7 +299,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should detect mix of Error and Exception suffixes', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class ValidationError extends Error {}
           class AuthException extends Error {}
           class NotFoundError extends Error {}
@@ -287,7 +315,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should ignore classes not ending with Error or Exception', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class UserManager {}
           class DataProcessor {}
           class ValidationError extends Error {}
@@ -308,7 +338,9 @@ describe('ErrorsAnalyzer', () => {
 
     describe('threshold and edge cases', () => {
       it('should return null when fewer than 3 error classes exist', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class ValidationError extends Error {}
           class AuthError extends Error {}
         `
@@ -322,7 +354,9 @@ describe('ErrorsAnalyzer', () => {
       });
 
       it('should return null for exactly 2 error classes (below threshold for generic)', async () => {
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           class ValidationError extends Error {}
           class AuthError extends Error {}
         `
@@ -345,7 +379,9 @@ describe('ErrorsAnalyzer', () => {
 
       it('should handle class without name', async () => {
         // This is a pathological case, but should not crash
-        addFile('src/errors.ts', `
+        addFile(
+          'src/errors.ts',
+          `
           export default class extends Error {}
         `
         );

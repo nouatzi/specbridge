@@ -21,13 +21,25 @@ const FUNCTION_PATTERNS: NamingPattern[] = [
 ];
 
 const INTERFACE_PATTERNS: NamingPattern[] = [
-  { convention: 'PascalCase', regex: /^[A-Z][a-zA-Z0-9]*$/, description: 'Interfaces use PascalCase' },
-  { convention: 'IPrefixed', regex: /^I[A-Z][a-zA-Z0-9]*$/, description: 'Interfaces are prefixed with I' },
+  {
+    convention: 'PascalCase',
+    regex: /^[A-Z][a-zA-Z0-9]*$/,
+    description: 'Interfaces use PascalCase',
+  },
+  {
+    convention: 'IPrefixed',
+    regex: /^I[A-Z][a-zA-Z0-9]*$/,
+    description: 'Interfaces are prefixed with I',
+  },
 ];
 
 const TYPE_PATTERNS: NamingPattern[] = [
   { convention: 'PascalCase', regex: /^[A-Z][a-zA-Z0-9]*$/, description: 'Types use PascalCase' },
-  { convention: 'TSuffixed', regex: /^[A-Z][a-zA-Z0-9]*Type$/, description: 'Types are suffixed with Type' },
+  {
+    convention: 'TSuffixed',
+    regex: /^[A-Z][a-zA-Z0-9]*Type$/,
+    description: 'Types are suffixed with Type',
+  },
 ];
 
 export class NamingAnalyzer implements Analyzer {
@@ -61,7 +73,10 @@ export class NamingAnalyzer implements Analyzer {
     const classes = scanner.findClasses();
     if (classes.length < 3) return null;
 
-    const matches = this.findBestMatch(classes.map(c => c.name), CLASS_PATTERNS);
+    const matches = this.findBestMatch(
+      classes.map((c) => c.name),
+      CLASS_PATTERNS
+    );
     if (!matches) return null;
 
     return createPattern(this.id, {
@@ -70,7 +85,7 @@ export class NamingAnalyzer implements Analyzer {
       description: `Classes follow ${matches.convention} naming convention`,
       confidence: matches.confidence,
       occurrences: matches.matchCount,
-      examples: classes.slice(0, 3).map(c => ({
+      examples: classes.slice(0, 3).map((c) => ({
         file: c.file,
         line: c.line,
         snippet: `class ${c.name}`,
@@ -88,7 +103,10 @@ export class NamingAnalyzer implements Analyzer {
     const functions = scanner.findFunctions();
     if (functions.length < 3) return null;
 
-    const matches = this.findBestMatch(functions.map(f => f.name), FUNCTION_PATTERNS);
+    const matches = this.findBestMatch(
+      functions.map((f) => f.name),
+      FUNCTION_PATTERNS
+    );
     if (!matches) return null;
 
     return createPattern(this.id, {
@@ -97,7 +115,7 @@ export class NamingAnalyzer implements Analyzer {
       description: `Functions follow ${matches.convention} naming convention`,
       confidence: matches.confidence,
       occurrences: matches.matchCount,
-      examples: functions.slice(0, 3).map(f => ({
+      examples: functions.slice(0, 3).map((f) => ({
         file: f.file,
         line: f.line,
         snippet: `function ${f.name}`,
@@ -115,7 +133,10 @@ export class NamingAnalyzer implements Analyzer {
     const interfaces = scanner.findInterfaces();
     if (interfaces.length < 3) return null;
 
-    const matches = this.findBestMatch(interfaces.map(i => i.name), INTERFACE_PATTERNS);
+    const matches = this.findBestMatch(
+      interfaces.map((i) => i.name),
+      INTERFACE_PATTERNS
+    );
     if (!matches) return null;
 
     return createPattern(this.id, {
@@ -124,7 +145,7 @@ export class NamingAnalyzer implements Analyzer {
       description: `Interfaces follow ${matches.convention} naming convention`,
       confidence: matches.confidence,
       occurrences: matches.matchCount,
-      examples: interfaces.slice(0, 3).map(i => ({
+      examples: interfaces.slice(0, 3).map((i) => ({
         file: i.file,
         line: i.line,
         snippet: `interface ${i.name}`,
@@ -142,7 +163,10 @@ export class NamingAnalyzer implements Analyzer {
     const types = scanner.findTypeAliases();
     if (types.length < 3) return null;
 
-    const matches = this.findBestMatch(types.map(t => t.name), TYPE_PATTERNS);
+    const matches = this.findBestMatch(
+      types.map((t) => t.name),
+      TYPE_PATTERNS
+    );
     if (!matches) return null;
 
     return createPattern(this.id, {
@@ -151,7 +175,7 @@ export class NamingAnalyzer implements Analyzer {
       description: `Type aliases follow ${matches.convention} naming convention`,
       confidence: matches.confidence,
       occurrences: matches.matchCount,
-      examples: types.slice(0, 3).map(t => ({
+      examples: types.slice(0, 3).map((t) => ({
         file: t.file,
         line: t.line,
         snippet: `type ${t.name}`,
@@ -172,7 +196,7 @@ export class NamingAnalyzer implements Analyzer {
     let bestMatch: { convention: string; matchCount: number } | null = null;
 
     for (const pattern of patterns) {
-      const matchCount = names.filter(name => pattern.regex.test(name)).length;
+      const matchCount = names.filter((name) => pattern.regex.test(name)).length;
       if (!bestMatch || matchCount > bestMatch.matchCount) {
         bestMatch = { convention: pattern.convention, matchCount };
       }

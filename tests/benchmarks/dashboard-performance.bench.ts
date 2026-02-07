@@ -64,7 +64,7 @@ describe('Dashboard Performance Benchmarks', () => {
     const app = server.getApp();
 
     // Wait for initial cache to populate
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Benchmark cached response
     const start = Date.now();
@@ -85,7 +85,7 @@ describe('Dashboard Performance Benchmarks', () => {
     const app = server.getApp();
 
     // Wait for cache
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Make 10 concurrent requests
     const start = Date.now();
@@ -105,7 +105,7 @@ describe('Dashboard Performance Benchmarks', () => {
     console.log(`  Avg per request: ${avgDuration.toFixed(1)}ms`);
 
     // All should succeed
-    responses.forEach(r => {
+    responses.forEach((r) => {
       expect(r.status).toBe(200);
       expect(r.body.cached).toBe(true);
     });

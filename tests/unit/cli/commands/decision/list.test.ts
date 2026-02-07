@@ -22,7 +22,7 @@ vi.mock('chalk', () => ({
 }));
 
 vi.mock('table', () => ({
-  table: vi.fn((data) => data.map(row => row.join(' | ')).join('\n')),
+  table: vi.fn((data) => data.map((row) => row.join(' | ')).join('\n')),
 }));
 
 describe('decision list command', () => {
@@ -81,7 +81,7 @@ describe('decision list command', () => {
     await listDecisions.parseAsync(['node', 'test', '--json']);
 
     const calls = consoleLogSpy.mock.calls;
-    const output = calls.map(call => call.join(' ')).join('\n');
+    const output = calls.map((call) => call.join(' ')).join('\n');
 
     // Either shows decisions or "No decisions found"
     expect(output.length).toBeGreaterThan(0);
@@ -90,8 +90,6 @@ describe('decision list command', () => {
   it('should show message when no decisions found', async () => {
     await listDecisions.parseAsync(['node', 'test', '--status', 'superseded']);
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('No decisions found')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('No decisions found'));
   });
 });

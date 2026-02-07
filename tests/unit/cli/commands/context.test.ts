@@ -69,9 +69,9 @@ describe('context command', () => {
   it('should throw NotInitializedError when not initialized', async () => {
     rmSync(join(testDir, '.specbridge'), { recursive: true, force: true });
 
-    await expect(
-      contextCommand.parseAsync(['node', 'test', 'src/test.ts'])
-    ).rejects.toThrow(NotInitializedError);
+    await expect(contextCommand.parseAsync(['node', 'test', 'src/test.ts'])).rejects.toThrow(
+      NotInitializedError
+    );
   });
 
   it('should generate context for file', async () => {
@@ -123,9 +123,7 @@ describe('context command', () => {
     await contextCommand.parseAsync(['node', 'test', 'src/test.ts', '--output', outputPath]);
 
     expect(existsSync(outputPath)).toBe(true);
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining(outputPath)
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(outputPath));
   });
 
   it('should print to console without --output flag', async () => {
@@ -134,8 +132,6 @@ describe('context command', () => {
 
     await contextCommand.parseAsync(['node', 'test', 'src/test.ts']);
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Context for')
-    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Context for'));
   });
 });

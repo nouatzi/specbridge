@@ -37,7 +37,7 @@ export const migrateCommand = new Command('migrate')
     const cwd = process.cwd();
 
     // Check if specbridge is initialized
-    if (!await pathExists(getSpecBridgeDir(cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
       throw new NotInitializedError();
     }
 
@@ -145,7 +145,11 @@ export const migrateCommand = new Command('migrate')
         console.log('');
 
         if (Math.abs(diff) > 10) {
-          console.log(chalk.yellow('⚠️  Note: Compliance score changed significantly due to severity weighting.'));
+          console.log(
+            chalk.yellow(
+              '⚠️  Note: Compliance score changed significantly due to severity weighting.'
+            )
+          );
           console.log(chalk.gray('   Consider adjusting CI thresholds if needed.\n'));
         }
       }
@@ -155,9 +159,12 @@ export const migrateCommand = new Command('migrate')
         console.log(chalk.gray('Run without --dry-run to apply changes.\n'));
       } else {
         console.log(chalk.green('✓ Migration successful!'));
-        console.log(chalk.gray(`\nRollback: Copy files from ${report.backupPath} back to .specbridge/decisions/\n`));
+        console.log(
+          chalk.gray(
+            `\nRollback: Copy files from ${report.backupPath} back to .specbridge/decisions/\n`
+          )
+        );
       }
-
     } catch (error) {
       spinner.fail('Migration failed');
       console.error(chalk.red('\nError:'), error instanceof Error ? error.message : error);
@@ -185,10 +192,7 @@ async function createBackup(cwd: string, dryRun: boolean): Promise<string> {
     const files = await readdir(decisionsDir);
     for (const file of files) {
       if (file.endsWith('.decision.yaml') || file.endsWith('.decision.yml')) {
-        await copyFile(
-          join(decisionsDir, file),
-          join(backupDir, file)
-        );
+        await copyFile(join(decisionsDir, file), join(backupDir, file));
       }
     }
   }
@@ -203,7 +207,7 @@ async function createBackup(cwd: string, dryRun: boolean): Promise<string> {
 async function migrateDecisions(cwd: string, dryRun: boolean): Promise<number> {
   const decisionsDir = join(getSpecBridgeDir(cwd), 'decisions');
 
-  if (!await pathExists(decisionsDir)) {
+  if (!(await pathExists(decisionsDir))) {
     return 0;
   }
 

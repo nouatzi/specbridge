@@ -22,21 +22,31 @@ export const createDecision = new Command('create')
   .argument('<id>', 'Decision ID (e.g., auth-001)')
   .requiredOption('-t, --title <title>', 'Decision title')
   .requiredOption('-s, --summary <summary>', 'One-sentence summary')
-  .option('--type <type>', 'Default constraint type (invariant, convention, guideline)', 'convention')
-  .option('--severity <severity>', 'Default constraint severity (critical, high, medium, low)', 'medium')
+  .option(
+    '--type <type>',
+    'Default constraint type (invariant, convention, guideline)',
+    'convention'
+  )
+  .option(
+    '--severity <severity>',
+    'Default constraint severity (critical, high, medium, low)',
+    'medium'
+  )
   .option('--scope <scope>', 'Default constraint scope (glob pattern)', 'src/**/*.ts')
   .option('-o, --owner <owner>', 'Owner name', 'team')
   .action(async (id: string, options: CreateOptions) => {
     const cwd = process.cwd();
 
     // Check if specbridge is initialized
-    if (!await pathExists(getSpecBridgeDir(cwd))) {
+    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
       throw new NotInitializedError();
     }
 
     // Validate ID format
     if (!/^[a-z0-9-]+$/.test(id)) {
-      console.error(chalk.red('Error: Decision ID must be lowercase alphanumeric with hyphens only.'));
+      console.error(
+        chalk.red('Error: Decision ID must be lowercase alphanumeric with hyphens only.')
+      );
       process.exit(1);
     }
 
@@ -92,5 +102,7 @@ export const createDecision = new Command('create')
     console.log(`  1. Edit the file to add rationale, context, and consequences`);
     console.log(`  2. Define constraints with appropriate scopes`);
     console.log(`  3. Run ${chalk.bold('specbridge decision validate')} to check syntax`);
-    console.log(`  4. Change status from ${chalk.yellow('draft')} to ${chalk.green('active')} when ready`);
+    console.log(
+      `  4. Change status from ${chalk.yellow('draft')} to ${chalk.green('active')} when ready`
+    );
   });

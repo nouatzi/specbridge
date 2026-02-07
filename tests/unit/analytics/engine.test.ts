@@ -302,7 +302,7 @@ describe('AnalyticsEngine', () => {
       const insights = await engine.generateInsights(reports);
 
       const improvementInsight = insights.find(
-        i => i.category === 'trend' && i.type === 'success'
+        (i) => i.category === 'trend' && i.type === 'success'
       );
       expect(improvementInsight).toBeDefined();
       expect(improvementInsight?.message).toContain('improved');
@@ -330,7 +330,7 @@ describe('AnalyticsEngine', () => {
       const insights = await engine.generateInsights(reports);
 
       const criticalInsight = insights.find(
-        i => i.category === 'compliance' && i.message.includes('critical')
+        (i) => i.category === 'compliance' && i.message.includes('critical')
       );
       expect(criticalInsight).toBeDefined();
       expect(criticalInsight?.type).toBe('warning');
@@ -374,7 +374,7 @@ describe('AnalyticsEngine', () => {
 
       const insights = await engine.generateInsights(reports);
 
-      const perfectInsight = insights.find(i => i.message.includes('100% compliance'));
+      const perfectInsight = insights.find((i) => i.message.includes('100% compliance'));
       expect(perfectInsight).toBeDefined();
       expect(perfectInsight?.type).toBe('success');
     });
@@ -418,7 +418,7 @@ describe('AnalyticsEngine', () => {
       const insights = await engine.generateInsights(reports);
 
       const hotspotInsight = insights.find(
-        i => i.category === 'hotspot' && i.message.includes('less than 50%')
+        (i) => i.category === 'hotspot' && i.message.includes('less than 50%')
       );
       expect(hotspotInsight).toBeDefined();
       expect(hotspotInsight?.type).toBe('warning');
@@ -446,7 +446,7 @@ describe('AnalyticsEngine', () => {
       const insights = await engine.generateInsights(reports);
 
       const severityInsight = insights.find(
-        i => i.category === 'suggestion' && i.message.includes('high severity')
+        (i) => i.category === 'suggestion' && i.message.includes('high severity')
       );
       expect(severityInsight).toBeDefined();
     });

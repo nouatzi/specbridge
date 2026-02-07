@@ -87,7 +87,7 @@ export class InferenceEngine {
     }
 
     // Filter by minimum confidence
-    const filteredPatterns = allPatterns.filter(p => p.confidence >= minConfidence);
+    const filteredPatterns = allPatterns.filter((p) => p.confidence >= minConfidence);
 
     // Sort by confidence (highest first)
     filteredPatterns.sort((a, b) => b.confidence - a.confidence);

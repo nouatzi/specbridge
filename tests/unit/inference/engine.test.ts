@@ -223,10 +223,7 @@ describe('InferenceEngine', () => {
 
     it('should respect exclude patterns', async () => {
       // Create a test file that should be excluded
-      writeFileSync(
-        join(testDir, 'src', 'test.test.ts'),
-        'export const test = "test";'
-      );
+      writeFileSync(join(testDir, 'src', 'test.test.ts'), 'export const test = "test";');
 
       const result = await engine.infer({
         cwd: testDir,

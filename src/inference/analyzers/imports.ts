@@ -30,13 +30,15 @@ export class ImportsAnalyzer implements Analyzer {
 
   private analyzeBarrelImports(scanner: CodeScanner): Pattern | null {
     const imports = scanner.findImports();
-    const barrelImports = imports.filter(i => {
+    const barrelImports = imports.filter((i) => {
       const modulePath = i.module;
-      return modulePath.startsWith('.') && !modulePath.includes('.js') && !modulePath.includes('.ts');
+      return (
+        modulePath.startsWith('.') && !modulePath.includes('.js') && !modulePath.includes('.ts')
+      );
     });
 
     // Check for index imports
-    const indexImports = barrelImports.filter(i => {
+    const indexImports = barrelImports.filter((i) => {
       return i.module.endsWith('/index') || !i.module.includes('/');
     });
 
@@ -51,7 +53,7 @@ export class ImportsAnalyzer implements Analyzer {
       description: 'Modules are imported through barrel (index) files',
       confidence,
       occurrences: indexImports.length,
-      examples: indexImports.slice(0, 3).map(i => ({
+      examples: indexImports.slice(0, 3).map((i) => ({
         file: i.file,
         line: i.line,
         snippet: `import { ${i.named.slice(0, 3).join(', ')} } from '${i.module}'`,
@@ -67,9 +69,13 @@ export class ImportsAnalyzer implements Analyzer {
 
   private analyzeRelativeImports(scanner: CodeScanner): Pattern | null {
     const imports = scanner.findImports();
-    const relativeImports = imports.filter(i => i.module.startsWith('.'));
-    const absoluteImports = imports.filter(i => !i.module.startsWith('.') && !i.module.startsWith('@'));
-    const aliasImports = imports.filter(i => i.module.startsWith('@/') || i.module.startsWith('~'));
+    const relativeImports = imports.filter((i) => i.module.startsWith('.'));
+    const absoluteImports = imports.filter(
+      (i) => !i.module.startsWith('.') && !i.module.startsWith('@')
+    );
+    const aliasImports = imports.filter(
+      (i) => i.module.startsWith('@/') || i.module.startsWith('~')
+    );
 
     // Determine dominant pattern
     const total = relativeImports.length + absoluteImports.length + aliasImports.length;
@@ -85,7 +91,7 @@ export class ImportsAnalyzer implements Analyzer {
         description: 'Imports use path aliases (@ or ~) instead of relative paths',
         confidence,
         occurrences: aliasImports.length,
-        examples: aliasImports.slice(0, 3).map(i => ({
+        examples: aliasImports.slice(0, 3).map((i) => ({
           file: i.file,
           line: i.line,
           snippet: `import { ${i.named.slice(0, 2).join(', ')} } from '${i.module}'`,
@@ -109,7 +115,7 @@ export class ImportsAnalyzer implements Analyzer {
         description: 'Imports use relative paths',
         confidence,
         occurrences: relativeImports.length,
-        examples: relativeImports.slice(0, 3).map(i => ({
+        examples: relativeImports.slice(0, 3).map((i) => ({
           file: i.file,
           line: i.line,
           snippet: `import { ${i.named.slice(0, 2).join(', ')} } from '${i.module}'`,
@@ -139,9 +145,8 @@ export class ImportsAnalyzer implements Analyzer {
 
       // Get the package name (handle scoped packages)
       const parts = imp.module.split('/');
-      const packageName = imp.module.startsWith('@') && parts.length > 1
-        ? `${parts[0]}/${parts[1]}`
-        : parts[0];
+      const packageName =
+        imp.module.startsWith('@') && parts.length > 1 ? `${parts[0]}/${parts[1]}` : parts[0];
 
       if (packageName) {
         const existing = moduleCounts.get(packageName) || { count: 0, examples: [] };
@@ -156,18 +161,20 @@ export class ImportsAnalyzer implements Analyzer {
       if (data.count >= 5) {
         const confidence = Math.min(100, 50 + data.count * 2);
 
-        patterns.push(createPattern(this.id, {
-          id: `imports-module-${packageName.replace(/[/@]/g, '-')}`,
-          name: `${packageName} Usage`,
-          description: `${packageName} is used across ${data.count} files`,
-          confidence,
-          occurrences: data.count,
-          examples: data.examples.slice(0, 3).map(i => ({
-            file: i.file,
-            line: i.line,
-            snippet: `import { ${i.named.slice(0, 2).join(', ') || '...'} } from '${i.module}'`,
-          })),
-        }));
+        patterns.push(
+          createPattern(this.id, {
+            id: `imports-module-${packageName.replace(/[/@]/g, '-')}`,
+            name: `${packageName} Usage`,
+            description: `${packageName} is used across ${data.count} files`,
+            confidence,
+            occurrences: data.count,
+            examples: data.examples.slice(0, 3).map((i) => ({
+              file: i.file,
+              line: i.line,
+              snippet: `import { ${i.named.slice(0, 2).join(', ') || '...'} } from '${i.module}'`,
+            })),
+          })
+        );
       }
     }
 

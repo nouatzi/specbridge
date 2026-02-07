@@ -16,7 +16,10 @@ describe('SecurityVerifier', () => {
   });
 
   it('should detect hardcoded secrets', async () => {
-    const sf = project.createSourceFile('src/test.ts', `const API_KEY = "abcd"; export { API_KEY };`);
+    const sf = project.createSourceFile(
+      'src/test.ts',
+      `const API_KEY = "abcd"; export { API_KEY };`
+    );
 
     const ctx: VerificationContext = {
       filePath: sf.getFilePath(),
@@ -79,7 +82,10 @@ describe('SecurityVerifier', () => {
   });
 
   it('should detect dynamic SQL construction', async () => {
-    const sf = project.createSourceFile('src/test.ts', `db.query("SELECT * FROM users WHERE id=" + userInput);`);
+    const sf = project.createSourceFile(
+      'src/test.ts',
+      `db.query("SELECT * FROM users WHERE id=" + userInput);`
+    );
 
     const ctx: VerificationContext = {
       filePath: sf.getFilePath(),
@@ -99,4 +105,3 @@ describe('SecurityVerifier', () => {
     expect(violations[0].message.toLowerCase()).toContain('sql');
   });
 });
-

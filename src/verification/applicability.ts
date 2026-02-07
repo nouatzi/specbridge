@@ -4,7 +4,11 @@
 import type { Constraint, Severity } from '../core/types/index.js';
 import { matchesPattern } from '../utils/glob.js';
 
-export function isConstraintExcepted(filePath: string, constraint: Constraint, cwd: string): boolean {
+export function isConstraintExcepted(
+  filePath: string,
+  constraint: Constraint,
+  cwd: string
+): boolean {
   if (!constraint.exceptions) return false;
 
   return constraint.exceptions.some((exception) => {
@@ -34,4 +38,3 @@ export function shouldApplyConstraintToFile(params: {
 
   return true;
 }
-

@@ -2,7 +2,11 @@
  * Verifier Instance Pooling Tests
  */
 import { describe, it, expect, afterEach } from 'vitest';
-import { getVerifier, clearVerifierPool, getVerifierIds } from '../../../src/verification/verifiers/index.js';
+import {
+  getVerifier,
+  clearVerifierPool,
+  getVerifierIds,
+} from '../../../src/verification/verifiers/index.js';
 import { resetPluginLoader } from '../../../src/verification/plugins/loader.js';
 
 describe('Verifier Instance Pooling', () => {
@@ -30,15 +34,24 @@ describe('Verifier Instance Pooling', () => {
     });
 
     it('should pool all built-in verifiers', () => {
-      const builtinIds = ['naming', 'imports', 'errors', 'regex', 'dependencies', 'complexity', 'security', 'api'];
+      const builtinIds = [
+        'naming',
+        'imports',
+        'errors',
+        'regex',
+        'dependencies',
+        'complexity',
+        'security',
+        'api',
+      ];
 
-      const instances = builtinIds.map(id => getVerifier(id));
+      const instances = builtinIds.map((id) => getVerifier(id));
 
       // All should be truthy
-      instances.forEach(instance => expect(instance).toBeTruthy());
+      instances.forEach((instance) => expect(instance).toBeTruthy());
 
       // Get them again
-      const instances2 = builtinIds.map(id => getVerifier(id));
+      const instances2 = builtinIds.map((id) => getVerifier(id));
 
       // Should be same instances
       instances.forEach((instance, i) => {
@@ -87,7 +100,7 @@ describe('Verifier Instance Pooling', () => {
 
       // All should be the exact same instance
       const first = instances[0];
-      instances.forEach(instance => {
+      instances.forEach((instance) => {
         expect(instance).toBe(first);
       });
 

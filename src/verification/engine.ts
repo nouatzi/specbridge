@@ -13,7 +13,11 @@ import type {
   VerificationIssue,
 } from '../core/types/index.js';
 import { createRegistry, type Registry } from '../registry/registry.js';
-import { selectVerifierForConstraint, getVerifierIds, type VerificationContext } from './verifiers/index.js';
+import {
+  selectVerifierForConstraint,
+  getVerifierIds,
+  type VerificationContext,
+} from './verifiers/index.js';
 import { glob } from '../utils/glob.js';
 import { AstCache } from './cache.js';
 import { ResultsCache } from './results-cache.js';
@@ -93,7 +97,7 @@ export class VerificationEngine {
     // Get decisions to verify
     let decisions = this.registry.getActive();
     if (decisionIds && decisionIds.length > 0) {
-      decisions = decisions.filter(d => decisionIds.includes(d.metadata.id));
+      decisions = decisions.filter((d) => decisionIds.includes(d.metadata.id));
     }
 
     // Get files to verify
@@ -188,7 +192,7 @@ export class VerificationEngine {
     }
 
     // Determine success based on level
-    const hasBlockingViolations = allViolations.some(v => {
+    const hasBlockingViolations = allViolations.some((v) => {
       if (level === 'commit') {
         return v.type === 'invariant' || v.severity === 'critical';
       }
@@ -221,7 +225,11 @@ export class VerificationEngine {
     cwd: string = process.cwd(),
     reporter?: ExplainReporter,
     signal?: AbortSignal
-  ): Promise<{ violations: Violation[]; warnings: VerificationWarning[]; errors: VerificationIssue[] }> {
+  ): Promise<{
+    violations: Violation[];
+    warnings: VerificationWarning[];
+    errors: VerificationIssue[];
+  }> {
     const violations: Violation[] = [];
     const warnings: VerificationWarning[] = [];
     const errors: VerificationIssue[] = [];
@@ -271,13 +279,17 @@ export class VerificationEngine {
 
         if (!verifier) {
           // Determine what was requested
-          const requestedVerifier = constraint.check?.verifier || constraint.verifier || 'auto-detected';
-          this.logger.warn({
-            decisionId: decision.metadata.id,
-            constraintId: constraint.id,
-            requestedVerifier,
-            availableVerifiers: getVerifierIds(),
-          }, 'No verifier found for constraint');
+          const requestedVerifier =
+            constraint.check?.verifier || constraint.verifier || 'auto-detected';
+          this.logger.warn(
+            {
+              decisionId: decision.metadata.id,
+              constraintId: constraint.id,
+              requestedVerifier,
+              availableVerifiers: getVerifierIds(),
+            },
+            'No verifier found for constraint'
+          );
 
           warnings.push({
             type: 'missing_verifier',
@@ -337,7 +349,10 @@ export class VerificationEngine {
         // Validate params if this is a custom plugin with paramsSchema
         if (constraint.check?.verifier && constraint.check?.params) {
           const pluginLoader = getPluginLoader();
-          const validationResult = pluginLoader.validateParams(constraint.check.verifier, constraint.check.params);
+          const validationResult = pluginLoader.validateParams(
+            constraint.check.verifier,
+            constraint.check.params
+          );
 
           if (!validationResult.success) {
             warnings.push({
@@ -408,14 +423,17 @@ export class VerificationEngine {
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
           const errorStack = error instanceof Error ? error.stack : undefined;
-          this.logger.error({
-            verifierId: verifier.id,
-            filePath,
-            decisionId: decision.metadata.id,
-            constraintId: constraint.id,
-            error: errorMessage,
-            stack: errorStack,
-          }, 'Verifier execution failed');
+          this.logger.error(
+            {
+              verifierId: verifier.id,
+              filePath,
+              decisionId: decision.metadata.id,
+              constraintId: constraint.id,
+              error: errorMessage,
+              stack: errorStack,
+            },
+            'Verifier execution failed'
+          );
 
           errors.push({
             type: 'verifier_exception',
@@ -459,7 +477,11 @@ export class VerificationEngine {
     cwd: string,
     reporter: ExplainReporter | undefined,
     signal: AbortSignal,
-    onFileVerified: (violations: Violation[], warnings: VerificationWarning[], errors: VerificationIssue[]) => void
+    onFileVerified: (
+      violations: Violation[],
+      warnings: VerificationWarning[],
+      errors: VerificationIssue[]
+    ) => void
   ): Promise<void> {
     const BATCH_SIZE = 50; // Increased from 10 for better parallelism
     for (let i = 0; i < files.length; i += BATCH_SIZE) {
@@ -470,7 +492,7 @@ export class VerificationEngine {
 
       const batch = files.slice(i, i + BATCH_SIZE);
       const results = await Promise.all(
-        batch.map(file => this.verifyFile(file, decisions, severityFilter, cwd, reporter, signal))
+        batch.map((file) => this.verifyFile(file, decisions, severityFilter, cwd, reporter, signal))
       );
 
       for (const result of results) {

@@ -46,10 +46,10 @@ export default [
       // Disable no-undef for TypeScript (TypeScript compiler handles this)
       'no-undef': 'off',
 
-      // Custom rules (maintain existing warnings)
-      '@typescript-eslint/no-explicit-any': 'warn',
+      // Custom rules (strict by default)
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
@@ -57,8 +57,18 @@ export default [
       ],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'error',
       'no-console': 'off',
+    },
+  },
+
+  // Test files may use looser typing/assertions for mock ergonomics.
+  {
+    files: ['tests/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
     },
   },
 ];

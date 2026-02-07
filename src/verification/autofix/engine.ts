@@ -93,7 +93,11 @@ export class AutofixEngine {
 
       const edits: DescribedEdit[] = [];
       for (const violation of fileViolations) {
-        const fix = violation.autofix!;
+        const fix = violation.autofix;
+        if (!fix) {
+          skippedViolations++;
+          continue;
+        }
         if (options.interactive) {
           const ok = await confirmFix(`Apply fix: ${fix.description} (${filePath}:${violation.line ?? 1})?`);
           if (!ok) {

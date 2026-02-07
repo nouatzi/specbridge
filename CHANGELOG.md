@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-02-07
+
+### Added
+
+- Unit test coverage for:
+  - LSP server (`tests/unit/lsp/server.test.ts`)
+  - MCP server (`tests/unit/mcp/server.test.ts`)
+  - Incremental verification helper (`tests/unit/verification/incremental.test.ts`)
+- English summary of project vision in `docs/VISION.en.md`.
+
+### Changed
+
+- Replaced deprecated Husky prepare command (`husky install` -> `husky`).
+- Refactored dashboard server unit tests to cover endpoint behavior, cache fallback, and timer lifecycle.
+- Reworked propagation engine tests to validate migration step generation and effort classification with deterministic mocks.
+- Improved analyzer test runtime by reducing repeated ts-morph/file-system setup in slow suites.
+- Introduced structured logging via `pino` and started replacing direct `console.warn`/`console.error` calls in runtime modules.
+
+### Fixed
+
+- Removed remaining production lint warning hotspots in:
+  - `src/cli/commands/migrate.ts`
+  - `src/integrations/github.ts`
+  - `src/propagation/engine.ts`
+  - `src/verification/autofix/engine.ts`
+  - `src/verification/verifiers/dependencies.ts`
+  - `src/verification/verifiers/index.ts`
+
 ## [2.3.0] - 2026-02-06
 
 ### Added

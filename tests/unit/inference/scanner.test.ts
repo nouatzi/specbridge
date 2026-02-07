@@ -1,20 +1,33 @@
 /**
  * CodeScanner Unit Tests
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CodeScanner, createScannerFromConfig } from '../../../src/inference/scanner.js';
+import type { ScannedFile } from '../../../src/inference/scanner.js';
 import type { SpecBridgeConfig } from '../../../src/core/types/index.js';
+
+interface ScannerInternals {
+  scannedFiles: Map<string, ScannedFile>;
+}
 
 describe('CodeScanner', () => {
   let scanner: CodeScanner;
   let testDir: string;
   let srcDir: string;
 
-  beforeEach(() => {
+  beforeAll(() => {
     scanner = new CodeScanner();
+  });
+
+  beforeEach(() => {
+    const internals = scanner as unknown as ScannerInternals;
+    internals.scannedFiles.clear();
+    for (const sourceFile of scanner.getProject().getSourceFiles()) {
+      scanner.getProject().removeSourceFile(sourceFile);
+    }
 
     // Create temporary test directory
     testDir = mkdtempSync(join(tmpdir(), 'specbridge-scanner-test-'));
@@ -27,6 +40,16 @@ describe('CodeScanner', () => {
       rmSync(testDir, { recursive: true, force: true });
     }
   });
+
+  function addScannedFile(filePath: string, content: string): void {
+    const sourceFile = scanner.getProject().createSourceFile(filePath, content, { overwrite: true });
+    const internals = scanner as unknown as ScannerInternals;
+    internals.scannedFiles.set(filePath, {
+      path: filePath,
+      sourceFile,
+      lines: sourceFile.getEndLineNumber(),
+    });
+  }
 
   describe('constructor', () => {
     it('should initialize with ts-morph Project', () => {
@@ -343,7 +366,7 @@ export class TestClass {
 
   describe('findFunctions', () => {
     it('should find function declarations', async () => {
-      writeFileSync(
+      addScannedFile(
         join(srcDir, 'functions.ts'),
         `export function publicFunc() {
   return true;
@@ -354,11 +377,6 @@ function privateFunc() {
 }`
       );
 
-      await scanner.scan({
-        sourceRoots: ['src/**/*.ts'],
-        cwd: testDir,
-      });
-
       const functions = scanner.findFunctions();
       expect(functions.length).toBe(2);
       expect(functions.map(f => f.name)).toContain('publicFunc');
@@ -366,16 +384,11 @@ function privateFunc() {
     });
 
     it('should detect exported functions correctly', async () => {
-      writeFileSync(
+      addScannedFile(
         join(srcDir, 'exports.ts'),
         `export function exportedFunc() {}
 function notExported() {}`
       );
-
-      await scanner.scan({
-        sourceRoots: ['src/**/*.ts'],
-        cwd: testDir,
-      });
 
       const functions = scanner.findFunctions();
       const exported = functions.find(f => f.name === 'exportedFunc');
@@ -386,7 +399,7 @@ function notExported() {}`
     });
 
     it('should find arrow functions assigned to variables', async () => {
-      writeFileSync(
+      addScannedFile(
         join(srcDir, 'arrows.ts'),
         `export const arrowFunc = () => {
   return 'arrow';
@@ -395,11 +408,6 @@ function notExported() {}`
 const privateArrow = () => 'private';`
       );
 
-      await scanner.scan({
-        sourceRoots: ['src/**/*.ts'],
-        cwd: testDir,
-      });
-
       const functions = scanner.findFunctions();
       expect(functions.length).toBe(2);
       expect(functions.map(f => f.name)).toContain('arrowFunc');
@@ -407,16 +415,11 @@ const privateArrow = () => 'private';`
     });
 
     it('should detect exported arrow functions', async () => {
-      writeFileSync(
+      addScannedFile(
         join(srcDir, 'arrow-exports.ts'),
         `export const exportedArrow = () => {};
 const notExportedArrow = () => {};`
       );
-
-      await scanner.scan({
-        sourceRoots: ['src/**/*.ts'],
-        cwd: testDir,
-      });
 
       const functions = scanner.findFunctions();
       const exported = functions.find(f => f.name === 'exportedArrow');
@@ -427,7 +430,7 @@ const notExportedArrow = () => {};`
     });
 
     it('should return line numbers for functions', async () => {
-      writeFileSync(
+      addScannedFile(
         join(srcDir, 'func-lines.ts'),
         `// Line 1
 // Line 2
@@ -436,22 +439,12 @@ export function testFunc() {
 }`
       );
 
-      await scanner.scan({
-        sourceRoots: ['src/**/*.ts'],
-        cwd: testDir,
-      });
-
       const functions = scanner.findFunctions();
       expect(functions[0]?.line).toBe(3);
     });
 
     it('should handle files with no functions', async () => {
-      writeFileSync(join(srcDir, 'no-funcs.ts'), 'export const VALUE = 42;');
-
-      await scanner.scan({
-        sourceRoots: ['src/**/*.ts'],
-        cwd: testDir,
-      });
+      addScannedFile(join(srcDir, 'no-funcs.ts'), 'export const VALUE = 42;');
 
       const functions = scanner.findFunctions();
       expect(functions).toEqual([]);

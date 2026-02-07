@@ -11,6 +11,7 @@ import {
   pathExists,
   getSpecBridgeDir,
 } from '../utils/fs.js';
+import { getLogger } from '../utils/logger.js';
 
 export interface StoredReport {
   timestamp: string;
@@ -22,6 +23,7 @@ export interface StoredReport {
  */
 export class ReportStorage {
   private storageDir: string;
+  private logger = getLogger({ module: 'reporting.storage' });
 
   constructor(basePath: string) {
     this.storageDir = join(getSpecBridgeDir(basePath), 'reports', 'history');
@@ -110,7 +112,7 @@ export class ReportStorage {
         return { timestamp, report } as StoredReport;
       } catch (error) {
         // Skip corrupted files
-        console.warn(`Warning: Failed to load report ${file}:`, error);
+        this.logger.warn({ file, error }, 'Failed to load report file');
         return null;
       }
     });
@@ -175,7 +177,7 @@ export class ReportStorage {
         const fs = await import('node:fs/promises');
         await fs.unlink(filepath);
       } catch (error) {
-        console.warn(`Warning: Failed to delete old report ${file}:`, error);
+        this.logger.warn({ file, error }, 'Failed to delete old report file');
       }
     }
 

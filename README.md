@@ -30,6 +30,8 @@ SpecBridge creates a living integration layer between design intent and implemen
 
 [📖 See full changelog](./CHANGELOG-v2.0.md) | [🔧 Migration Guide](./docs/MIGRATION-V2.md)
 
+Project vision: [French](./docs/VISION.md) | [English summary](./docs/VISION.en.md)
+
 ## Installation
 
 ```bash

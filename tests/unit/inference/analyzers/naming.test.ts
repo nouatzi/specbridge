@@ -1,17 +1,30 @@
 /**
  * Naming Convention Analyzer Unit Tests
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { CodeScanner } from '../../../../src/inference/scanner.js';
 import { NamingAnalyzer } from '../../../../src/inference/analyzers/naming.js';
+import type { ScannedFile } from '../../../../src/inference/scanner.js';
+
+interface ScannerInternals {
+  scannedFiles: Map<string, ScannedFile>;
+}
 
 describe('NamingAnalyzer', () => {
   let scanner: CodeScanner;
   let analyzer: NamingAnalyzer;
 
-  beforeEach(() => {
+  beforeAll(() => {
     scanner = new CodeScanner();
     analyzer = new NamingAnalyzer();
+  });
+
+  beforeEach(() => {
+    const internals = scanner as unknown as ScannerInternals;
+    internals.scannedFiles.clear();
+    for (const sourceFile of scanner.getProject().getSourceFiles()) {
+      scanner.getProject().removeSourceFile(sourceFile);
+    }
   });
 
   /**
@@ -19,7 +32,8 @@ describe('NamingAnalyzer', () => {
    */
   function addFile(path: string, content: string) {
     const sourceFile = scanner.getProject().createSourceFile(path, content, { overwrite: true });
-    (scanner as any).scannedFiles.set(path, {
+    const internals = scanner as unknown as ScannerInternals;
+    internals.scannedFiles.set(path, {
       path,
       sourceFile,
       lines: sourceFile.getEndLineNumber(),

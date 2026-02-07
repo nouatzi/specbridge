@@ -1,518 +1,215 @@
-/**
- * Propagation Engine Unit Tests
- */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Decision, SpecBridgeConfig, Violation } from '../../../src/core/types/index.js';
+
+const { createVerificationEngineMock, verifyMock, globMock, buildDependencyGraphMock, getAffectedFilesMock } = vi.hoisted(() => ({
+  createVerificationEngineMock: vi.fn(),
+  verifyMock: vi.fn(),
+  globMock: vi.fn(),
+  buildDependencyGraphMock: vi.fn(),
+  getAffectedFilesMock: vi.fn(),
+}));
+
+vi.mock('../../../src/verification/engine.js', () => ({
+  createVerificationEngine: createVerificationEngineMock,
+}));
+
+vi.mock('../../../src/utils/glob.js', () => ({
+  glob: globMock,
+}));
+
+vi.mock('../../../src/propagation/graph.js', () => ({
+  buildDependencyGraph: buildDependencyGraphMock,
+  getAffectedFiles: getAffectedFilesMock,
+}));
+
 import { createPropagationEngine } from '../../../src/propagation/engine.js';
-import { createRegistry } from '../../../src/registry/registry.js';
-import { setupTestProject, cleanupTestProject, createDecisionYaml } from '../../helpers/setup.js';
-import type { SpecBridgeConfig } from '../../../src/core/types/index.js';
+
+function makeDecision(id: string): Decision {
+  return {
+    kind: 'Decision',
+    metadata: {
+      id,
+      title: 'Propagation test decision',
+      status: 'active',
+      owners: ['team'],
+    },
+    decision: {
+      summary: 'summary',
+      rationale: 'rationale',
+    },
+    constraints: [
+      {
+        id: 'c-1',
+        type: 'convention',
+        rule: 'must contain /class/',
+        severity: 'low',
+        scope: 'src/**/*.ts',
+      },
+    ],
+  };
+}
+
+function makeViolation(file: string, autofix: boolean): Violation {
+  return {
+    decisionId: 'test-001',
+    constraintId: 'c-1',
+    type: 'convention',
+    severity: 'medium',
+    message: 'violation',
+    file,
+    line: 1,
+    autofix: autofix ? { description: 'fix', edits: [{ start: 0, end: 1, text: '' }] } : undefined,
+  };
+}
 
 describe('PropagationEngine', () => {
-  let testDir: string;
-  let config: SpecBridgeConfig;
-
-  beforeEach(async () => {
-    // Create temporary test directory
-    testDir = mkdtempSync(join(tmpdir(), 'specbridge-test-'));
-
-    // Create a simple test file
-    const srcDir = join(testDir, 'src');
-    mkdirSync(srcDir, { recursive: true });
-    writeFileSync(join(srcDir, 'test.ts'), 'export class TestClass {}');
-
-    // Set up test project with .specbridge
-    await setupTestProject(testDir, {
-      decisions: [
-        {
-          id: 'test-001',
-          content: createDecisionYaml('test-001', {
-            constraints: [
-              {
-                id: 'constraint-1',
-                type: 'convention',
-                rule: 'Test rule',
-                severity: 'medium',
-                scope: '**/*.ts',
-              },
-            ],
-          }),
+  const config: SpecBridgeConfig = {
+    version: '1.0',
+    project: {
+      name: 'specbridge',
+      sourceRoots: ['src/**/*.ts'],
+      exclude: ['node_modules'],
+    },
+    verification: {
+      levels: {
+        full: {
+          severity: ['critical', 'high', 'medium', 'low'],
         },
+      },
+    },
+  };
+
+  const registry = {
+    load: vi.fn(),
+    getActive: vi.fn(),
+  };
+
+  beforeEach(() => {
+    registry.load.mockReset();
+    registry.getActive.mockReset();
+    createVerificationEngineMock.mockReset();
+    verifyMock.mockReset();
+    globMock.mockReset();
+    buildDependencyGraphMock.mockReset();
+    getAffectedFilesMock.mockReset();
+
+    registry.load.mockResolvedValue(undefined);
+    registry.getActive.mockReturnValue([makeDecision('test-001')]);
+    createVerificationEngineMock.mockReturnValue({
+      verify: verifyMock,
+    });
+    globMock.mockResolvedValue(['/repo/src/a.ts', '/repo/src/b.ts', '/repo/src/c.ts', '/repo/src/d.ts']);
+    buildDependencyGraphMock.mockResolvedValue(new Map<string, Set<string>>());
+  });
+
+  it('initializes graph from registry decisions and discovered files', async () => {
+    const engine = createPropagationEngine(registry as never);
+    await engine.initialize(config, { cwd: '/repo' });
+
+    expect(registry.load).toHaveBeenCalledTimes(1);
+    expect(globMock).toHaveBeenCalledWith(config.project.sourceRoots, {
+      cwd: '/repo',
+      ignore: ['node_modules'],
+      absolute: true,
+    });
+    expect(buildDependencyGraphMock).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          metadata: expect.objectContaining({ id: 'test-001' }),
+        }),
+      ]),
+      ['/repo/src/a.ts', '/repo/src/b.ts', '/repo/src/c.ts', '/repo/src/d.ts'],
+      { cwd: '/repo' }
+    );
+    expect(engine.getGraph()).toBeDefined();
+  });
+
+  it('returns low effort with verification-only step when no violations exist', async () => {
+    const engine = createPropagationEngine(registry as never);
+    getAffectedFilesMock.mockReturnValue(['/repo/src/a.ts']);
+    verifyMock.mockResolvedValue({ violations: [] });
+
+    const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: '/repo' });
+
+    expect(impact.estimatedEffort).toBe('low');
+    expect(impact.affectedFiles).toEqual([
+      { path: '/repo/src/a.ts', violations: 0, autoFixable: 0 },
+    ]);
+    expect(impact.migrationSteps).toEqual([
+      {
+        order: 1,
+        description: 'Run verification to confirm all violations resolved',
+        files: [],
+        automated: true,
+      },
+    ]);
+  });
+
+  it('generates auto-fix and manual-priority steps with sequential ordering', async () => {
+    const engine = createPropagationEngine(registry as never);
+    getAffectedFilesMock.mockReturnValue([
+      '/repo/src/a.ts',
+      '/repo/src/b.ts',
+      '/repo/src/c.ts',
+      '/repo/src/d.ts',
+    ]);
+
+    verifyMock.mockResolvedValue({
+      violations: [
+        ...Array.from({ length: 6 }, () => makeViolation('/repo/src/a.ts', false)),
+        ...Array.from({ length: 3 }, () => makeViolation('/repo/src/b.ts', false)),
+        makeViolation('/repo/src/b.ts', true),
+        makeViolation('/repo/src/c.ts', false),
+        makeViolation('/repo/src/d.ts', true),
       ],
     });
 
-    // Create minimal config
-    config = {
-      version: '1.0',
-      project: {
-        name: 'test-project',
-        sourceRoots: ['src/**/*.ts'],
-        exclude: ['node_modules', 'dist'],
-      },
-      verification: {
-        levels: {
-          commit: { timeout: 5000 },
-        },
-      },
-    };
-  });
+    const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: '/repo' });
+    const descriptions = impact.migrationSteps.map((step) => step.description.toLowerCase());
 
-  afterEach(async () => {
-    await cleanupTestProject(testDir);
-    if (existsSync(testDir)) {
-      rmSync(testDir, { recursive: true, force: true });
-    }
-  });
-
-  describe('analyzeImpact', () => {
-    it('should analyze impact of decision change', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact(
-        'test-001',
-        'modified',
-        config,
-        { cwd: testDir }
-      );
-
-      expect(impact).toBeDefined();
-      expect(impact.decision).toBe('test-001');
-      expect(impact.change).toBe('modified');
-      expect(impact.affectedFiles).toBeDefined();
-      expect(Array.isArray(impact.affectedFiles)).toBe(true);
-      expect(impact.estimatedEffort).toBeDefined();
-      expect(impact.migrationSteps).toBeDefined();
-    });
-
-    it('should handle created decision', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact(
-        'test-001',
-        'created',
-        config,
-        { cwd: testDir }
-      );
-
-      expect(impact).toBeDefined();
-      expect(impact.change).toBe('created');
-    });
-
-    it('should handle deprecated decision', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact(
-        'test-001',
-        'deprecated',
-        config,
-        { cwd: testDir }
-      );
-
-      expect(impact).toBeDefined();
-      expect(impact.change).toBe('deprecated');
-    });
-
-    it('should include affected files', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact(
-        'test-001',
-        'modified',
-        config,
-        { cwd: testDir }
-      );
-
-      expect(impact.affectedFiles).toBeDefined();
-      expect(Array.isArray(impact.affectedFiles)).toBe(true);
-    });
-
-    it('should estimate effort', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact(
-        'test-001',
-        'modified',
-        config,
-        { cwd: testDir }
-      );
-
-      expect(impact.estimatedEffort).toBeDefined();
-      expect(['low', 'medium', 'high']).toContain(impact.estimatedEffort);
-    });
-
-    it('should provide migration steps', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact(
-        'test-001',
-        'modified',
-        config,
-        { cwd: testDir }
-      );
-
-      expect(impact.migrationSteps).toBeDefined();
-      expect(Array.isArray(impact.migrationSteps)).toBe(true);
+    expect(impact.estimatedEffort).toBe('medium');
+    expect(impact.affectedFiles.map((f) => f.path)).toEqual([
+      '/repo/src/a.ts',
+      '/repo/src/b.ts',
+      '/repo/src/c.ts',
+      '/repo/src/d.ts',
+    ]);
+    expect(descriptions[0]).toContain('auto-fix');
+    expect(descriptions).toContain('fix high-violation files first');
+    expect(descriptions).toContain('fix medium-violation files');
+    expect(descriptions).toContain('fix remaining files');
+    expect(descriptions[descriptions.length - 1]).toContain('run verification');
+    impact.migrationSteps.forEach((step, index) => {
+      expect(step.order).toBe(index + 1);
     });
   });
 
-  describe('getGraph', () => {
-    it('should return null before initialization', () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const graph = engine.getGraph();
-
-      expect(graph).toBeNull();
+  it('classifies effort as high when manual fixes exceed ten', async () => {
+    const engine = createPropagationEngine(registry as never);
+    getAffectedFilesMock.mockReturnValue(['/repo/src/a.ts', '/repo/src/b.ts']);
+    verifyMock.mockResolvedValue({
+      violations: [
+        ...Array.from({ length: 8 }, () => makeViolation('/repo/src/a.ts', false)),
+        ...Array.from({ length: 4 }, () => makeViolation('/repo/src/b.ts', false)),
+      ],
     });
 
-    it('should return graph after initialization', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
+    const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: '/repo' });
 
-      await engine.initialize(config, { cwd: testDir });
-      const graph = engine.getGraph();
-
-      expect(graph).toBeDefined();
-    });
+    expect(impact.estimatedEffort).toBe('high');
   });
 
-  describe('initialize', () => {
-    it('should initialize successfully', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      await expect(engine.initialize(config, { cwd: testDir })).resolves.not.toThrow();
-    });
-
-    it('should build dependency graph on initialization', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      await engine.initialize(config, { cwd: testDir });
-      const graph = engine.getGraph();
-
-      expect(graph).toBeDefined();
-    });
-  });
-
-  describe('migration steps', () => {
-    it('should generate migration steps in analyzeImpact', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact(
-        'test-001',
-        'modified',
-        config,
-        { cwd: testDir }
-      );
-
-      expect(impact.migrationSteps).toBeDefined();
-      expect(impact.migrationSteps.length).toBeGreaterThan(0);
-
-      // Verify step structure
-      impact.migrationSteps.forEach(step => {
-        expect(step).toHaveProperty('order');
-        expect(step).toHaveProperty('description');
-        expect(step).toHaveProperty('files');
-        expect(step).toHaveProperty('automated');
-      });
-    });
-
-    it('should generate auto-fix step when violations have autofix available', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      // The test currently won't have actual violations with autofix
-      // This test documents expected behavior when they exist
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      // Verify that if there were auto-fixable violations, an auto-fix step would exist
-      const autoFixSteps = impact.migrationSteps.filter(step =>
-        step.automated && step.description.toLowerCase().includes('auto-fix')
-      );
-
-      // Either there are no violations, or if there were auto-fixable ones, we'd have this step
-      expect(impact.migrationSteps).toBeDefined();
-    });
-
-    it('should include verification step', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      const verificationStep = impact.migrationSteps.find(s =>
-        s.description.toLowerCase().includes('verification')
-      );
-
-      expect(verificationStep).toBeDefined();
-      expect(verificationStep?.automated).toBe(true);
-    });
-
-    it('should order steps sequentially', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      for (let i = 0; i < impact.migrationSteps.length; i++) {
-        expect(impact.migrationSteps[i]?.order).toBe(i + 1);
-      }
-    });
-
-    it('should handle high-violation files', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      const highPrioritySteps = impact.migrationSteps.filter(s =>
-        s.description.toLowerCase().includes('high')
-      );
-
-      // If there are high-violation files, there should be a step for them
-      expect(impact.migrationSteps).toBeDefined();
-    });
-
-    it('should handle medium-violation files', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      expect(impact.migrationSteps).toBeDefined();
-    });
-
-    it('should handle low-violation files', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      expect(impact.migrationSteps.length).toBeGreaterThan(0);
-    });
-
-    it('should prioritize files with >5 violations as high priority', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      // Check that high-priority logic exists in steps
-      const highPrioritySteps = impact.migrationSteps.filter(s =>
-        s.description.toLowerCase().includes('high')
-      );
-
-      // The logic exists even if there are no current violations
-      expect(impact.migrationSteps).toBeDefined();
-    });
-
-    it('should categorize 2-5 violations as medium priority', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      // Verify step generation includes medium priority handling
-      const mediumPrioritySteps = impact.migrationSteps.filter(s =>
-        s.description.toLowerCase().includes('medium')
-      );
-
-      // Logic exists for categorization
-      expect(impact.migrationSteps).toBeDefined();
-    });
-
-    it('should categorize 1 violation as low priority', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      // Check that remaining files logic exists
-      const remainingSteps = impact.migrationSteps.filter(s =>
-        s.description.toLowerCase().includes('remaining')
-      );
-
-      expect(impact.migrationSteps).toBeDefined();
-    });
-
-    it('should handle mixed auto-fixable and manual violations', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      // Verify that steps can handle both automated and manual fixes
-      const automatedSteps = impact.migrationSteps.filter(s => s.automated);
-      const manualSteps = impact.migrationSteps.filter(s => !s.automated);
-
-      // Should have at least verification step (automated)
-      expect(automatedSteps.length).toBeGreaterThan(0);
-
-      // Steps are properly categorized
-      impact.migrationSteps.forEach(step => {
-        expect(typeof step.automated).toBe('boolean');
-      });
-    });
-  });
-
-  describe('effort estimation edge cases', () => {
-    it('should estimate low effort when all violations are auto-fixable', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      // If no violations or all auto-fixable, should be low
-      expect(['low', 'medium', 'high']).toContain(impact.estimatedEffort);
-    });
-
-    it('should estimate medium effort for 1-10 manual fixes', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      expect(impact.estimatedEffort).toBeDefined();
-    });
-
-    it('should estimate high effort for many manual fixes', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      expect(impact.estimatedEffort).toBeDefined();
-    });
-  });
-
-  describe('affected files handling', () => {
-    it('should sort affected files by violation count', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      for (let i = 1; i < impact.affectedFiles.length; i++) {
-        expect(impact.affectedFiles[i - 1]!.violations).toBeGreaterThanOrEqual(
-          impact.affectedFiles[i]!.violations
-        );
-      }
-    });
-
-    it('should include violation and auto-fix counts', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      impact.affectedFiles.forEach(file => {
-        expect(typeof file.violations).toBe('number');
-        expect(typeof file.autoFixable).toBe('number');
-        expect(file.autoFixable).toBeLessThanOrEqual(file.violations);
-      });
-    });
-
-    it('should handle empty affected files', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('nonexistent', 'modified', config, { cwd: testDir });
-
-      expect(impact.affectedFiles).toEqual([]);
-    });
-  });
-
-  describe('integration scenarios', () => {
-    it('should handle multiple files with varying violations', async () => {
-      // Create more test files
-      const srcDir = join(testDir, 'src');
-      for (let i = 0; i < 5; i++) {
-        writeFileSync(join(srcDir, `file${i}.ts`), `export class File${i} {}`);
-      }
-
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      expect(impact).toBeDefined();
-    });
-
-    it('should auto-initialize when not initialized', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      // Don't call initialize first
-      const impact = await engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir });
-
-      expect(impact).toBeDefined();
-      expect(engine.getGraph()).not.toBeNull();
-    });
-
-    it('should handle config without explicit cwd', async () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      await expect(
-        engine.analyzeImpact('test-001', 'modified', config, { cwd: testDir })
-      ).resolves.not.toThrow();
-    });
-  });
-
-  describe('createPropagationEngine factory', () => {
-    it('should create engine with registry', () => {
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      expect(engine).toBeDefined();
-    });
-
-    it('should create engine without registry', () => {
-      const engine = createPropagationEngine();
-
-      expect(engine).toBeDefined();
-    });
-  });
-
-  describe('initialization edge cases', () => {
-    it('should handle empty source roots', async () => {
-      const emptyConfig = {
-        ...config,
-        project: {
-          ...config.project,
-          sourceRoots: [],
-        },
-      };
-
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      await expect(engine.initialize(emptyConfig, { cwd: testDir })).resolves.not.toThrow();
-    });
-
-    it('should handle non-existent files in source roots', async () => {
-      const badConfig = {
-        ...config,
-        project: {
-          ...config.project,
-          sourceRoots: ['nonexistent/**/*.ts'],
-        },
-      };
-
-      const registry = createRegistry({ basePath: testDir });
-      const engine = createPropagationEngine(registry);
-
-      await expect(engine.initialize(badConfig, { cwd: testDir })).resolves.not.toThrow();
-    });
+  it('returns empty impact safely when graph remains unavailable after initialization', async () => {
+    const engine = createPropagationEngine(registry as never);
+    buildDependencyGraphMock.mockResolvedValueOnce(null);
+    getAffectedFilesMock.mockReturnValue([]);
+    verifyMock.mockResolvedValue({ violations: [] });
+
+    const impact = await engine.analyzeImpact('test-001', 'created', config, { cwd: '/repo' });
+
+    expect(impact.change).toBe('created');
+    expect(impact.affectedFiles).toEqual([]);
+    expect(impact.estimatedEffort).toBe('low');
+    expect(impact.migrationSteps.length).toBe(1);
   });
 });

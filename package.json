@@ -1,6 +1,6 @@
 {
   "name": "@ipation/specbridge",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Architecture Decision Runtime - Transform architectural decisions into executable, verifiable constraints",
   "type": "module",
   "main": "./dist/index.js",
@@ -34,7 +34,7 @@
     "version:major": "npm version major",
     "docs": "typedoc --out docs/api src/index.ts",
     "docs:serve": "npm run docs && npx http-server docs/api",
-    "prepare": "husky install",
+    "prepare": "husky",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -81,6 +81,7 @@
     "fast-glob": "^3.3.0",
     "minimatch": "^10.1.2",
     "ora": "^9.3.0",
+    "pino": "^9.9.5",
     "table": "^6.8.0",
     "ts-morph": "^27.0.2",
     "vscode-languageserver": "^9.0.1",

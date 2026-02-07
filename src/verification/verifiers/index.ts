@@ -48,8 +48,9 @@ const verifierInstances = new Map<string, Verifier>();
  */
 export function getVerifier(id: string): Verifier | null {
   // Check instance pool first
-  if (verifierInstances.has(id)) {
-    return verifierInstances.get(id)!;
+  const pooled = verifierInstances.get(id);
+  if (pooled) {
+    return pooled;
   }
 
   // Priority 1: Custom plugins

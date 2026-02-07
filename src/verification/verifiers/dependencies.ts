@@ -208,7 +208,8 @@ export class DependencyVerifier implements Verifier {
       const current = projectFilePath;
 
       for (const scc of sccs) {
-        const hasSelfLoop = scc.length === 1 && (graph.get(scc[0]!)?.has(scc[0]!) ?? false);
+        const first = scc[0];
+        const hasSelfLoop = first !== undefined && scc.length === 1 && (graph.get(first)?.has(first) ?? false);
         const isCycle = scc.length > 1 || hasSelfLoop;
         if (!isCycle) continue;
 

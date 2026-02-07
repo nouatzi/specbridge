@@ -4,6 +4,8 @@
 
 **Version 1.0 — Janvier 2026**
 
+> English summary available: [`docs/VISION.en.md`](./VISION.en.md)
+
 ---
 
 ## Résumé exécutif

@@ -15,13 +15,14 @@ export default defineConfig({
       exclude: [
         'src/**/*.d.ts',
         'src/**/index.ts', // Re-exports only
+        'src/cli/**/*.ts', // Thin command wrappers; covered via CLI/integration suites
         'tests/',
         'dist/',
       ],
       thresholds: {
         lines: 70,
         functions: 73,
-        branches: 60,
+        branches: 70,
         statements: 69,
       },
     },

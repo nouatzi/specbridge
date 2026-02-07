@@ -63,9 +63,26 @@ export class PropagationEngine {
     if (!this.graph) {
       await this.initialize(config, options);
     }
+    const graph = this.graph;
+    if (!graph) {
+      return {
+        decision: decisionId,
+        change,
+        affectedFiles: [],
+        estimatedEffort: 'low',
+        migrationSteps: [
+          {
+            order: 1,
+            description: 'Run verification to confirm all violations resolved',
+            files: [],
+            automated: true,
+          },
+        ],
+      };
+    }
 
     // Get affected files
-    const affectedFilePaths = getAffectedFiles(this.graph!, decisionId);
+    const affectedFilePaths = getAffectedFiles(graph, decisionId);
 
     // Run verification on affected files
     const verificationEngine = createVerificationEngine(this.registry);

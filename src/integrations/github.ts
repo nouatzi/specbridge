@@ -10,7 +10,10 @@ export interface GitHubPrCommentOptions {
 }
 
 function toMdTable(rows: string[][]): string {
-  const header = rows[0]!;
+  const header = rows[0];
+  if (!header) {
+    return '';
+  }
   const body = rows.slice(1);
   const sep = header.map(() => '---');
   const lines = [
@@ -75,4 +78,3 @@ export async function postPrComment(
     throw new Error(`GitHub comment failed: ${res.status} ${res.statusText}${text ? ` - ${text}` : ''}`);
   }
 }
-

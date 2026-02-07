@@ -80,7 +80,7 @@ export const migrateCommand = new Command('migrate')
         const config = await loadConfig(cwd);
         const v1Report = await generateReport(config, { cwd, legacyCompliance: true });
         v1Compliance = v1Report.summary.compliance;
-      } catch (error) {
+      } catch {
         spinner.warn('Could not generate v1 baseline report');
       }
 
@@ -108,7 +108,7 @@ export const migrateCommand = new Command('migrate')
             v2: v2Compliance,
             difference: v2Compliance - v1Compliance,
           };
-        } catch (error) {
+        } catch {
           spinner.warn('Could not generate v2 comparison report');
         }
       }

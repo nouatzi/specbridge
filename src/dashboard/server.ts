@@ -11,6 +11,7 @@ import { AnalyticsEngine } from '../analytics/engine.js';
 import { createRegistry, type Registry } from '../registry/registry.js';
 import { detectDrift, analyzeTrend } from '../reporting/drift.js';
 import { DecisionNotFoundError } from '../core/errors/index.js';
+import { getLogger } from '../utils/logger.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -34,6 +35,7 @@ class DashboardServer {
   private cacheTimestamp: number = 0;
   private readonly CACHE_TTL = 60000; // 1 minute
   private refreshInterval: NodeJS.Timeout | null = null;
+  private logger = getLogger({ module: 'dashboard.server' });
 
   constructor(options: DashboardOptions) {
     this.cwd = options.cwd;
@@ -58,7 +60,11 @@ class DashboardServer {
 
     // Background refresh
     this.refreshInterval = setInterval(
-      () => this.refreshCache().catch(console.error),
+      () => {
+        void this.refreshCache().catch((error: unknown) => {
+          this.logger.error({ error }, 'Background cache refresh failed');
+        });
+      },
       this.CACHE_TTL
     );
   }
@@ -86,7 +92,7 @@ class DashboardServer {
       // Persist to disk
       await this.reportStorage.save(report);
     } catch (error) {
-      console.error('Cache refresh failed:', error);
+      this.logger.error({ error }, 'Cache refresh failed');
 
       // Fallback: Load last saved report if cache is empty
       if (!this.cachedReport) {
@@ -96,7 +102,7 @@ class DashboardServer {
             this.cachedReport = stored.report;
           }
         } catch (fallbackError) {
-          console.error('Failed to load fallback report:', fallbackError);
+          this.logger.error({ error: fallbackError }, 'Failed to load fallback report');
         }
       }
     }

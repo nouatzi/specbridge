@@ -8,6 +8,7 @@ import { join } from 'path';
 import { pathToFileURL } from 'url';
 import fg from 'fast-glob';
 import type { Verifier, VerifierPlugin } from '../verifiers/base.js';
+import { getLogger } from '../../utils/logger.js';
 
 /**
  * Manages loading and registry of custom verifier plugins
@@ -16,6 +17,7 @@ export class PluginLoader {
   private plugins = new Map<string, VerifierPlugin>();
   private loaded = false;
   private loadErrors: Array<{ file: string; error: string }> = [];
+  private logger = getLogger({ module: 'verification.plugins.loader' });
 
   /**
    * Load all plugins from the specified base path
@@ -45,7 +47,7 @@ export class PluginLoader {
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         this.loadErrors.push({ file, error: message });
-        console.warn(`Failed to load plugin from ${file}: ${message}`);
+        this.logger.warn({ file, error: message }, 'Failed to load plugin');
       }
     }
 
@@ -53,11 +55,10 @@ export class PluginLoader {
 
     // Log summary
     if (this.plugins.size > 0) {
-      // Important: keep protocol-based integrations (LSP/MCP stdio) safe by logging to stderr.
-      console.error(`Loaded ${this.plugins.size} custom verifier(s)`);
+      this.logger.info({ count: this.plugins.size }, 'Loaded custom verifier plugins');
     }
     if (this.loadErrors.length > 0) {
-      console.warn(`Failed to load ${this.loadErrors.length} plugin(s)`);
+      this.logger.warn({ count: this.loadErrors.length }, 'Plugin load failures');
     }
   }
 

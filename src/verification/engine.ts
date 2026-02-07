@@ -2,7 +2,6 @@
  * Verification Engine - Orchestrates constraint checking
  */
 import { Project } from 'ts-morph';
-import chalk from 'chalk';
 import type {
   Violation,
   VerificationResult,
@@ -23,6 +22,7 @@ import { ExplainReporter } from './explain.js';
 import { getPluginLoader } from './plugins/loader.js';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { getLogger } from '../utils/logger.js';
 
 export interface VerificationOptions {
   level?: VerificationLevel;
@@ -43,6 +43,7 @@ export class VerificationEngine {
   private astCache: AstCache;
   private resultsCache: ResultsCache;
   private pluginsLoaded = false;
+  private logger = getLogger({ module: 'verification.engine' });
 
   constructor(registry?: Registry) {
     this.registry = registry || createRegistry();
@@ -271,14 +272,12 @@ export class VerificationEngine {
         if (!verifier) {
           // Determine what was requested
           const requestedVerifier = constraint.check?.verifier || constraint.verifier || 'auto-detected';
-
-          console.warn(
-            chalk.yellow(
-              `Warning: No verifier found for ${decision.metadata.id}/${constraint.id}\n` +
-              `  Requested: ${requestedVerifier}\n` +
-              `  Available: ${getVerifierIds().join(', ')}`
-            )
-          );
+          this.logger.warn({
+            decisionId: decision.metadata.id,
+            constraintId: constraint.id,
+            requestedVerifier,
+            availableVerifiers: getVerifierIds(),
+          }, 'No verifier found for constraint');
 
           warnings.push({
             type: 'missing_verifier',
@@ -409,19 +408,14 @@ export class VerificationEngine {
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
           const errorStack = error instanceof Error ? error.stack : undefined;
-
-          console.error(
-            chalk.red(
-              `Error: Verifier '${verifier.id}' failed\n` +
-              `  File: ${filePath}\n` +
-              `  Decision: ${decision.metadata.id}/${constraint.id}\n` +
-              `  Error: ${errorMessage}`
-            )
-          );
-
-          if (errorStack) {
-            console.error(chalk.dim(errorStack));
-          }
+          this.logger.error({
+            verifierId: verifier.id,
+            filePath,
+            decisionId: decision.metadata.id,
+            constraintId: constraint.id,
+            error: errorMessage,
+            stack: errorStack,
+          }, 'Verifier execution failed');
 
           errors.push({
             type: 'verifier_exception',

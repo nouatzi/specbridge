@@ -30,11 +30,11 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Run integration tests
-        run: npm run test:integration
-
       - name: Build
         run: npm run build
+
+      - name: Run integration tests
+        run: npm run test:integration
 
       - name: Verify package contents
         run: npm run pack:check

@@ -9,6 +9,18 @@ import { validateDecisions } from '../../../../../src/cli/commands/decision/vali
 import { mockProcessCwd } from '../../../../helpers/mocks.js';
 import { setupTestProject, createDecisionYaml } from '../../../../helpers/setup.js';
 
+vi.mock('ora', () => ({
+  default: () => ({
+    start: vi.fn().mockReturnThis(),
+    succeed: vi.fn().mockReturnThis(),
+    fail: vi.fn().mockReturnThis(),
+    warn: vi.fn().mockReturnThis(),
+    info: vi.fn().mockReturnThis(),
+    stop: vi.fn().mockReturnThis(),
+    text: '',
+  }),
+}));
+
 // Mock chalk
 vi.mock('chalk', () => ({
   default: {

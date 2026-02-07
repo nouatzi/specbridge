@@ -7,6 +7,18 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { impactCommand } from '../../../../src/cli/commands/impact.js';
 
+vi.mock('ora', () => ({
+  default: () => ({
+    start: vi.fn().mockReturnThis(),
+    succeed: vi.fn().mockReturnThis(),
+    fail: vi.fn().mockReturnThis(),
+    warn: vi.fn().mockReturnThis(),
+    info: vi.fn().mockReturnThis(),
+    stop: vi.fn().mockReturnThis(),
+    text: '',
+  }),
+}));
+
 describe('impact command', () => {
   let tempDir: string;
 

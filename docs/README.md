@@ -17,6 +17,7 @@ New to SpecBridge? Start here:
 - [CI/CD Integration](ci-integration.md) - Integrate with GitHub Actions, GitLab, Jenkins, etc.
 - [Troubleshooting](troubleshooting.md) - Common issues and solutions
 - [Architecture](architecture.md) - System design and internal architecture
+- [Debt Baseline (2026 Q1)](maintenance/debt-baseline-2026Q1.md) - Technical debt snapshot and targets
 
 ## Analytics & Insights
 

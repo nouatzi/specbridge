@@ -5,14 +5,16 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { join } from 'node:path';
-import { generateReport } from '../../reporting/reporter.js';
-import { formatConsoleReport } from '../../reporting/formats/console.js';
-import { formatMarkdownReport } from '../../reporting/formats/markdown.js';
-import { loadConfig } from '../../config/loader.js';
-import { pathExists, writeTextFile, getReportsDir, getSpecBridgeDir } from '../../utils/fs.js';
-import { NotInitializedError } from '../../core/errors/index.js';
-import { ReportStorage } from '../../reporting/storage.js';
-import { detectDrift, analyzeTrend } from '../../reporting/drift.js';
+import {
+  generateReport,
+  formatConsoleReport,
+  formatMarkdownReport,
+  ReportStorage,
+  detectDrift,
+  analyzeTrend,
+} from '../../reporting/index.js';
+import { writeTextFile, getReportsDir } from '../../utils/index.js';
+import { createConfiguredCommandContext } from '../command-context.js';
 
 interface ReportOptions {
   format?: string;
@@ -36,18 +38,19 @@ export const reportCommand = new Command('report')
   .option('--days <n>', 'Number of days for trend analysis', '30')
   .option('--legacy-compliance', 'Use v1.3 compliance formula (for comparison)')
   .action(async (options: ReportOptions) => {
-    const cwd = process.cwd();
-
-    // Check if specbridge is initialized
-    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
-      throw new NotInitializedError();
-    }
-
     const spinner = ora('Generating compliance report...').start();
 
     try {
-      // Load config
-      const config = await loadConfig(cwd);
+      const outputFormat =
+        options.format === 'json'
+          ? 'json'
+          : options.format === 'markdown' || options.format === 'md'
+            ? 'markdown'
+            : 'console';
+      const { context, config } = await createConfiguredCommandContext({
+        outputFormat,
+      });
+      const { cwd } = context;
 
       // Generate report
       const report = await generateReport(config, {
@@ -68,7 +71,7 @@ export const reportCommand = new Command('report')
       if (options.trend) {
         console.log('\n' + chalk.blue.bold('=== Compliance Trend Analysis ===\n'));
 
-        const days = parseInt(options.days || '30', 10);
+        const days = Number.parseInt(options.days || '30', 10);
         const history = await storage.loadHistory(days);
 
         if (history.length < 2) {

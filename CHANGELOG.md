@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.7] - 2026-02-08
+
+### Added
+
+- Shared CLI command context helper for consistent initialization/config loading across commands.
+- Normalized verification request/result contracts under `src/core/types/verification-contracts.ts`.
+- Architecture boundary check script: `npm run architecture:check-boundaries`.
+- CI warning-mode `module-boundaries` job and health-summary integration for boundary status.
+- Debt baseline snapshot document: `docs/maintenance/debt-baseline-2026Q1.md`.
+
+### Changed
+
+- Refactored `verify`, `report`, and `infer` commands to use shared command context and module entrypoint imports.
+- Updated architecture and maintenance docs with dependency direction guardrails and boundary-check baseline command.
+
+### Fixed
+
+- Removed deprecated Husky bootstrap lines from `.husky/pre-commit` to avoid v10 incompatibility warning.
+
 ## [2.4.6] - 2026-02-08
 
 ### Changed
@@ -1093,7 +1112,8 @@ This release adopts a **pragmatic testing approach**:
 - Vitest for testing
 - tsup for building
 
-[Unreleased]: https://github.com/nouatzi/specbridge/compare/v2.4.6...HEAD
+[Unreleased]: https://github.com/nouatzi/specbridge/compare/v2.4.7...HEAD
+[2.4.7]: https://github.com/nouatzi/specbridge/compare/v2.4.6...v2.4.7
 [2.4.6]: https://github.com/nouatzi/specbridge/compare/v2.4.5...v2.4.6
 [2.4.5]: https://github.com/nouatzi/specbridge/compare/v2.4.4...v2.4.5
 [2.4.4]: https://github.com/nouatzi/specbridge/compare/v2.4.3...v2.4.4

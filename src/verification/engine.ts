@@ -4,14 +4,16 @@
 import { Project } from 'ts-morph';
 import type {
   Violation,
-  VerificationResult,
-  VerificationLevel,
   Severity,
   SpecBridgeConfig,
   Decision,
   VerificationWarning,
   VerificationIssue,
 } from '../core/types/index.js';
+import type {
+  VerificationRunRequest,
+  VerificationRunResult,
+} from '../core/types/verification-contracts.js';
 import { createRegistry, type Registry } from '../registry/registry.js';
 import {
   selectVerifierForConstraint,
@@ -28,13 +30,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { getLogger } from '../utils/logger.js';
 
-export interface VerificationOptions {
-  level?: VerificationLevel;
-  files?: string[];
-  decisions?: string[];
-  severity?: Severity[];
-  timeout?: number;
-  cwd?: string;
+export interface VerificationOptions extends VerificationRunRequest {
   reporter?: ExplainReporter;
 }
 
@@ -70,7 +66,7 @@ export class VerificationEngine {
   async verify(
     config: SpecBridgeConfig,
     options: VerificationOptions = {}
-  ): Promise<VerificationResult> {
+  ): Promise<VerificationRunResult> {
     const startTime = Date.now();
 
     const {

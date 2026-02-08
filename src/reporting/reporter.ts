@@ -7,6 +7,7 @@ import type {
   SpecBridgeConfig,
   Violation,
 } from '../core/types/index.js';
+import type { VerificationRunResult } from '../core/types/verification-contracts.js';
 import { createRegistry } from '../registry/registry.js';
 import { createVerificationEngine } from '../verification/engine.js';
 
@@ -21,8 +22,7 @@ export interface ReportOptions {
  * Generic verification result shape for Reporter class
  * Supports various result formats from different verification engines
  */
-export interface ReporterResult {
-  violations?: Violation[];
+export interface ReporterResult extends Partial<VerificationRunResult> {
   summary?: {
     totalViolations?: number;
     decisionsChecked?: number;

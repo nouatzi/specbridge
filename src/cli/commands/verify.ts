@@ -4,14 +4,20 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
-import { createVerificationEngine } from '../../verification/engine.js';
-import { AutofixEngine, type AutofixResult } from '../../verification/autofix/engine.js';
-import { getChangedFiles } from '../../verification/incremental.js';
-import { loadConfig } from '../../config/loader.js';
-import { pathExists, getSpecBridgeDir } from '../../utils/fs.js';
-import { NotInitializedError } from '../../core/errors/index.js';
-import { ExplainReporter } from '../../verification/explain.js';
-import type { Violation, VerificationLevel, Severity } from '../../core/types/index.js';
+import {
+  createVerificationEngine,
+  AutofixEngine,
+  getChangedFiles,
+  ExplainReporter,
+  type AutofixResult,
+} from '../../verification/index.js';
+import type {
+  Violation,
+  VerificationLevel,
+  Severity,
+  VerificationRunResult,
+} from '../../core/index.js';
+import { createConfiguredCommandContext, parseCsvOption } from '../command-context.js';
 
 interface VerifyOptions {
   level?: string;
@@ -42,24 +48,19 @@ export const verifyCommand = new Command('verify')
   .option('--dry-run', 'Show what would be fixed without applying (requires --fix)')
   .option('--interactive', 'Confirm each fix interactively (requires --fix)')
   .action(async (options: VerifyOptions) => {
-    const cwd = process.cwd();
-
-    // Check if specbridge is initialized
-    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
-      throw new NotInitializedError();
-    }
-
     const spinner = ora('Loading configuration...').start();
 
     try {
-      // Load config
-      const config = await loadConfig(cwd);
+      const { context, config } = await createConfiguredCommandContext({
+        outputFormat: options.json ? 'json' : 'console',
+      });
+      const { cwd } = context;
 
       // Parse options
       const level = (options.level || 'full') as VerificationLevel;
-      let files = options.files?.split(',').map((f) => f.trim());
-      const decisions = options.decisions?.split(',').map((d) => d.trim());
-      const severity = options.severity?.split(',').map((s) => s.trim() as Severity);
+      let files = parseCsvOption(options.files);
+      const decisions = parseCsvOption(options.decisions);
+      const severity = parseCsvOption(options.severity)?.map((value) => value as Severity);
 
       if (options.incremental) {
         const changed = await getChangedFiles(cwd);
@@ -171,18 +172,7 @@ export const verifyCommand = new Command('verify')
     }
   });
 
-function printResult(
-  result: {
-    success: boolean;
-    violations: Violation[];
-    checked: number;
-    passed: number;
-    failed: number;
-    skipped: number;
-    duration: number;
-  },
-  level: VerificationLevel
-): void {
+function printResult(result: VerificationRunResult, level: VerificationLevel): void {
   console.log('');
 
   if (result.violations.length === 0) {

@@ -8,6 +8,7 @@ Use this checklist for monthly maintenance or before a release.
 npm ci
 npm run docs:validate
 npm run release:validate
+npm run architecture:check-boundaries -- --mode=warning
 npm run health:quick
 npm run health:check
 npm run deps:outdated
@@ -19,6 +20,7 @@ Expanded equivalent:
 npm ci
 npm run docs:validate
 npm run release:validate
+npm run architecture:check-boundaries -- --mode=warning
 npm run type-check
 npm run lint:check
 npm run format:check

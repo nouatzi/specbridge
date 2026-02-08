@@ -355,3 +355,6 @@ export interface MigrationStep {
   files: string[];
   automated: boolean;
 }
+
+export * from './command-context.js';
+export * from './verification-contracts.js';

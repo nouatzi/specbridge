@@ -326,6 +326,27 @@ jobs:
       - name: Run format check
         run: npm run format:check
 
+  module-boundaries:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      HUSKY: 0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check module boundaries (warning mode)
+        run: npm run architecture:check-boundaries -- --mode=warning
+
   build:
     runs-on: ubuntu-latest
     env:
@@ -374,6 +395,7 @@ jobs:
       - docs-policy
       - release-metadata
       - lint
+      - module-boundaries
       - build
 
     steps:
@@ -395,6 +417,7 @@ jobs:
           DOCS_POLICY_STATUS: ${{ needs.docs-policy.result }}
           RELEASE_METADATA_STATUS: ${{ needs.release-metadata.result }}
           LINT_STATUS: ${{ needs.lint.result }}
+          MODULE_BOUNDARIES_STATUS: ${{ needs.module-boundaries.result }}
           BUILD_STATUS: ${{ needs.build.result }}
         run: |
           node <<'NODE'
@@ -408,6 +431,7 @@ jobs:
             docs_policy: process.env.DOCS_POLICY_STATUS || 'unknown',
             release_metadata: process.env.RELEASE_METADATA_STATUS || 'unknown',
             lint: process.env.LINT_STATUS || 'unknown',
+            module_boundaries: process.env.MODULE_BOUNDARIES_STATUS || 'unknown',
             build: process.env.BUILD_STATUS || 'unknown',
           };
 

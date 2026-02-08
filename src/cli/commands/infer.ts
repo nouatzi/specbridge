@@ -6,10 +6,9 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { join } from 'node:path';
 import { createInferenceEngine, getAnalyzerIds } from '../../inference/index.js';
-import { loadConfig } from '../../config/loader.js';
-import { writeTextFile, getInferredDir, pathExists, getSpecBridgeDir } from '../../utils/fs.js';
-import { NotInitializedError } from '../../core/errors/index.js';
-import type { Pattern } from '../../core/types/index.js';
+import { writeTextFile, getInferredDir } from '../../utils/index.js';
+import type { Pattern } from '../../core/index.js';
+import { createConfiguredCommandContext, parseCsvOption } from '../command-context.js';
 
 interface InferOptions {
   output?: string;
@@ -27,24 +26,18 @@ export const inferCommand = new Command('infer')
   .option('--json', 'Output as JSON')
   .option('--save', 'Save results to .specbridge/inferred/')
   .action(async (options: InferOptions) => {
-    const cwd = process.cwd();
-
-    // Check if specbridge is initialized
-    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
-      throw new NotInitializedError();
-    }
-
     const spinner = ora('Loading configuration...').start();
 
     try {
-      // Load config
-      const config = await loadConfig(cwd);
+      const { context, config } = await createConfiguredCommandContext({
+        outputFormat: options.json ? 'json' : 'console',
+      });
+      const { cwd } = context;
 
       // Parse options
-      const minConfidence = parseInt(options.minConfidence || '50', 10);
-      const analyzerList = options.analyzers
-        ? options.analyzers.split(',').map((a) => a.trim())
-        : config.inference?.analyzers || getAnalyzerIds();
+      const minConfidence = Number.parseInt(options.minConfidence || '50', 10);
+      const analyzerList =
+        parseCsvOption(options.analyzers) || config.inference?.analyzers || getAnalyzerIds();
 
       spinner.text = `Scanning codebase (analyzers: ${analyzerList.join(', ')})...`;
 

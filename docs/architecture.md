@@ -32,6 +32,24 @@ This document describes the internal architecture of SpecBridge.
 
 ## Module Breakdown
 
+## Dependency Directions
+
+Allowed dependency flow:
+
+`cli -> {config, registry, inference, verification, reporting, propagation, analytics, dashboard, mcp, lsp, agent, core, utils}`
+
+`reporting -> {verification, registry, core, utils}`
+
+`verification -> {registry, core, utils}`
+
+`core -> {core, external packages}`
+
+Guardrails:
+
+- Pilot CLI commands (`verify`, `report`, `infer`) should import module entrypoints rather than deep internal files.
+- `src/reporting` must not import from `src/cli`.
+- `src/core` must stay dependency-minimal and avoid importing non-core internal modules.
+
 ### Core Types (`src/core/types/`)
 
 Central type definitions used across the system:

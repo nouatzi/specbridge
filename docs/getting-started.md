@@ -346,7 +346,7 @@ specbridge context src/api/users.ts --format json > context.json
 - Explore [Configuration Options](configuration.md)
 - Set up [CI/CD Integration](ci-integration.md)
 - Try the [Analytics & Insights Guide](features/analytics-and-insights.md)
-- Follow the [Phase 4 Interactive Demo](demos/phase4-analytics-demo.md)
+- Follow the [Analytics Interactive Demo](demos/analytics-demo.md)
 
 ## Troubleshooting
 

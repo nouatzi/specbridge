@@ -1,6 +1,6 @@
 # Analytics & Insights
 
-**Phase 4** adds powerful analytics and insights capabilities to SpecBridge, providing visibility into compliance trends, decision impact, and architectural drift over time.
+Analytics & Insights adds powerful capabilities to SpecBridge, providing visibility into compliance trends, decision impact, and architectural drift over time.
 
 ## Overview
 
@@ -1033,9 +1033,9 @@ Not enough data for trend analysis
 
 ## Migration Guide
 
-### From Phase 3 to Phase 4
+### Migration Notes
 
-Phase 4 is fully backward compatible. No migration required.
+Analytics features are backward compatible. No migration required.
 
 **Automatic Benefits:**
 - All new `specbridge report` commands auto-save to history
@@ -1103,11 +1103,11 @@ Want to contribute to analytics features?
 ## Support
 
 - **Documentation**: [docs/](../)
-- **Demo**: [demos/phase4-analytics-demo.md](../demos/phase4-analytics-demo.md)
-- **API Reference**: [api/](../api/)
+- **Demo**: [demos/analytics-demo.md](../demos/analytics-demo.md)
+- **API Reference**: [API.md](../API.md)
 - **Issues**: [GitHub Issues](https://github.com/nouatzi/specbridge/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/nouatzi/specbridge/discussions)
 
 ---
 
-*Last updated: February 2024*
+*Last updated: February 2026*

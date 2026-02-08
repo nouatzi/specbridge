@@ -167,7 +167,7 @@ SpecBridge v2.0 has fully implemented all core components:
 - **Plugin Marketplace**: Centralized repository for sharing custom verifiers
 - **Advanced Sandboxing**: Isolated execution environment for untrusted plugins
 
-For the most up-to-date implementation status, see [CHANGELOG-v2.0.md](../CHANGELOG-v2.0.md).
+For the most up-to-date implementation status, see [CHANGELOG.md](./CHANGELOG.md).
 
 ## Language and Localization
 

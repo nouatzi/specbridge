@@ -18,13 +18,13 @@ New to SpecBridge? Start here:
 - [Troubleshooting](troubleshooting.md) - Common issues and solutions
 - [Architecture](architecture.md) - System design and internal architecture
 
-## Analytics & Insights (v1.2.0+)
+## Analytics & Insights
 
 - [Analytics & Insights Guide](features/analytics-and-insights.md) - Complete guide to analytics features
-- [Phase 4 Demo](demos/phase4-analytics-demo.md) - Interactive walkthrough of analytics capabilities
+- [Analytics Demo](demos/analytics-demo.md) - Interactive walkthrough of analytics capabilities
 - [Quick Start](demos/QUICKSTART.md) - 5-minute setup with sample data
 - [API Reference](API.md) - TypeScript/JavaScript/REST API documentation
-- [Phase 4 Quick Reference](PHASE4_QUICK_REFERENCE.md) - Command reference card
+- [Analytics Quick Reference](analytics-quick-reference.md) - Command reference card
 
 ## Core Concepts
 

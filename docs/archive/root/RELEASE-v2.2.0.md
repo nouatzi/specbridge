@@ -235,7 +235,7 @@ Special focus on:
 ## 📚 Additional Resources
 
 - **Changelog**: See [CHANGELOG.md](./CHANGELOG.md) for detailed changes
-- **Project Assessment**: See [PROJECT_ASSESSMENT.md](./PROJECT_ASSESSMENT.md) for full analysis
+- **Project Assessment**: Historical assessment document removed during docs cleanup (2026-02-08).
 - **Documentation**: See [docs/](./docs/) for API documentation
 
 ---

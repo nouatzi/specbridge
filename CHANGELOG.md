@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.6] - 2026-02-08
+
+### Changed
+
+- Cleaned and consolidated project documentation:
+  - Archived historical root/docs markdown files into `docs/archive/`.
+  - Removed stale top-level `PROJECT_ASSESSMENT.md`.
+  - Renamed `docs/PHASE4_QUICK_REFERENCE.md` to `docs/analytics-quick-reference.md`.
+  - Renamed `docs/demos/phase4-analytics-demo.md` to `docs/demos/analytics-demo.md`.
+- Updated docs links and metadata for consistency:
+  - `README.md` and `docs/MIGRATION-V2.md` now point to `CHANGELOG.md`.
+  - `CONTRIBUTING.md` Node baseline aligned to `20.19.0+`.
+  - `SECURITY.md` supported versions table updated for current major versions.
+  - Fixed stale/broken markdown links in active docs.
+
 ## [2.4.5] - 2026-02-08
 
 ### Added
@@ -373,7 +388,7 @@ This release focuses on critical infrastructure upgrades, security improvements,
 - `src/dashboard/public/index.html` - React dashboard UI
 - `src/cli/commands/analytics.ts` - Analytics CLI command
 - `src/cli/commands/dashboard.ts` - Dashboard CLI command
-- `docs/demos/phase4-analytics-demo.md` - Interactive demo guide (900+ lines)
+- `docs/demos/analytics-demo.md` - Interactive demo guide (900+ lines)
 - `docs/demos/QUICKSTART.md` - Quick start guide
 - `docs/demos/generate-sample-data.sh` - Sample data generator
 - `docs/features/analytics-and-insights.md` - Feature documentation (1200+ lines)
@@ -1078,7 +1093,8 @@ This release adopts a **pragmatic testing approach**:
 - Vitest for testing
 - tsup for building
 
-[Unreleased]: https://github.com/nouatzi/specbridge/compare/v2.4.5...HEAD
+[Unreleased]: https://github.com/nouatzi/specbridge/compare/v2.4.6...HEAD
+[2.4.6]: https://github.com/nouatzi/specbridge/compare/v2.4.5...v2.4.6
 [2.4.5]: https://github.com/nouatzi/specbridge/compare/v2.4.4...v2.4.5
 [2.4.4]: https://github.com/nouatzi/specbridge/compare/v2.4.3...v2.4.4
 [2.4.3]: https://github.com/nouatzi/specbridge/compare/v2.4.2...v2.4.3

@@ -380,7 +380,7 @@ v2.0 is significantly faster (30% target). You should see improvements immediate
 ### What if I have problems?
 
 1. Check [GitHub Issues](https://github.com/ipation/specbridge/issues)
-2. Read [CHANGELOG-v2.0.md](../CHANGELOG-v2.0.md)
+2. Read [CHANGELOG.md](../CHANGELOG.md)
 3. Ask in [Discussions](https://github.com/ipation/specbridge/discussions)
 4. Email support@ipation.com
 

@@ -1,6 +1,6 @@
-# Phase 4: Analytics & Insights - Quick Reference Card
+# Analytics & Insights - Quick Reference Card
 
-Fast reference for all Phase 4 features. Keep this handy! 📋
+Fast reference for analytics features. Keep this handy! 📋
 
 ---
 
@@ -134,13 +134,12 @@ curl http://localhost:3000/api/analytics/summary | jq '.insights'
 
 docs/
 ├── demos/
-│   ├── phase4-analytics-demo.md    - Full demo
+│   ├── analytics-demo.md           - Full demo
 │   ├── QUICKSTART.md               - Quick start
 │   └── generate-sample-data.sh     - Sample data
 ├── features/
 │   └── analytics-and-insights.md   - Features
 ├── API.md                          - API reference
-└── PHASE4_SUMMARY.md               - Summary
 ```
 
 ---
@@ -194,7 +193,7 @@ fi
 ## 📚 Learn More
 
 - **5-minute start**: [QUICKSTART.md](demos/QUICKSTART.md)
-- **Full demo**: [phase4-analytics-demo.md](demos/phase4-analytics-demo.md)
+- **Full demo**: [analytics-demo.md](demos/analytics-demo.md)
 - **API docs**: [API.md](API.md)
 - **Features**: [analytics-and-insights.md](features/analytics-and-insights.md)
 

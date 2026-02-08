@@ -1,6 +1,6 @@
-# Phase 4: Analytics & Insights - Interactive Demo Guide
+# Analytics & Insights - Interactive Demo Guide
 
-This guide walks you through all the new analytics and insights features added in Phase 4.
+This guide walks you through the analytics and insights features.
 
 ## Prerequisites
 
@@ -600,7 +600,7 @@ specbridge report --save
 
 ## Next Steps
 
-Now that you've seen Phase 4 in action:
+Now that you've seen Analytics & Insights in action:
 
 1. **Set up automated reporting** in your CI/CD pipeline
 2. **Schedule weekly reviews** using analytics commands

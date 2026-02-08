@@ -244,7 +244,7 @@ specbridge dashboard --port 8080
 
 ## Next Steps
 
-1. **Read the Full Demo**: [phase4-analytics-demo.md](phase4-analytics-demo.md)
+1. **Read the Full Demo**: [analytics-demo.md](analytics-demo.md)
 2. **Explore Documentation**: [analytics-and-insights.md](../features/analytics-and-insights.md)
 3. **Set Up Automation**: Add to CI/CD pipeline
 4. **Integrate with Tools**: Use API for custom integrations

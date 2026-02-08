@@ -50,3 +50,5 @@ Validated locally on 2026-02-08:
 ## Notes
 
 - ESLint v10 is available upstream, but this baseline keeps ESLint v9 for this cycle to avoid mixing toolchain migration with boundary refactors.
+- Upgrade readiness probe on 2026-02-08: `npm run eslint10:readiness` reports blocked because `@typescript-eslint` latest peer range is `^8.57.0 || ^9.0.0`.
+- CI now runs the readiness probe on every PR/push; strict enforcement on `main` is controlled by `ESLINT10_STRICT_GATE=true`.

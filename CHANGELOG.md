@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.8] - 2026-02-08
+
+### Added
+
+- Monthly maintenance issue automation workflow: `.github/workflows/health-snapshot.yml`.
+- ESLint v10 readiness probe script and npm commands:
+  - `npm run eslint10:readiness`
+  - `npm run eslint10:readiness:strict`
+- CI `eslint10-readiness` job with staged strict gate toggle on `main` via `ESLINT10_STRICT_GATE`.
+
+### Changed
+
+- CI health summary now records collision-safe integration metric keys and flakiness KPI fields.
+- Health checklist and monthly snapshot template now capture ESLint v10 gate status and flaky retry metrics.
+- Added architecture boundary warning alias command: `npm run architecture:check-boundaries:warning`.
+
 ## [2.4.7] - 2026-02-08
 
 ### Added
@@ -1112,7 +1128,8 @@ This release adopts a **pragmatic testing approach**:
 - Vitest for testing
 - tsup for building
 
-[Unreleased]: https://github.com/nouatzi/specbridge/compare/v2.4.7...HEAD
+[Unreleased]: https://github.com/nouatzi/specbridge/compare/v2.4.8...HEAD
+[2.4.8]: https://github.com/nouatzi/specbridge/compare/v2.4.7...v2.4.8
 [2.4.7]: https://github.com/nouatzi/specbridge/compare/v2.4.6...v2.4.7
 [2.4.6]: https://github.com/nouatzi/specbridge/compare/v2.4.5...v2.4.6
 [2.4.5]: https://github.com/nouatzi/specbridge/compare/v2.4.4...v2.4.5

@@ -1,6 +1,6 @@
 {
   "name": "@ipation/specbridge",
-  "version": "2.4.7",
+  "version": "2.4.8",
   "description": "Architecture Decision Runtime - Transform architectural decisions into executable, verifiable constraints",
   "type": "module",
   "main": "./dist/index.js",
@@ -36,6 +36,9 @@
     "docs:validate": "node scripts/docs/validate-runtime-policy.mjs",
     "release:validate": "node scripts/release/validate-version-changelog.mjs",
     "architecture:check-boundaries": "node scripts/maintenance/check-module-boundaries.mjs",
+    "architecture:check-boundaries:warning": "node scripts/maintenance/check-module-boundaries.mjs --mode=warning",
+    "eslint10:readiness": "npm_config_cache=.cache/npm node scripts/maintenance/check-eslint10-readiness.mjs",
+    "eslint10:readiness:strict": "npm_config_cache=.cache/npm node scripts/maintenance/check-eslint10-readiness.mjs --strict",
     "type-check": "tsc --noEmit",
     "version:patch": "npm version patch",
     "version:minor": "npm version minor",

@@ -1,0 +1,66 @@
+name: Monthly Health Snapshot
+
+on:
+  schedule:
+    - cron: '0 9 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  open-monthly-health-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create monthly maintenance issue
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('node:fs');
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const month = new Date().toISOString().slice(0, 7);
+            const title = `[HEALTH] ${month} snapshot`;
+            const marker = `Month: ${month}`;
+
+            const issues = await github.paginate(
+              github.rest.issues.listForRepo,
+              { owner, repo, state: 'all', per_page: 100 }
+            );
+
+            const existing = issues.find((issue) => issue.title === title && !issue.pull_request);
+            if (existing) {
+              core.info(`Health snapshot issue already exists: #${existing.number}`);
+              return;
+            }
+
+            const templatePath = '.github/ISSUE_TEMPLATE/health_snapshot.md';
+            const templateRaw = fs.readFileSync(templatePath, 'utf8');
+            const body = templateRaw
+              .replace(/^---[\s\S]*?---\s*/, '')
+              .replaceAll('YYYY-MM', month)
+              .replace('- Assessor:', '- Assessor: GitHub Actions schedule')
+              .trim();
+
+            try {
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title,
+                body,
+                labels: ['maintenance'],
+              });
+            } catch (error) {
+              core.warning(`Issue creation with labels failed: ${error.message}`);
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title,
+                body: `${body}\n\n_Automation marker: ${marker}_`,
+              });
+            }

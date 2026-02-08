@@ -112,7 +112,7 @@ jobs:
 
           mkdir -p ci-metrics
           cat > ci-metrics/integration-core.json <<EOF
-          {"suite":"core","duration_seconds":${final_duration},"budget_seconds":${budget_seconds},"status":${final_status},"flaky":"${flaky}"}
+          {"track":"integration-core","suite":"core","duration_seconds":${final_duration},"budget_seconds":${budget_seconds},"status":${final_status},"flaky":"${flaky}"}
           EOF
 
           echo "flaky=${flaky}" >> "$GITHUB_OUTPUT"
@@ -229,7 +229,7 @@ jobs:
 
           mkdir -p ci-metrics
           cat > "ci-metrics/integration-cli-${{ matrix.suite }}.json" <<EOF
-          {"suite":"${{ matrix.suite }}","duration_seconds":${final_duration},"budget_seconds":${budget_seconds},"status":${final_status},"flaky":"${flaky}"}
+          {"track":"integration-cli","suite":"${{ matrix.suite }}","duration_seconds":${final_duration},"budget_seconds":${budget_seconds},"status":${final_status},"flaky":"${flaky}"}
           EOF
 
           echo "flaky=${flaky}" >> "$GITHUB_OUTPUT"
@@ -326,6 +326,30 @@ jobs:
       - name: Run format check
         run: npm run format:check
 
+  eslint10-readiness:
+    runs-on: ubuntu-latest
+    env:
+      HUSKY: 0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint 10 readiness probe (informational)
+        run: npm run eslint10:readiness
+
+      - name: Enforce ESLint 10 readiness on main (toggle via repo variable)
+        if: github.ref == 'refs/heads/main' && vars.ESLINT10_STRICT_GATE == 'true'
+        run: npm run eslint10:readiness:strict
+
   module-boundaries:
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -345,7 +369,7 @@ jobs:
         run: npm ci
 
       - name: Check module boundaries (warning mode)
-        run: npm run architecture:check-boundaries -- --mode=warning
+        run: npm run architecture:check-boundaries:warning
 
   build:
     runs-on: ubuntu-latest
@@ -395,6 +419,7 @@ jobs:
       - docs-policy
       - release-metadata
       - lint
+      - eslint10-readiness
       - module-boundaries
       - build
 
@@ -417,8 +442,10 @@ jobs:
           DOCS_POLICY_STATUS: ${{ needs.docs-policy.result }}
           RELEASE_METADATA_STATUS: ${{ needs.release-metadata.result }}
           LINT_STATUS: ${{ needs.lint.result }}
+          ESLINT10_READINESS_STATUS: ${{ needs.eslint10-readiness.result }}
           MODULE_BOUNDARIES_STATUS: ${{ needs.module-boundaries.result }}
           BUILD_STATUS: ${{ needs.build.result }}
+          ESLINT10_STRICT_GATE_ENABLED: ${{ vars.ESLINT10_STRICT_GATE }}
         run: |
           node <<'NODE'
           const { existsSync, readdirSync, readFileSync, writeFileSync } = require('node:fs');
@@ -431,25 +458,42 @@ jobs:
             docs_policy: process.env.DOCS_POLICY_STATUS || 'unknown',
             release_metadata: process.env.RELEASE_METADATA_STATUS || 'unknown',
             lint: process.env.LINT_STATUS || 'unknown',
+            eslint10_readiness: process.env.ESLINT10_READINESS_STATUS || 'unknown',
             module_boundaries: process.env.MODULE_BOUNDARIES_STATUS || 'unknown',
             build: process.env.BUILD_STATUS || 'unknown',
           };
 
-          const durationsSeconds = {};
+          const metrics = {};
+          const flakySuites = [];
           const metricsDir = resolve(process.cwd(), 'ci-metrics');
           if (existsSync(metricsDir)) {
             for (const file of readdirSync(metricsDir)) {
               if (!file.endsWith('.json')) continue;
               const raw = readFileSync(resolve(metricsDir, file), 'utf8');
               const metric = JSON.parse(raw);
-              if (metric && metric.suite) {
-                durationsSeconds[String(metric.suite)] =
-                  typeof metric.duration_seconds === 'number'
-                    ? metric.duration_seconds
-                    : null;
+              if (metric && metric.suite && metric.track) {
+                const key = `${String(metric.track)}:${String(metric.suite)}`;
+                const isFlaky = metric.flaky === 'true' || metric.flaky === true;
+                metrics[key] = {
+                  duration_seconds:
+                    typeof metric.duration_seconds === 'number'
+                      ? metric.duration_seconds
+                      : null,
+                  budget_seconds:
+                    typeof metric.budget_seconds === 'number' ? metric.budget_seconds : null,
+                  status: typeof metric.status === 'number' ? metric.status : null,
+                  flaky: isFlaky,
+                };
+                if (isFlaky) {
+                  flakySuites.push(key);
+                }
               }
             }
           }
+
+          const durationsSeconds = Object.fromEntries(
+            Object.entries(metrics).map(([key, value]) => [key, value.duration_seconds])
+          );
 
           const result = Object.values(checks).every((status) => status === 'success')
             ? 'success'
@@ -459,7 +503,15 @@ jobs:
             timestamp: new Date().toISOString(),
             node_version: process.version,
             checks,
+            gates: {
+              eslint10_strict_on_main: process.env.ESLINT10_STRICT_GATE_ENABLED === 'true',
+            },
             durations_seconds: durationsSeconds,
+            metrics,
+            flakiness: {
+              count: flakySuites.length,
+              suites: flakySuites,
+            },
             result,
           };
 

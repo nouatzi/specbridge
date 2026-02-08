@@ -32,6 +32,8 @@ Attach the latest `health-summary` CI artifact when available.
 - Integration runtime (median):
 - Delta vs previous snapshot:
 - Any suite >15% slower for 2 consecutive weekly checks? (yes/no)
+- Flaky retries observed (count from `health-summary`):
+- Flaky suites (`health-summary.flakiness.suites`):
 
 ## Coverage Guardrails
 
@@ -46,6 +48,8 @@ Attach the latest `health-summary` CI artifact when available.
 - Major updates pending:
 - Security concerns:
 - Recommended upgrade order:
+- ESLint v10 readiness (`npm run eslint10:readiness`): ready/blocked
+- ESLint strict gate on `main` (`ESLINT10_STRICT_GATE`): enabled/disabled
 
 ## Release Readout Inputs
 

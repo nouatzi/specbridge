@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.9] - 2026-02-08
+
+### Added
+
+- Targeted module coverage guardrail command: `npm run coverage:check-modules`.
+- Coverage guardrail script: `scripts/maintenance/check-module-coverage.mjs`.
+- Verification helper modules:
+  - `src/verification/file-verifier.ts`
+  - `src/verification/run-settings.ts`
+
+### Changed
+
+- Refactored verification engine orchestration to delegate run-settings and file-verification concerns.
+- Migrated additional CLI commands to `createConfiguredCommandContext` for consistent initialization/config handling.
+- Hardened CI guardrails:
+  - Node 20 unit runtime warning/fail thresholds.
+  - Strict module boundary enforcement.
+  - Health summary now incorporates runtime and module-coverage gate outcomes.
+- Updated maintenance health documentation with module coverage checks.
+
 ## [2.4.8] - 2026-02-08
 
 ### Added
@@ -1128,7 +1148,8 @@ This release adopts a **pragmatic testing approach**:
 - Vitest for testing
 - tsup for building
 
-[Unreleased]: https://github.com/nouatzi/specbridge/compare/v2.4.8...HEAD
+[Unreleased]: https://github.com/nouatzi/specbridge/compare/v2.4.9...HEAD
+[2.4.9]: https://github.com/nouatzi/specbridge/compare/v2.4.8...v2.4.9
 [2.4.8]: https://github.com/nouatzi/specbridge/compare/v2.4.7...v2.4.8
 [2.4.7]: https://github.com/nouatzi/specbridge/compare/v2.4.6...v2.4.7
 [2.4.6]: https://github.com/nouatzi/specbridge/compare/v2.4.5...v2.4.6

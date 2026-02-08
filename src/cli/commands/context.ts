@@ -4,9 +4,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { generateFormattedContext } from '../../agent/context.generator.js';
-import { loadConfig } from '../../config/loader.js';
-import { pathExists, writeTextFile, getSpecBridgeDir } from '../../utils/fs.js';
-import { NotInitializedError } from '../../core/errors/index.js';
+import { writeTextFile } from '../../utils/fs.js';
+import { createConfiguredCommandContext } from '../command-context.js';
 
 interface ContextOptions {
   format?: string;
@@ -21,16 +20,11 @@ export const contextCommand = new Command('context')
   .option('-o, --output <file>', 'Output file path')
   .option('--no-rationale', 'Exclude rationale/summary from output')
   .action(async (file: string, options: ContextOptions) => {
-    const cwd = process.cwd();
-
-    // Check if specbridge is initialized
-    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
-      throw new NotInitializedError();
-    }
-
     try {
-      // Load config
-      const config = await loadConfig(cwd);
+      const { context, config } = await createConfiguredCommandContext({
+        outputFormat: options.format === 'json' ? 'json' : 'markdown',
+      });
+      const { cwd } = context;
 
       // Generate context
       const output = await generateFormattedContext(file, config, {

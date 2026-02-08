@@ -8,10 +8,11 @@ Use this checklist for monthly maintenance or before a release.
 npm ci
 npm run docs:validate
 npm run release:validate
-npm run architecture:check-boundaries:warning
+npm run architecture:check-boundaries
 npm run eslint10:readiness
 npm run health:quick
 npm run health:check
+npm run coverage:check-modules
 npm run deps:outdated
 ```
 
@@ -21,7 +22,7 @@ Expanded equivalent:
 npm ci
 npm run docs:validate
 npm run release:validate
-npm run architecture:check-boundaries:warning
+npm run architecture:check-boundaries
 npm run eslint10:readiness
 npm run type-check
 npm run lint:check
@@ -33,6 +34,7 @@ npm run test:integration:cli:smoke
 npm run test:integration:cli:core
 npm run test:integration:cli:aux
 npm run test:coverage
+npm run coverage:check-modules
 npm run pack:check
 npm audit --audit-level=high
 npm run deps:outdated
@@ -63,6 +65,10 @@ npm run deps:outdated
   - Lines >= 80
   - Functions >= 85
   - Branches >= 72
+- Targeted module coverage guardrails:
+  - `src/verification/**`: lines >= 80, branches >= 65
+  - `src/dashboard/**`: lines >= 85, branches >= 55
+  - `src/integrations/**`: lines >= 70, branches >= 45
 - Flakiness trigger: investigate if any integration suite median runtime increases by >15% for 2 consecutive weekly checks.
 
 ## Release Readiness Notes

@@ -3,10 +3,8 @@
  */
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { loadConfig } from '../../config/loader.js';
-import { pathExists, getSpecBridgeDir } from '../../utils/fs.js';
-import { NotInitializedError } from '../../core/errors/index.js';
 import { createDashboardServer } from '../../dashboard/server.js';
+import { createConfiguredCommandContext } from '../command-context.js';
 
 interface DashboardOptions {
   port?: string;
@@ -18,18 +16,11 @@ export const dashboardCommand = new Command('dashboard')
   .option('-p, --port <port>', 'Port to listen on', '3000')
   .option('-h, --host <host>', 'Host to bind to', 'localhost')
   .action(async (options: DashboardOptions) => {
-    const cwd = process.cwd();
-
-    // Check if specbridge is initialized
-    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
-      throw new NotInitializedError();
-    }
-
     console.log(chalk.blue('Starting SpecBridge dashboard...'));
 
     try {
-      // Load config
-      const config = await loadConfig(cwd);
+      const { context, config } = await createConfiguredCommandContext();
+      const { cwd } = context;
 
       // Create server
       const server = createDashboardServer({ cwd, config });

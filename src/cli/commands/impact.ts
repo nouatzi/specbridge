@@ -5,10 +5,8 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { createPropagationEngine } from '../../propagation/engine.js';
-import { loadConfig } from '../../config/loader.js';
-import { pathExists, getSpecBridgeDir } from '../../utils/fs.js';
-import { NotInitializedError } from '../../core/errors/index.js';
 import type { ImpactAnalysis } from '../../core/types/index.js';
+import { createConfiguredCommandContext } from '../command-context.js';
 
 interface ImpactOptions {
   change?: string;
@@ -23,18 +21,13 @@ export const impactCommand = new Command('impact')
   .option('--json', 'Output as JSON')
   .option('--show-steps', 'Show detailed migration steps', true)
   .action(async (decisionId: string, options: ImpactOptions) => {
-    const cwd = process.cwd();
-
-    // Check if specbridge is initialized
-    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
-      throw new NotInitializedError();
-    }
-
     const spinner = ora('Loading configuration...').start();
 
     try {
-      // Load config
-      const config = await loadConfig(cwd);
+      const { context, config } = await createConfiguredCommandContext({
+        outputFormat: options.json ? 'json' : 'console',
+      });
+      const { cwd } = context;
 
       // Parse change type
       const changeType = (options.change || 'modified') as 'created' | 'modified' | 'deprecated';

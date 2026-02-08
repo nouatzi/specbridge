@@ -6,23 +6,16 @@ import chalk from 'chalk';
 import chokidar from 'chokidar';
 import path from 'node:path';
 import { createVerificationEngine } from '../../verification/engine.js';
-import { loadConfig } from '../../config/loader.js';
-import { getSpecBridgeDir, pathExists } from '../../utils/fs.js';
-import { NotInitializedError } from '../../core/errors/index.js';
 import type { VerificationLevel } from '../../core/types/index.js';
+import { createConfiguredCommandContext } from '../command-context.js';
 
 export const watchCommand = new Command('watch')
   .description('Watch for changes and verify files continuously')
   .option('-l, --level <level>', 'Verification level (commit, pr, full)', 'full')
   .option('--debounce <ms>', 'Debounce verify on rapid changes', '150')
   .action(async (options: { level?: string; debounce?: string }) => {
-    const cwd = process.cwd();
-
-    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
-      throw new NotInitializedError();
-    }
-
-    const config = await loadConfig(cwd);
+    const { context, config } = await createConfiguredCommandContext();
+    const { cwd } = context;
     const engine = createVerificationEngine();
     const level = (options.level || 'full') as VerificationLevel;
     const debounceMs = Number.parseInt(options.debounce || '150', 10);

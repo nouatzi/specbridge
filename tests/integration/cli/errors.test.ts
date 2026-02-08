@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { createCliHarness } from './harness';
 
 describe('CLI Integration - Error Handling', () => {
-  const { runCLI } = createCliHarness('errors');
+  const { runCLI } = createCliHarness('errors', { lifecycle: 'suite' });
 
   it('shows help output', () => {
     const output = runCLI('--help');

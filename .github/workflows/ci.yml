@@ -30,12 +30,55 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Run tests
+      - name: Run tests (Node 20 runtime guardrail)
+        if: matrix.node-version == '20.x'
+        shell: bash
+        run: |
+          set -euo pipefail
+          warn_seconds=50
+          fail_seconds=60
+          started_at=$(date +%s)
+          npm test
+          ended_at=$(date +%s)
+          duration_seconds=$((ended_at - started_at))
+
+          if [ "$duration_seconds" -gt "$warn_seconds" ]; then
+            echo "::warning::Unit test runtime warning (${duration_seconds}s > ${warn_seconds}s)"
+          fi
+
+          runtime_status="ok"
+          if [ "$duration_seconds" -gt "$warn_seconds" ]; then
+            runtime_status="warn"
+          fi
+          if [ "$duration_seconds" -gt "$fail_seconds" ]; then
+            runtime_status="fail"
+          fi
+
+          mkdir -p ci-metrics
+          cat > ci-metrics/unit.json <<EOF
+          {"track":"unit","suite":"unit","duration_seconds":${duration_seconds},"warn_seconds":${warn_seconds},"fail_seconds":${fail_seconds},"status":"${runtime_status}"}
+          EOF
+
+          echo "### Unit tests (Node 20)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- duration: ${duration_seconds}s (warn ${warn_seconds}s / fail ${fail_seconds}s)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- status: ${runtime_status}" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$runtime_status" = "fail" ]; then
+            echo "Unit tests exceeded hard runtime guardrail (${duration_seconds}s > ${fail_seconds}s)."
+            exit 1
+          fi
+
+      - name: Run tests (Node 22)
+        if: matrix.node-version != '20.x'
         run: npm test
 
       - name: Generate coverage
         if: matrix.node-version == '20.x'
         run: npm run test:coverage
+
+      - name: Check module-level coverage thresholds
+        if: matrix.node-version == '20.x'
+        run: npm run coverage:check-modules
 
       - name: Upload coverage to Codecov
         if: matrix.node-version == '20.x'
@@ -44,6 +87,24 @@ jobs:
           files: ./coverage/lcov.info
           flags: unittests
           fail_ci_if_error: false
+
+      - name: Upload unit metrics
+        if: matrix.node-version == '20.x' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-metrics
+          path: ci-metrics/unit.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload module coverage metrics
+        if: matrix.node-version == '20.x' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: module-coverage-metrics
+          path: ci-metrics/module-coverage.json
+          if-no-files-found: ignore
+          retention-days: 14
 
   test-integration-core:
     runs-on: ubuntu-latest
@@ -352,7 +413,6 @@ jobs:
 
   module-boundaries:
     runs-on: ubuntu-latest
-    continue-on-error: true
     env:
       HUSKY: 0
 
@@ -368,8 +428,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check module boundaries (warning mode)
-        run: npm run architecture:check-boundaries:warning
+      - name: Check module boundaries
+        run: npm run architecture:check-boundaries
 
   build:
     runs-on: ubuntu-latest
@@ -429,7 +489,7 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          pattern: integration-*-metrics*
+          pattern: '*-metrics*'
           merge-multiple: true
           path: ci-metrics
 
@@ -481,7 +541,15 @@ jobs:
                       : null,
                   budget_seconds:
                     typeof metric.budget_seconds === 'number' ? metric.budget_seconds : null,
-                  status: typeof metric.status === 'number' ? metric.status : null,
+                  status:
+                    typeof metric.status === 'number' || typeof metric.status === 'string'
+                      ? metric.status
+                      : null,
+                  warn_seconds:
+                    typeof metric.warn_seconds === 'number' ? metric.warn_seconds : null,
+                  fail_seconds:
+                    typeof metric.fail_seconds === 'number' ? metric.fail_seconds : null,
+                  modules: metric.modules && typeof metric.modules === 'object' ? metric.modules : null,
                   flaky: isFlaky,
                 };
                 if (isFlaky) {
@@ -491,13 +559,89 @@ jobs:
             }
           }
 
+          const getMetric = (track, suite) => metrics[`${track}:${suite}`] || null;
+          const unitMetric = getMetric('unit', 'unit');
+          const integrationCoreMetric = getMetric('integration-core', 'core');
+          const integrationCliMetrics = ['smoke', 'core', 'aux']
+            .map((suite) => getMetric('integration-cli', suite))
+            .filter(Boolean);
+          const moduleCoverageMetric = getMetric('module-coverage', 'targeted');
+
+          const unitRuntime = {
+            duration_seconds: unitMetric?.duration_seconds ?? null,
+            warn_seconds: unitMetric?.warn_seconds ?? 50,
+            fail_seconds: unitMetric?.fail_seconds ?? 60,
+            status: typeof unitMetric?.status === 'string' ? unitMetric.status : 'unknown',
+          };
+
+          const maxCliDuration = integrationCliMetrics.length
+            ? Math.max(
+                ...integrationCliMetrics.map((metric) =>
+                  typeof metric.duration_seconds === 'number' ? metric.duration_seconds : 0
+                )
+              )
+            : null;
+
+          const integrationEstimatedWallSeconds =
+            typeof integrationCoreMetric?.duration_seconds === 'number' &&
+            typeof maxCliDuration === 'number'
+              ? integrationCoreMetric.duration_seconds + maxCliDuration
+              : null;
+
+          let integrationRuntimeStatus = 'unknown';
+          if (typeof integrationEstimatedWallSeconds === 'number') {
+            integrationRuntimeStatus =
+              integrationEstimatedWallSeconds > 120
+                ? 'fail'
+                : integrationEstimatedWallSeconds > 100
+                  ? 'warn'
+                  : 'ok';
+          }
+
+          const integrationRuntime = {
+            estimated_wall_seconds: integrationEstimatedWallSeconds,
+            warn_seconds: 100,
+            fail_seconds: 120,
+            status: integrationRuntimeStatus,
+            formula: 'integration-core duration + max(cli suite duration)',
+          };
+
+          const moduleCoverage = {
+            status: 'unknown',
+            modules: moduleCoverageMetric?.modules || null,
+          };
+          if (moduleCoverage.modules) {
+            const moduleStatuses = Object.values(moduleCoverage.modules)
+              .map((moduleMetric) =>
+                moduleMetric && typeof moduleMetric === 'object' ? moduleMetric.status : null
+              )
+              .filter(Boolean);
+            if (moduleStatuses.length > 0) {
+              moduleCoverage.status = moduleStatuses.every((status) => status === 'pass')
+                ? 'pass'
+                : 'fail';
+            }
+          }
+
           const durationsSeconds = Object.fromEntries(
             Object.entries(metrics).map(([key, value]) => [key, value.duration_seconds])
           );
 
-          const result = Object.values(checks).every((status) => status === 'success')
-            ? 'success'
-            : 'failure';
+          const hardFailures = [];
+          if (!Object.values(checks).every((status) => status === 'success')) {
+            hardFailures.push('one_or_more_ci_checks_failed');
+          }
+          if (unitRuntime.status === 'fail' || unitRuntime.status === 'unknown') {
+            hardFailures.push(`unit_runtime_${unitRuntime.status}`);
+          }
+          if (integrationRuntime.status === 'fail' || integrationRuntime.status === 'unknown') {
+            hardFailures.push(`integration_runtime_${integrationRuntime.status}`);
+          }
+          if (moduleCoverage.status !== 'pass') {
+            hardFailures.push(`module_coverage_${moduleCoverage.status}`);
+          }
+
+          const result = hardFailures.length === 0 ? 'success' : 'failure';
 
           const summary = {
             timestamp: new Date().toISOString(),
@@ -505,6 +649,11 @@ jobs:
             checks,
             gates: {
               eslint10_strict_on_main: process.env.ESLINT10_STRICT_GATE_ENABLED === 'true',
+              runtime_guardrails: {
+                unit: unitRuntime,
+                integration: integrationRuntime,
+              },
+              module_coverage: moduleCoverage,
             },
             durations_seconds: durationsSeconds,
             metrics,
@@ -512,6 +661,7 @@ jobs:
               count: flakySuites.length,
               suites: flakySuites,
             },
+            hard_failures: hardFailures,
             result,
           };
 
@@ -522,6 +672,10 @@ jobs:
           );
 
           console.log(JSON.stringify(summary, null, 2));
+
+          if (result !== 'success') {
+            process.exit(1);
+          }
           NODE
 
       - name: Upload health summary artifact

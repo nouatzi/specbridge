@@ -1,6 +1,7 @@
 /**
  * Core type definitions for SpecBridge
  */
+import type { VerificationRunResult } from './verification-contracts.js';
 
 // Decision status lifecycle
 export type DecisionStatus = 'draft' | 'active' | 'deprecated' | 'superseded';
@@ -219,19 +220,9 @@ export interface VerificationIssue {
 }
 
 /**
- * Result of a verification run
+ * @deprecated Use VerificationRunResult from verification-contracts.
  */
-export interface VerificationResult {
-  success: boolean;
-  violations: Violation[];
-  checked: number;
-  passed: number;
-  failed: number;
-  skipped: number;
-  duration: number;
-  warnings?: VerificationWarning[];
-  errors?: VerificationIssue[];
-}
+export type VerificationResult = VerificationRunResult;
 
 /**
  * Result of an inference run

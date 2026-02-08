@@ -6,8 +6,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { ReportStorage } from '../../reporting/storage.js';
 import { AnalyticsEngine } from '../../analytics/engine.js';
-import { pathExists, getSpecBridgeDir } from '../../utils/fs.js';
-import { NotInitializedError } from '../../core/errors/index.js';
+import { createConfiguredCommandContext } from '../command-context.js';
 
 interface AnalyticsOptions {
   insights?: boolean;
@@ -22,12 +21,10 @@ export const analyticsCommand = new Command('analytics')
   .option('--days <n>', 'Number of days of history to analyze', '90')
   .option('-f, --format <format>', 'Output format (console, json)', 'console')
   .action(async (decisionId: string | undefined, options: AnalyticsOptions) => {
-    const cwd = process.cwd();
-
-    // Check if specbridge is initialized
-    if (!(await pathExists(getSpecBridgeDir(cwd)))) {
-      throw new NotInitializedError();
-    }
+    const { context } = await createConfiguredCommandContext({
+      outputFormat: options.format === 'json' ? 'json' : 'console',
+    });
+    const { cwd } = context;
 
     const spinner = ora('Analyzing compliance data...').start();
 

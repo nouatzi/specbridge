@@ -1,6 +1,6 @@
 {
   "name": "@ipation/specbridge",
-  "version": "2.4.8",
+  "version": "2.4.9",
   "description": "Architecture Decision Runtime - Transform architectural decisions into executable, verifiable constraints",
   "type": "module",
   "main": "./dist/index.js",
@@ -39,6 +39,7 @@
     "architecture:check-boundaries:warning": "node scripts/maintenance/check-module-boundaries.mjs --mode=warning",
     "eslint10:readiness": "npm_config_cache=.cache/npm node scripts/maintenance/check-eslint10-readiness.mjs",
     "eslint10:readiness:strict": "npm_config_cache=.cache/npm node scripts/maintenance/check-eslint10-readiness.mjs --strict",
+    "coverage:check-modules": "node scripts/maintenance/check-module-coverage.mjs",
     "type-check": "tsc --noEmit",
     "version:patch": "npm version patch",
     "version:minor": "npm version minor",
@@ -48,7 +49,7 @@
     "pack:check": "npm_config_cache=.cache/npm npm pack --ignore-scripts && npm_config_cache=.cache/npm HUSKY=0 npm pack --dry-run",
     "deps:outdated": "npm_config_cache=.cache/npm npm outdated --long",
     "health:quick": "npm run type-check && npm run lint:check && npm run format:check && npm run test:unit",
-    "health:check": "npm run docs:validate && npm run release:validate && npm run type-check && npm run lint:check && npm run format:check && npm run test && npm run test:integration && npm run test:coverage && npm audit --audit-level=high",
+    "health:check": "npm run docs:validate && npm run release:validate && npm run type-check && npm run lint:check && npm run format:check && npm run test && npm run test:integration && npm run test:coverage && npm run coverage:check-modules && npm audit --audit-level=high",
     "prepare": "husky",
     "prepublishOnly": "npm run build"
   },

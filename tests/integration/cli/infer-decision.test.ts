@@ -1,13 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { createCliHarness } from './harness';
 
 describe('CLI Integration - Infer and Decision', () => {
-  const { getTestDir, runCLI, writeFile } = createCliHarness('infer-decision');
-
   describe('specbridge infer', () => {
-    beforeEach(() => {
+    const { getTestDir, runCLI, writeFile } = createCliHarness('infer-decision-infer', {
+      lifecycle: 'suite',
+    });
+
+    beforeAll(() => {
       runCLI('init');
       writeFile('src/UserService.ts', 'export class UserService {}');
       writeFile('src/ProductService.ts', 'export class ProductService {}');
@@ -40,7 +42,11 @@ describe('CLI Integration - Infer and Decision', () => {
   });
 
   describe('specbridge decision', () => {
-    beforeEach(() => {
+    const { getTestDir, runCLI, writeFile } = createCliHarness('infer-decision-decision', {
+      lifecycle: 'suite',
+    });
+
+    beforeAll(() => {
       runCLI('init');
     });
 

@@ -21,6 +21,17 @@ export default [
     ],
   },
 
+  // JavaScript utility scripts (Node runtime)
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2021,
+      },
+    },
+  },
+
   // TypeScript files configuration
   {
     files: ['**/*.ts'],
@@ -62,11 +73,19 @@ export default [
     },
   },
 
-  // Test files may use looser typing/assertions for mock ergonomics.
+  // Tests keep ergonomic typing for fixtures/mocks while preserving strictness
+  // for unused vars/non-null assertions in unit tests.
   {
     files: ['tests/**/*.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+
+  // Integration tests may use looser typing/assertions for harness ergonomics.
+  {
+    files: ['tests/integration/**/*.ts'],
+    rules: {
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
     },

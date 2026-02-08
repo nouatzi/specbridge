@@ -4,7 +4,7 @@ This guide walks you through setting up SpecBridge in your project and creating 
 
 ## Prerequisites
 
-- Node.js 18 or later
+- Node.js 20.19.0 or later
 - A TypeScript/JavaScript project
 
 ## Installation

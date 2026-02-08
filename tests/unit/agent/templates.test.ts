@@ -17,7 +17,9 @@ describe('agent templates', () => {
       applicableDecisions: [],
       generatedAt: new Date().toISOString(),
     };
-    const text = templates['code-review']!.generate(ctx);
+    const template = templates['code-review'];
+    expect(template).toBeDefined();
+    const text = template?.generate(ctx) ?? '';
     expect(typeof text).toBe('string');
     expect(text).toContain('architectural');
   });

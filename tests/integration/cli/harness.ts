@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process';
 import { mkdtempSync, rmSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { beforeEach, afterEach, afterAll } from 'vitest';
+import { beforeEach, afterEach, afterAll, beforeAll } from 'vitest';
 
 type CommandTiming = {
   args: string;
@@ -12,6 +12,10 @@ type CommandTiming = {
 type RunCliOptions = {
   expectError?: boolean;
   timeoutMs?: number;
+};
+
+type HarnessOptions = {
+  lifecycle?: 'test' | 'suite';
 };
 
 export type CliHarness = {
@@ -25,7 +29,8 @@ function toText(value: unknown): string {
   return typeof value === 'string' ? value : String(value ?? '');
 }
 
-export function createCliHarness(suiteName: string): CliHarness {
+export function createCliHarness(suiteName: string, options: HarnessOptions = {}): CliHarness {
+  const { lifecycle = 'test' } = options;
   let testDir = '';
   const timings: CommandTiming[] = [];
 
@@ -99,17 +104,27 @@ export function createCliHarness(suiteName: string): CliHarness {
     }
   };
 
-  beforeEach(() => {
-    testDir = mkdtempSync(join(tmpdir(), `specbridge-${suiteName}-`));
-  });
+  if (lifecycle === 'suite') {
+    beforeAll(() => {
+      testDir = mkdtempSync(join(tmpdir(), `specbridge-${suiteName}-`));
+    });
+  } else {
+    beforeEach(() => {
+      testDir = mkdtempSync(join(tmpdir(), `specbridge-${suiteName}-`));
+    });
 
-  afterEach(() => {
+    afterEach(() => {
+      if (testDir && existsSync(testDir)) {
+        rmSync(testDir, { recursive: true, force: true });
+      }
+    });
+  }
+
+  afterAll(() => {
     if (testDir && existsSync(testDir)) {
       rmSync(testDir, { recursive: true, force: true });
     }
-  });
 
-  afterAll(() => {
     if (timings.length === 0) {
       return;
     }

@@ -4,7 +4,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { join } from 'node:path';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
-import { Registry, createRegistry } from '../../src/registry/registry.js';
+import { createRegistry } from '../../src/registry/registry.js';
 import { stringifyYaml } from '../../src/utils/yaml.js';
 
 const TEST_DIR = join(process.cwd(), 'tests', 'fixtures', 'test-registry');
@@ -391,6 +391,7 @@ describe('Registry', () => {
         .flatMap((d) =>
           d.constraints.map((c) => ({ decisionId: d.metadata.id, constraintId: c.id }))
         );
+      expect(allConstraints.length).toBeGreaterThan(0);
 
       // Constraint IDs should be unique within a decision
       const decision = registry.get('test-001');

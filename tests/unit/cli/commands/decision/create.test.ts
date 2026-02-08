@@ -25,9 +25,7 @@ vi.mock('chalk', () => ({
 describe('decision create command', () => {
   let testDir: string;
   let cwdMock: ReturnType<typeof mockProcessCwd>;
-  let consoleLogSpy: any;
   let consoleErrorSpy: any;
-  let processExitSpy: any;
 
   beforeEach(async () => {
     testDir = mkdtempSync(join(tmpdir(), 'specbridge-test-create-'));
@@ -35,9 +33,8 @@ describe('decision create command', () => {
 
     await setupTestProject(testDir);
 
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+    vi.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('process.exit called');
     });
   });

@@ -35,7 +35,6 @@ describe('decision validate command', () => {
   let testDir: string;
   let cwdMock: ReturnType<typeof mockProcessCwd>;
   let consoleLogSpy: any;
-  let processExitSpy: any;
 
   beforeEach(async () => {
     testDir = mkdtempSync(join(tmpdir(), 'specbridge-test-validate-'));
@@ -51,7 +50,7 @@ describe('decision validate command', () => {
     });
 
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+    vi.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('process.exit called');
     });
   });

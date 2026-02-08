@@ -6,7 +6,7 @@ import { mkdtempSync, existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { reportCommand } from '../../../../src/cli/commands/report.js';
-import { mockProcessCwd, mockSpinner } from '../../../helpers/mocks.js';
+import { mockProcessCwd } from '../../../helpers/mocks.js';
 import { setupTestProject, createDecisionYaml } from '../../../helpers/setup.js';
 import { NotInitializedError } from '../../../../src/core/errors/index.js';
 

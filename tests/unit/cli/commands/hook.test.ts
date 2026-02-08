@@ -6,7 +6,7 @@ import { mkdtempSync, existsSync, rmSync, mkdirSync, readFileSync } from 'node:f
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHookCommand } from '../../../../src/cli/commands/hook.js';
-import { mockProcessCwd, mockSpinner } from '../../../helpers/mocks.js';
+import { mockProcessCwd } from '../../../helpers/mocks.js';
 import { setupTestProject } from '../../../helpers/setup.js';
 import { NotInitializedError } from '../../../../src/core/errors/index.js';
 
@@ -84,7 +84,7 @@ describe('hook command - install', () => {
       if (existsSync(huskyDir)) {
         rmSync(huskyDir, { recursive: true, force: true });
       }
-    } catch (e) {
+    } catch {
       // Ignore cleanup errors
     }
 
@@ -253,7 +253,6 @@ describe('hook command - run', () => {
 describe('hook command - uninstall', () => {
   let testDir: string;
   let cwdMock: ReturnType<typeof mockProcessCwd>;
-  let consoleLogSpy: any;
   let hookCommand: ReturnType<typeof createHookCommand>;
 
   beforeEach(async () => {
@@ -263,7 +262,7 @@ describe('hook command - uninstall', () => {
     await setupTestProject(testDir);
     hookCommand = createHookCommand();
 
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {

@@ -917,9 +917,12 @@ describe('Reporter', () => {
 
       // Verify decisions are sorted
       for (let i = 1; i < report.byDecision.length; i++) {
-        expect(report.byDecision[i]!.compliance).toBeGreaterThanOrEqual(
-          report.byDecision[i - 1]!.compliance
-        );
+        const current = report.byDecision[i];
+        const previous = report.byDecision[i - 1];
+        expect(current).toBeDefined();
+        expect(previous).toBeDefined();
+        if (!current || !previous) continue;
+        expect(current.compliance).toBeGreaterThanOrEqual(previous.compliance);
       }
     });
   });

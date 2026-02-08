@@ -1,21 +1,18 @@
 # SpecBridge Project Assessment
 
 **Date**: 2026-02-07
-**Version assessed**: 2.4.0
-**Branch**: `main` (commit `c10fdcb`)
+**Version assessed**: 2.4.3
+**Branch**: `main` (commit `0dfda83`)
 
 ---
 
 ## Executive Summary
 
-SpecBridge is currently in a stable and releasable state. CI and Security workflows are green on `main`, local validation passes (type-check, strict lint, format check, unit tests, integration tests), and dependency audit reports zero known vulnerabilities.
+SpecBridge is stable and releasable. Local quality gates pass end-to-end (type-check, strict lint, format check, unit tests, integration tests, coverage, audit, packaging). Governance and CI guardrails were strengthened in this cycle to prevent runtime policy drift between docs and package metadata.
 
-The main improvement area has shifted from break/fix to governance and maintainability:
-- keep Node/runtime support policy aligned with dependencies,
-- keep quality gates strict and intentional,
-- gradually re-tighten test linting rules where currently relaxed.
+The next maintenance focus is dependency major-version updates and incremental tightening of relaxed test lint rules.
 
-**Overall Grade: A-**
+**Overall Grade: A**
 
 ---
 
@@ -23,35 +20,34 @@ The main improvement area has shifted from break/fix to governance and maintaina
 
 | Area | Status | Details |
 |------|--------|---------|
-| CI workflow | PASS | `21777143835` successful (build, lint, test matrix) |
-| Security workflow | PASS | `21777143837` successful |
+| Runtime policy | PASS | `package.json` requires Node `>=20.19.0` |
 | Type checking | PASS | `tsc --noEmit` passes |
 | Linting | PASS | strict mode enabled (`eslint . --max-warnings=0`) |
 | Formatting | PASS | `prettier --check` passes |
 | Unit tests | PASS | 57 files, 1,023 tests |
-| Integration tests | PASS | 7 files, 46 tests |
+| Integration tests | PASS | 11 files, 47 tests |
+| Coverage | PASS | 90.36% statements, 77.03% branches, 91.89% functions, 91.91% lines |
+| Packaging | PASS | `npm run pack:check` succeeds |
 | Dependency audit | PASS | `npm audit` reports 0 vulnerabilities |
 
 ---
 
-## 2. What Was Fixed Since Previous Assessment
+## 2. Implemented in This Cycle
 
-The previous assessment (2026-02-06, version 2.1.0) is now outdated. The following items were resolved:
+1. **Runtime policy docs alignment**
+- Updated docs that still referenced Node 18 to Node 20 policy (`>=20.19.0` baseline).
 
-1. **Missing public exports**
-- `analytics`, `dashboard`, `lsp`, and `integrations` are now exported from `src/index.ts`.
+2. **Drift guardrail in tooling**
+- Added `npm run docs:validate` (`scripts/docs/validate-runtime-policy.mjs`) to verify docs/runtime alignment against `package.json` `engines.node`.
 
-2. **Config placeholder**
-- `.specbridge/config.yaml` now has `project.name: specbridge`.
+3. **CI enforcement**
+- Added a dedicated `docs-policy` job in `.github/workflows/ci.yml` that blocks regressions in runtime policy docs.
 
-3. **Security vulnerability backlog**
-- Previous `@modelcontextprotocol/sdk` vulnerability is no longer present in current dependency graph.
+4. **Operational ergonomics**
+- Added `npm run health:quick` and updated `docs/maintenance/project-health.md` to include docs policy validation in routine checks.
 
-4. **Dependency modernization**
-- Tooling/runtime stack moved to modern major versions (Vitest 4, ESLint 9+, commander 14, chokidar 5, express 5, zod 4, etc.).
-
-5. **CI instability around Node 18**
-- Policy and workflow now align around modern runtime expectations, with stable CI behavior.
+5. **Integration runtime observability**
+- CI integration jobs now upload per-suite runtime metric artifacts (duration, budget, status, flaky flag).
 
 ---
 
@@ -61,7 +57,7 @@ The previous assessment (2026-02-06, version 2.1.0) is now outdated. The followi
 - Strong modular architecture with clear domain boundaries.
 - Mature verification/reporting/CLI integration with broad automated coverage.
 - Dogfooding remains active via `.specbridge/decisions/`.
-- CI includes multi-version Node testing and separate security workflow.
+- CI includes multi-version Node testing, runtime budgets, flaky retry annotation, and runtime metrics artifacts.
 
 ### Current Tradeoffs
 - Strict lint gate is enabled globally, but test-specific lint rules are relaxed for ergonomics (`no-explicit-any`, `no-unused-vars`, `no-non-null-assertion` in `tests/**`).
@@ -89,29 +85,29 @@ The previous assessment (2026-02-06, version 2.1.0) is now outdated. The followi
 ## 5. Prioritized Recommendations (Current)
 
 ### Immediate (next sprint)
-1. **Document support policy clearly in release notes**
-- Explicitly call out Node `>=20.19.0` as a breaking support baseline.
+1. **Execute isolated dependency upgrade PRs**
+- `eslint`/`@eslint/js` v10 first, then `pino` v10, each with full gate validation.
 
 2. **Keep strict quality gate in CI**
-- Preserve blocking `format:check` and `lint:check --max-warnings=0`.
+- Preserve blocking `format:check`, `lint:check --max-warnings=0`, and `docs:validate`.
 
-3. **Monitor dependency drift monthly**
-- Track `eslint` v10 migration and `pino` v10 upgrade as isolated PRs.
+3. **Track CI runtime trends**
+- Use uploaded integration metrics artifacts to monitor regressions and flaky retries weekly.
 
 ### Short-term (2-6 weeks)
 4. **Gradually re-enable test lint strictness**
 - Re-enable one rule at a time for selected test folders.
 - Suggested sequence: `no-unused-vars` -> `no-non-null-assertion` -> `no-explicit-any`.
 
-5. **Add a repeatable health checklist to docs**
-- Standardize monthly health review commands and acceptance criteria.
+5. **Optimize slow CLI integration paths**
+- Focus first on `hook-report-context`, `infer-decision`, and `init-verify` suites.
 
 ### Medium-term (1-3 months)
-6. **Raise coverage targets after stabilization**
+6. **Raise coverage thresholds after runtime stabilization**
 - Current thresholds are intentionally practical; target increases should be tied to baseline flakiness and test runtime budget.
 
-7. **Split long-running integration suite in CI**
-- Consider sharding `tests/integration/cli.test.ts` from other integration tests to reduce job tail latency.
+7. **Codify release readout**
+- Include docs policy status and integration runtime trend deltas in release checklist notes.
 
 ---
 
@@ -120,11 +116,11 @@ The previous assessment (2026-02-06, version 2.1.0) is now outdated. The followi
 | Metric | Value |
 |--------|-------|
 | Source TS files (`src/**/*.ts`) | 89 |
-| Test files (`*.test.ts`) | 64 |
+| Test files (`*.test.ts`) | 68 |
 | Unit test files | 57 |
-| Integration test files | 7 |
+| Integration test files | 11 |
 | Unit tests | 1,023 |
-| Integration tests | 46 |
+| Integration tests | 47 |
 | Vulnerabilities | 0 |
 | Lint warnings | 0 (strict gate) |
 
@@ -133,6 +129,6 @@ The previous assessment (2026-02-06, version 2.1.0) is now outdated. The followi
 ## 7. Maintenance Cadence
 
 Recommended cadence:
-- **Per PR**: type-check, strict lint, format, unit tests.
+- **Per PR**: docs policy validation, type-check, strict lint, format, unit tests.
 - **Per merge to main**: full CI matrix + security workflow.
-- **Monthly**: `npm outdated`, `npm audit`, runtime policy verification, assessment refresh.
+- **Monthly**: `npm outdated`, `npm audit`, runtime policy verification, integration runtime trend review, assessment refresh.

@@ -6,7 +6,7 @@ import { mkdtempSync, existsSync, rmSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { initCommand } from '../../../../src/cli/commands/init.js';
-import { mockProcessCwd, mockSpinner } from '../../../helpers/mocks.js';
+import { mockProcessCwd } from '../../../helpers/mocks.js';
 import { AlreadyInitializedError } from '../../../../src/core/errors/index.js';
 
 // Mock ora and chalk

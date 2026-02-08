@@ -6,7 +6,7 @@ import { mkdtempSync, existsSync, rmSync, writeFileSync, mkdirSync } from 'node:
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { inferCommand } from '../../../../src/cli/commands/infer.js';
-import { mockProcessCwd, mockSpinner } from '../../../helpers/mocks.js';
+import { mockProcessCwd } from '../../../helpers/mocks.js';
 import { setupTestProject } from '../../../helpers/setup.js';
 import { NotInitializedError } from '../../../../src/core/errors/index.js';
 

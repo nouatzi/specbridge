@@ -44,7 +44,6 @@ describe('decision show command', () => {
   let testDir: string;
   let cwdMock: ReturnType<typeof mockProcessCwd>;
   let consoleLogSpy: any;
-  let consoleErrorSpy: any;
 
   beforeEach(async () => {
     testDir = mkdtempSync(join(tmpdir(), 'specbridge-test-show-'));
@@ -63,7 +62,7 @@ describe('decision show command', () => {
     });
 
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {

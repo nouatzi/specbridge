@@ -7,7 +7,6 @@ import {
   getAffectedFiles,
   getAffectingDecisions,
   getTransitiveDependencies,
-  type DependencyGraph,
 } from '../../../src/propagation/graph.js';
 import type { Decision } from '../../../src/core/types/index.js';
 

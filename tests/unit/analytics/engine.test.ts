@@ -3,7 +3,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { AnalyticsEngine } from '../../../src/analytics/engine.js';
-import type { ComplianceReport, StoredReport } from '../../../src/core/types/index.js';
+import type { StoredReport } from '../../../src/core/types/index.js';
 
 describe('AnalyticsEngine', () => {
   const engine = new AnalyticsEngine();

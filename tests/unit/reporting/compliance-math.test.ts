@@ -217,7 +217,6 @@ describe('Compliance Math - Severity-Weighted Formula', () => {
   describe('Edge Cases', () => {
     it('should handle zero constraints', () => {
       // Pure unit test
-      const constraintCount = 0;
       const violations = 0;
 
       // With zero constraints, compliance should be 100

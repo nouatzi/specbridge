@@ -1,13 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { createCliHarness } from './harness';
 
 describe('CLI Integration - Hook, Report, and Context', () => {
-  const { getTestDir, runCLI, runShell, writeFile } = createCliHarness('hook-report-context');
-
   describe('specbridge hook', () => {
-    beforeEach(() => {
+    const { runCLI, runShell } = createCliHarness('hook-report-context-hook', {
+      lifecycle: 'suite',
+    });
+
+    beforeAll(() => {
       runCLI('init');
       runShell('git init');
       runShell('git config user.email "test@test.com"');
@@ -29,7 +31,11 @@ describe('CLI Integration - Hook, Report, and Context', () => {
   });
 
   describe('specbridge report', () => {
-    beforeEach(() => {
+    const { getTestDir, runCLI, writeFile } = createCliHarness('hook-report-context-report', {
+      lifecycle: 'suite',
+    });
+
+    beforeAll(() => {
       runCLI('init');
       writeFile('src/test.ts', 'export const test = "hello";');
     });
@@ -58,7 +64,11 @@ describe('CLI Integration - Hook, Report, and Context', () => {
   });
 
   describe('specbridge context', () => {
-    beforeEach(() => {
+    const { runCLI, writeFile } = createCliHarness('hook-report-context-context', {
+      lifecycle: 'suite',
+    });
+
+    beforeAll(() => {
       runCLI('init');
       writeFile('src/test.ts', 'export const test = "hello";');
     });

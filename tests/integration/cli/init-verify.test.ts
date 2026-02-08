@@ -1,37 +1,27 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createCliHarness } from './harness';
 
 describe('CLI Integration - Init and Verify', () => {
-  const { getTestDir, runCLI, writeFile } = createCliHarness('init-verify');
-
   describe('specbridge init', () => {
-    it('initializes a new SpecBridge project', () => {
-      runCLI('init');
+    const { getTestDir, runCLI } = createCliHarness('init-verify-init', { lifecycle: 'suite' });
 
+    beforeAll(() => {
+      runCLI('init');
+    });
+
+    it('initializes a new SpecBridge project with expected baseline files', () => {
       expect(existsSync(join(getTestDir(), '.specbridge'))).toBe(true);
       expect(existsSync(join(getTestDir(), '.specbridge/config.yaml'))).toBe(true);
-    });
-
-    it('creates decisions directory', () => {
-      runCLI('init');
-
       expect(existsSync(join(getTestDir(), '.specbridge/decisions'))).toBe(true);
-    });
-
-    it('creates default config with project name', () => {
-      runCLI('init --name test-project');
-
       const configPath = join(getTestDir(), '.specbridge/config.yaml');
       const config = readFileSync(configPath, 'utf-8');
-
       expect(config).toContain('version:');
       expect(config).toContain('project:');
     });
 
     it('does not overwrite existing .specbridge directory without force', () => {
-      runCLI('init');
       const firstConfig = readFileSync(join(getTestDir(), '.specbridge/config.yaml'), 'utf-8');
 
       runCLI('init', { expectError: true });
@@ -42,18 +32,25 @@ describe('CLI Integration - Init and Verify', () => {
   });
 
   describe('specbridge verify', () => {
-    beforeEach(() => {
+    const { runCLI, writeFile } = createCliHarness('init-verify-verify', { lifecycle: 'suite' });
+
+    beforeAll(() => {
       runCLI('init');
       writeFile('src/test.ts', 'export const test = "hello";');
     });
 
-    it('verifies an empty project successfully', () => {
+    it('verifies an empty project and supports --json output', () => {
       const output = runCLI('verify');
+      const jsonOutput = runCLI('verify --json');
 
       expect(output).toBeDefined();
+      expect(jsonOutput).toBeDefined();
+      if (jsonOutput.trim().startsWith('{')) {
+        expect(() => JSON.parse(jsonOutput)).not.toThrow();
+      }
     });
 
-    it('detects violations when constraints exist', () => {
+    it('supports --decisions flag to verify specific decision', () => {
       writeFile(
         '.specbridge/decisions/test.decision.yaml',
         `kind: Decision
@@ -79,46 +76,37 @@ verification:
 `
       );
 
-      const output = runCLI('verify');
-
-      expect(output).toBeDefined();
-    });
-
-    it('supports --decisions flag to verify specific decision', () => {
-      writeFile(
-        '.specbridge/decisions/test.decision.yaml',
-        `kind: Decision
-metadata:
-  id: test-001
-  title: Test
-  status: active
-  owners: [test]
-decision:
-  summary: Test
-  rationale: Test
-constraints:
-  - id: test-001-c1
-    type: convention
-    rule: Test rule
-    severity: medium
-    scope: src/**/*.ts
-verification:
-  automated: []
-`
-      );
-
       const output = runCLI('verify --decisions test-001');
 
       expect(output).toBeDefined();
     });
 
-    it('supports --json output', () => {
-      const output = runCLI('verify --json');
+    it('detects violations when constraints exist', () => {
+      writeFile(
+        '.specbridge/decisions/violation.decision.yaml',
+        `kind: Decision
+metadata:
+  id: test-violations
+  title: Test Violation
+  status: active
+  owners: [test]
+decision:
+  summary: Test constraint
+  rationale: Testing
+constraints:
+  - id: test-constraint
+    type: invariant
+    rule: All files must start with uppercase
+    severity: critical
+    scope: "**/*.ts"
+verification:
+  automated: []
+`
+      );
+
+      const output = runCLI('verify');
 
       expect(output).toBeDefined();
-      if (output.trim().startsWith('{')) {
-        expect(() => JSON.parse(output)).not.toThrow();
-      }
     });
   });
 });

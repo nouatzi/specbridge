@@ -7,6 +7,7 @@ Use this checklist for monthly maintenance or before a release.
 ```bash
 npm ci
 npm run docs:validate
+npm run release:validate
 npm run health:quick
 npm run health:check
 npm run deps:outdated
@@ -17,6 +18,7 @@ Expanded equivalent:
 ```bash
 npm ci
 npm run docs:validate
+npm run release:validate
 npm run type-check
 npm run lint:check
 npm run format:check
@@ -42,8 +44,10 @@ npm run deps:outdated
 - Packaging checks pass with and without lifecycle scripts.
 - Runtime policy in docs matches `package.json` `engines.node`.
 - `npm run docs:validate` passes in CI and locally.
+- `npm run release:validate` passes in CI and locally.
 - Integration retries (if needed) are annotated in CI step summaries as flaky.
 - Core and CLI integration runtime stay within configured CI budgets.
+- CI uploads `health-summary` artifact for machine-readable check status and durations.
 
 ## Baseline Targets (Reliability Track)
 
@@ -70,7 +74,7 @@ npm run deps:outdated
 
 Track these regularly:
 - Major-version drift in core toolchain (`eslint`, `typescript`, `vitest`).
-- ESLint v10 adoption status (currently blocked by `@typescript-eslint` peer support for ESLint 8/9).
+- ESLint v10 adoption status (pending compatibility validation in an isolated upgrade PR).
 - CI runtime drift vs dependency engine requirements.
 - Test runtime growth and flakiness in long integration suites.
 

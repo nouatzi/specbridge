@@ -39,7 +39,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: matrix.node-version == '20.x'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: ./coverage/lcov.info
           flags: unittests
@@ -283,6 +283,23 @@ jobs:
       - name: Validate docs/runtime policy alignment
         run: npm run docs:validate
 
+  release-metadata:
+    runs-on: ubuntu-latest
+    env:
+      HUSKY: 0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Validate package/changelog version alignment
+        run: npm run release:validate
+
   lint:
     runs-on: ubuntu-latest
     env:
@@ -346,3 +363,95 @@ jobs:
             *.tgz
             package-contents.txt
           retention-days: 7
+
+  health-summary:
+    if: always()
+    runs-on: ubuntu-latest
+    needs:
+      - test-unit
+      - test-integration-core
+      - test-integration-cli
+      - docs-policy
+      - release-metadata
+      - lint
+      - build
+
+    steps:
+      - name: Download CI metrics artifacts
+        if: always()
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: integration-*-metrics*
+          merge-multiple: true
+          path: ci-metrics
+
+      - name: Build machine-readable health summary
+        if: always()
+        env:
+          UNIT_STATUS: ${{ needs.test-unit.result }}
+          INTEGRATION_CORE_STATUS: ${{ needs.test-integration-core.result }}
+          INTEGRATION_CLI_STATUS: ${{ needs.test-integration-cli.result }}
+          DOCS_POLICY_STATUS: ${{ needs.docs-policy.result }}
+          RELEASE_METADATA_STATUS: ${{ needs.release-metadata.result }}
+          LINT_STATUS: ${{ needs.lint.result }}
+          BUILD_STATUS: ${{ needs.build.result }}
+        run: |
+          node <<'NODE'
+          const { existsSync, readdirSync, readFileSync, writeFileSync } = require('node:fs');
+          const { resolve } = require('node:path');
+
+          const checks = {
+            test_unit: process.env.UNIT_STATUS || 'unknown',
+            test_integration_core: process.env.INTEGRATION_CORE_STATUS || 'unknown',
+            test_integration_cli: process.env.INTEGRATION_CLI_STATUS || 'unknown',
+            docs_policy: process.env.DOCS_POLICY_STATUS || 'unknown',
+            release_metadata: process.env.RELEASE_METADATA_STATUS || 'unknown',
+            lint: process.env.LINT_STATUS || 'unknown',
+            build: process.env.BUILD_STATUS || 'unknown',
+          };
+
+          const durationsSeconds = {};
+          const metricsDir = resolve(process.cwd(), 'ci-metrics');
+          if (existsSync(metricsDir)) {
+            for (const file of readdirSync(metricsDir)) {
+              if (!file.endsWith('.json')) continue;
+              const raw = readFileSync(resolve(metricsDir, file), 'utf8');
+              const metric = JSON.parse(raw);
+              if (metric && metric.suite) {
+                durationsSeconds[String(metric.suite)] =
+                  typeof metric.duration_seconds === 'number'
+                    ? metric.duration_seconds
+                    : null;
+              }
+            }
+          }
+
+          const result = Object.values(checks).every((status) => status === 'success')
+            ? 'success'
+            : 'failure';
+
+          const summary = {
+            timestamp: new Date().toISOString(),
+            node_version: process.version,
+            checks,
+            durations_seconds: durationsSeconds,
+            result,
+          };
+
+          writeFileSync(
+            resolve(process.cwd(), 'health-summary.json'),
+            `${JSON.stringify(summary, null, 2)}\n`,
+            'utf8'
+          );
+
+          console.log(JSON.stringify(summary, null, 2));
+          NODE
+
+      - name: Upload health summary artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-summary
+          path: health-summary.json
+          retention-days: 14

@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.5] - 2026-02-08
+
+### Added
+
+- Release metadata consistency validation command: `npm run release:validate`.
+- CI `release-metadata` job to enforce package/changelog version alignment.
+- CI `health-summary` artifact with machine-readable check status and integration durations.
+
+### Changed
+
+- Security workflow now fails on high/critical npm audit findings.
+- CI coverage upload action updated to `codecov/codecov-action@v4`.
+- Maintenance checklist and monthly health template updated with release metadata validation steps.
+
+## [2.4.4] - 2026-02-08
+
+### Added
+
+- Runtime/docs policy validation command: `npm run docs:validate`.
+- Quick health command for local verification: `npm run health:quick`.
+- Runtime policy guardrail script: `scripts/docs/validate-runtime-policy.mjs`.
+- Integration runtime metrics artifacts in CI (`ci-metrics/*.json`).
+
+### Changed
+
+- Hardened CI reliability gates with dedicated docs policy validation.
+- Optimized slow CLI integration tests by reducing duplicate setup overhead.
+- Refined unit and integration tests for determinism and runtime stability.
+
+## [2.4.3] - 2026-02-07
+
+### Added
+
+- CLI integration sharding into targeted suites:
+  - `test:integration:cli:smoke`
+  - `test:integration:cli:core`
+  - `test:integration:cli:aux`
+- Runtime budgets and retry-once handling for publish integration workflow.
+
+### Changed
+
+- Split CLI integration tests into focused files (`smoke`, `init-verify`, `infer-decision`, `hook-report-context`, `errors`).
+- Improved CI and publish observability with per-suite runtime summaries.
+
+## [2.4.2] - 2026-02-07
+
+### Fixed
+
+- Publish workflow now builds package artifacts before running integration tests.
+
+## [2.4.1] - 2026-02-07
+
+### Changed
+
+- Hardened release workflow reliability and timeout handling.
+- Updated integration test configuration and packaging checks for release readiness.
+
 ## [2.4.0] - 2026-02-07
 
 ### Added
@@ -1021,9 +1078,25 @@ This release adopts a **pragmatic testing approach**:
 - Vitest for testing
 - tsup for building
 
-[Unreleased]: https://github.com/nouatzi/specbridge/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/nouatzi/specbridge/compare/v2.4.5...HEAD
+[2.4.5]: https://github.com/nouatzi/specbridge/compare/v2.4.4...v2.4.5
+[2.4.4]: https://github.com/nouatzi/specbridge/compare/v2.4.3...v2.4.4
+[2.4.3]: https://github.com/nouatzi/specbridge/compare/v2.4.2...v2.4.3
+[2.4.2]: https://github.com/nouatzi/specbridge/compare/v2.4.1...v2.4.2
+[2.4.1]: https://github.com/nouatzi/specbridge/compare/v2.4.0...v2.4.1
+[2.4.0]: https://github.com/nouatzi/specbridge/compare/v2.3.0...v2.4.0
+[2.3.0]: https://github.com/nouatzi/specbridge/compare/v2.2.0...v2.3.0
+[2.2.0]: https://github.com/nouatzi/specbridge/compare/v1.3.0...v2.2.0
+[1.3.0]: https://github.com/nouatzi/specbridge/compare/v1.2.1...v1.3.0
+[1.2.1]: https://github.com/nouatzi/specbridge/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/nouatzi/specbridge/compare/v1.1.2...v1.2.0
+[1.1.2]: https://github.com/nouatzi/specbridge/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/nouatzi/specbridge/compare/v1.1.0...v1.1.1
-[1.1.0]: https://github.com/nouatzi/specbridge/compare/v1.0.6...v1.1.0
+[1.1.0]: https://github.com/nouatzi/specbridge/compare/v1.0.4...v1.1.0
+[1.0.4]: https://github.com/nouatzi/specbridge/compare/v1.0.3...v1.0.4
+[1.0.3]: https://github.com/nouatzi/specbridge/compare/v1.0.2...v1.0.3
+[1.0.2]: https://github.com/nouatzi/specbridge/compare/v1.0.1...v1.0.2
+[1.0.1]: https://github.com/nouatzi/specbridge/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/nouatzi/specbridge/compare/v0.2.1...v1.0.0
 [0.2.1]: https://github.com/nouatzi/specbridge/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/nouatzi/specbridge/compare/v0.1.0...v0.2.0

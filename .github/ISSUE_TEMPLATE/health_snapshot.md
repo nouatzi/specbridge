@@ -15,6 +15,7 @@ assignees: ''
 ## Command Outputs
 
 - [ ] `npm run docs:validate`
+- [ ] `npm run release:validate`
 - [ ] `npm run health:quick`
 - [ ] `npm run test:integration`
 - [ ] `npm run test:coverage`
@@ -23,6 +24,7 @@ assignees: ''
 - [ ] `npm run deps:outdated`
 
 Attach relevant output excerpts, durations, and failures (if any).
+Attach the latest `health-summary` CI artifact when available.
 
 ## Runtime Trend Review
 

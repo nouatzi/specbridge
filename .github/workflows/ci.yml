@@ -90,7 +90,7 @@ jobs:
 
       - name: Upload unit metrics
         if: matrix.node-version == '20.x' && always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: unit-metrics
           path: ci-metrics/unit.json
@@ -99,7 +99,7 @@ jobs:
 
       - name: Upload module coverage metrics
         if: matrix.node-version == '20.x' && always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: module-coverage-metrics
           path: ci-metrics/module-coverage.json
@@ -195,7 +195,7 @@ jobs:
 
       - name: Upload core integration logs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: integration-core-logs
           path: integration-core-*.log
@@ -203,7 +203,7 @@ jobs:
 
       - name: Upload core integration metrics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: integration-core-metrics
           path: ci-metrics/integration-core.json
@@ -312,7 +312,7 @@ jobs:
 
       - name: Upload CLI integration logs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: integration-cli-logs-${{ matrix.suite }}
           path: integration-cli-${{ matrix.suite }}-*.log
@@ -320,7 +320,7 @@ jobs:
 
       - name: Upload CLI integration metrics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: integration-cli-metrics-${{ matrix.suite }}
           path: ci-metrics/integration-cli-${{ matrix.suite }}.json
@@ -461,7 +461,7 @@ jobs:
         run: tar -tf *.tgz | sort > package-contents.txt
 
       - name: Upload package artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: package
           path: |
@@ -680,7 +680,7 @@ jobs:
 
       - name: Upload health summary artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: health-summary
           path: health-summary.json

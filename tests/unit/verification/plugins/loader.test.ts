@@ -131,9 +131,38 @@ describe('PluginLoader', () => {
       expect(loader.getPluginIds()).toContain('plugin-2');
       expect(loader.getPluginIds()).toContain('plugin-3');
     });
+
+    it('should load plugins from a named plugin export', async () => {
+      const namedPlugin = `
+        export const plugin = {
+          metadata: { id: 'named-plugin', version: '1.0.0' },
+          createVerifier: () => ({
+            id: 'named-plugin',
+            name: 'Named Plugin',
+            description: 'Loaded from named export',
+            verify: async () => []
+          })
+        };
+      `;
+
+      writeFileSync(join(verifiersDir, 'named-plugin.js'), namedPlugin);
+
+      await loader.loadPlugins(testDir);
+
+      expect(loader.getPluginIds()).toContain('named-plugin');
+    });
   });
 
   describe('Plugin Validation', () => {
+    it('should reject modules without a default or named plugin export', async () => {
+      writeFileSync(join(verifiersDir, 'empty.js'), 'export const value = 1;');
+
+      await loader.loadPlugins(testDir);
+
+      expect(loader.getPluginIds()).toHaveLength(0);
+      expect(loader.getLoadErrors()[0].error).toContain('default or named "plugin" export');
+    });
+
     it('should reject plugins with invalid ID format', async () => {
       const invalidPlugin = `
         export default {
@@ -176,6 +205,27 @@ describe('PluginLoader', () => {
       expect(loader.getLoadErrors()).toHaveLength(1);
     });
 
+    it('should reject plugins without a string metadata version', async () => {
+      const noVersion = `
+        export default {
+          metadata: { id: 'test' },
+          createVerifier: () => ({
+            id: 'test',
+            name: 'Test',
+            description: 'Test',
+            verify: async () => []
+          })
+        };
+      `;
+
+      writeFileSync(join(verifiersDir, 'no-version.js'), noVersion);
+
+      await loader.loadPlugins(testDir);
+
+      expect(loader.getPluginIds()).toHaveLength(0);
+      expect(loader.getLoadErrors()[0].error).toContain('version');
+    });
+
     it('should reject plugins without createVerifier function', async () => {
       const noFactory = `
         export default {
@@ -211,6 +261,62 @@ describe('PluginLoader', () => {
       expect(loader.getPluginIds()).toHaveLength(0);
       expect(loader.getLoadErrors()).toHaveLength(1);
       expect(loader.getLoadErrors()[0].error).toContain('does not match');
+    });
+
+    it('should reject plugins whose factory does not return an object', async () => {
+      const invalidVerifier = `
+        export default {
+          metadata: { id: 'bad-factory', version: '1.0.0' },
+          createVerifier: () => null
+        };
+      `;
+
+      writeFileSync(join(verifiersDir, 'bad-factory.js'), invalidVerifier);
+
+      await loader.loadPlugins(testDir);
+
+      expect(loader.getPluginIds()).toHaveLength(0);
+      expect(loader.getLoadErrors()[0].error).toContain('must return an object');
+    });
+
+    it('should reject verifiers missing required string properties', async () => {
+      const missingName = `
+        export default {
+          metadata: { id: 'missing-name', version: '1.0.0' },
+          createVerifier: () => ({
+            id: 'missing-name',
+            description: 'Missing name',
+            verify: async () => []
+          })
+        };
+      `;
+
+      writeFileSync(join(verifiersDir, 'missing-name.js'), missingName);
+
+      await loader.loadPlugins(testDir);
+
+      expect(loader.getPluginIds()).toHaveLength(0);
+      expect(loader.getLoadErrors()[0].error).toContain('name');
+    });
+
+    it('should reject verifiers without a verify method', async () => {
+      const missingVerify = `
+        export default {
+          metadata: { id: 'missing-verify', version: '1.0.0' },
+          createVerifier: () => ({
+            id: 'missing-verify',
+            name: 'Missing Verify',
+            description: 'Missing verify'
+          })
+        };
+      `;
+
+      writeFileSync(join(verifiersDir, 'missing-verify.js'), missingVerify);
+
+      await loader.loadPlugins(testDir);
+
+      expect(loader.getPluginIds()).toHaveLength(0);
+      expect(loader.getLoadErrors()[0].error).toContain('verify');
     });
 
     it('should reject plugins with duplicate IDs', async () => {
@@ -523,6 +629,62 @@ describe('PluginLoader', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error).toContain('not found');
+      }
+    });
+
+    it('should fail when paramsSchema is not parse-capable', async () => {
+      const invalidSchema = `
+        export default {
+          metadata: { id: 'invalid-schema', version: '1.0.0' },
+          createVerifier: () => ({
+            id: 'invalid-schema',
+            name: 'Invalid Schema',
+            description: 'Plugin with invalid params schema',
+            verify: async () => []
+          }),
+          paramsSchema: { shape: {} }
+        };
+      `;
+
+      writeFileSync(join(verifiersDir, 'invalid-schema.js'), invalidSchema);
+      await loader.loadPlugins(testDir);
+
+      const result = loader.validateParams('invalid-schema', { test: 'value' });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain('invalid paramsSchema');
+      }
+    });
+
+    it('should validate params with parse when safeParse is unavailable', async () => {
+      const parseOnlySchema = `
+        export default {
+          metadata: { id: 'parse-only', version: '1.0.0' },
+          createVerifier: () => ({
+            id: 'parse-only',
+            name: 'Parse Only',
+            description: 'Plugin with parse-only schema',
+            verify: async () => []
+          }),
+          paramsSchema: {
+            parse(value) {
+              if (value.mode !== 'allowed') {
+                throw new Error('mode is invalid');
+              }
+              return value;
+            }
+          }
+        };
+      `;
+
+      writeFileSync(join(verifiersDir, 'parse-only.js'), parseOnlySchema);
+      await loader.loadPlugins(testDir);
+
+      expect(loader.validateParams('parse-only', { mode: 'allowed' }).success).toBe(true);
+      const result = loader.validateParams('parse-only', { mode: 'blocked' });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain('mode is invalid');
       }
     });
 

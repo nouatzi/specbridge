@@ -11,9 +11,9 @@ const coverageRaw = readFileSync(coveragePath, 'utf8');
 const coverageMap = createCoverageMap(JSON.parse(coverageRaw));
 
 const thresholds = {
-  verification: { lines: 80, branches: 65 },
+  verification: { lines: 80, branches: 68 },
   dashboard: { lines: 85, branches: 55 },
-  integrations: { lines: 70, branches: 45 },
+  integrations: { lines: 75, branches: 50 },
 };
 
 const metrics = {};

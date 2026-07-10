@@ -10,7 +10,7 @@ Please be respectful and constructive in all interactions. We welcome contributo
 
 ### Prerequisites
 
-- Node.js 20.19.0 or later
+- Node.js 22.18.0 or later
 - npm 9 or later
 - Git
 

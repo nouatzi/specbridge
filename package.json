@@ -1,6 +1,6 @@
 {
   "name": "@ipation/specbridge",
-  "version": "2.4.9",
+  "version": "3.0.0",
   "description": "Architecture Decision Runtime - Transform architectural decisions into executable, verifiable constraints",
   "type": "module",
   "main": "./dist/index.js",
@@ -49,7 +49,7 @@
     "pack:check": "npm_config_cache=.cache/npm npm pack --ignore-scripts && npm_config_cache=.cache/npm HUSKY=0 npm pack --dry-run",
     "deps:outdated": "npm_config_cache=.cache/npm npm outdated --long",
     "health:quick": "npm run type-check && npm run lint:check && npm run format:check && npm run test:unit",
-    "health:check": "npm run docs:validate && npm run release:validate && npm run type-check && npm run lint:check && npm run format:check && npm run test && npm run test:integration && npm run test:coverage && npm run coverage:check-modules && npm audit --audit-level=high",
+    "health:check": "npm run docs:validate && npm run release:validate && npm run type-check && npm run lint:check && npm run format:check && npm run test && npm run test:integration && npm run test:coverage && npm run coverage:check-modules && npm audit --audit-level=high && npm audit --omit=dev --audit-level=moderate",
     "prepare": "husky",
     "prepublishOnly": "npm run build"
   },
@@ -86,39 +86,39 @@
     "CHANGELOG.md"
   ],
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22.18.0"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "chalk": "^5.3.0",
     "chokidar": "^5.0.0",
     "commander": "^14.0.3",
     "express": "^5.2.1",
     "fast-glob": "^3.3.0",
-    "minimatch": "^10.1.2",
-    "ora": "^9.3.0",
-    "pino": "^10.3.0",
+    "minimatch": "^10.2.5",
+    "ora": "^9.4.1",
+    "pino": "^10.3.1",
     "table": "^6.8.0",
     "ts-morph": "^27.0.2",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.8",
-    "yaml": "^2.4.0",
-    "zod": "^4.3.6"
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
+    "@eslint/js": "^10.0.1",
     "@types/express": "^5.0.6",
     "@types/node": "^25.2.2",
-    "@typescript-eslint/eslint-plugin": "^8.54.0",
-    "@typescript-eslint/parser": "^8.54.0",
-    "@vitest/coverage-v8": "^4.0.18",
-    "eslint": "^9.39.2",
-    "globals": "^17.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.63.0",
+    "@typescript-eslint/parser": "^8.63.0",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
     "husky": "^9.0.0",
-    "prettier": "^3.2.0",
+    "prettier": "^3.9.5",
     "tsup": "^8.0.0",
-    "typedoc": "^0.28.16",
+    "typedoc": "^0.28.20",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.10"
   }
 }

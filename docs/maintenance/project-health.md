@@ -37,6 +37,7 @@ npm run test:coverage
 npm run coverage:check-modules
 npm run pack:check
 npm audit --audit-level=high
+npm audit --omit=dev --audit-level=moderate
 npm run deps:outdated
 ```
 
@@ -44,7 +45,7 @@ npm run deps:outdated
 
 - CI on `main` is green for all required workflows.
 - Security workflow is green.
-- `npm audit` reports no high/critical vulnerabilities.
+- `npm audit` reports no high/critical vulnerabilities, and runtime dependencies report no moderate-or-higher vulnerabilities.
 - Lint and format checks pass with no warnings/errors.
 - Unit and integration test suites pass.
 - Packaging checks pass with and without lifecycle scripts.
@@ -66,9 +67,9 @@ npm run deps:outdated
   - Functions >= 85
   - Branches >= 72
 - Targeted module coverage guardrails:
-  - `src/verification/**`: lines >= 80, branches >= 65
+  - `src/verification/**`: lines >= 80, branches >= 68
   - `src/dashboard/**`: lines >= 85, branches >= 55
-  - `src/integrations/**`: lines >= 70, branches >= 45
+- `src/integrations/**`: lines >= 75, branches >= 50
 - Flakiness trigger: investigate if any integration suite median runtime increases by >15% for 2 consecutive weekly checks.
 
 ## Release Readiness Notes
@@ -85,7 +86,7 @@ npm run deps:outdated
 
 Track these regularly:
 - Major-version drift in core toolchain (`eslint`, `typescript`, `vitest`).
-- ESLint v10 adoption status (`npm run eslint10:readiness`; blocked until `@typescript-eslint` peer range includes v10).
+- ESLint v10 adoption status (`npm run eslint10:readiness`; should remain ready after the migration).
 - Strict ESLint 10 gate status on `main` (`ESLINT10_STRICT_GATE` repo variable).
 - CI runtime drift vs dependency engine requirements.
 - Test runtime growth and flakiness in long integration suites.

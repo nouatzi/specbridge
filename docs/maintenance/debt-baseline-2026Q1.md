@@ -49,6 +49,17 @@ Validated locally on 2026-02-08:
 
 ## Notes
 
-- ESLint v10 is available upstream, but this baseline keeps ESLint v9 for this cycle to avoid mixing toolchain migration with boundary refactors.
-- Upgrade readiness probe on 2026-02-08: `npm run eslint10:readiness` reports blocked because `@typescript-eslint` latest peer range is `^8.57.0 || ^9.0.0`.
-- CI now runs the readiness probe on every PR/push; strict enforcement on `main` is controlled by `ESLINT10_STRICT_GATE=true`.
+- ESLint v10 readiness is now green and the project has migrated to ESLint v10.
+- CI still runs the readiness probe on every PR/push; strict enforcement on `main` is controlled by `ESLINT10_STRICT_GATE=true`.
+
+## Deferred Major Upgrades (2026-07-10)
+
+These major upgrades are intentionally deferred to keep the Node 22.18/security release focused.
+Re-evaluate each item during the next monthly health snapshot.
+
+| Package | Deferred target | Risk | Resume trigger |
+| ------- | --------------- | ---- | -------------- |
+| `commander` | 15.x | CLI parse behavior may change and requires focused command regression coverage. | Resume when CLI integration baselines are stable after the 3.0.0 runtime release. |
+| `ts-morph` | 28.x | AST wrapper changes can affect inference and verification behavior across many checks. | Resume when TypeScript 7 support is confirmed across `ts-morph`, `tsup`, and `@typescript-eslint`. |
+| `vscode-languageserver` | 10.x | LSP protocol/runtime changes can affect editor integration and server lifecycle tests. | Resume when the VS Code extension compatibility matrix is updated for the new server version. |
+| `typescript` | 7.x | Compiler API and type-checking changes can affect ts-morph, build output, linting, and plugin typing. | Resume when `tsup`, `ts-morph`, and `@typescript-eslint` publish compatible ranges. |

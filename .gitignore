@@ -36,6 +36,7 @@ npm-debug.log*
 
 # Runtime artifacts
 .specbridge/reports/history/
+ci-metrics/
 
 # Package lock (prefer package-lock.json)
 yarn.lock

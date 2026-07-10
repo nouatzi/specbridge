@@ -23,10 +23,10 @@ source ~/.bashrc
 
 **Solution**:
 ```bash
-# SpecBridge requires Node 20.19.0+
-nvm install 20.19.0
-nvm use 20.19.0
-node --version  # Should be 20.19.0 or higher
+# SpecBridge requires Node 22.18.0+
+nvm install 22.18.0
+nvm use 22.18.0
+node --version  # Should be 22.18.0 or higher
 ```
 
 ## Initialization Issues

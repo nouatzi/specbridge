@@ -11,6 +11,10 @@ import { setupTestProject, createDecisionYaml } from '../../../helpers/setup.js'
 import { NotInitializedError } from '../../../../src/core/errors/index.js';
 import type { VerificationResult } from '../../../../src/core/types/index.js';
 
+const pluginLoaderMock = vi.hoisted(() => ({
+  getLoadErrors: vi.fn(() => []),
+}));
+
 // Mock ora and chalk
 vi.mock('ora', () => ({
   default: () => ({
@@ -65,6 +69,10 @@ vi.mock('../../../../src/verification/engine.js', () => ({
   createVerificationEngine: () => mockEngine,
 }));
 
+vi.mock('../../../../src/verification/plugins/loader.js', () => ({
+  getPluginLoader: () => pluginLoaderMock,
+}));
+
 describe('verify command', () => {
   let testDir: string;
   let cwdMock: ReturnType<typeof mockProcessCwd>;
@@ -74,6 +82,8 @@ describe('verify command', () => {
   beforeEach(async () => {
     // Reset mock
     mockVerify.mockClear();
+    pluginLoaderMock.getLoadErrors.mockReset();
+    pluginLoaderMock.getLoadErrors.mockReturnValue([]);
 
     // Create a temporary test directory
     testDir = mkdtempSync(join(tmpdir(), 'specbridge-test-verify-'));
@@ -185,6 +195,23 @@ describe('verify command', () => {
     await verifyCommand.parseAsync(['node', 'test', '--json']);
 
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('"success"'));
+  });
+
+  it('should print plugin load warnings for console output', async () => {
+    pluginLoaderMock.getLoadErrors.mockReturnValue([
+      {
+        file: '/project/.specbridge/verifiers/broken.ts',
+        error: 'Unexpected token',
+      },
+    ]);
+
+    await verifyCommand.parseAsync(['node', 'test']);
+
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Plugin load warnings'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining('/project/.specbridge/verifiers/broken.ts')
+    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Unexpected token'));
   });
 
   it('should exit with code 1 when verification fails', async () => {

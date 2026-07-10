@@ -18,6 +18,7 @@ import type {
   VerificationRunResult,
 } from '../../core/index.js';
 import { createConfiguredCommandContext, parseCsvOption } from '../command-context.js';
+import { getPluginLoader } from '../../verification/plugins/loader.js';
 
 interface VerifyOptions {
   level?: string;
@@ -119,6 +120,8 @@ export const verifyCommand = new Command('verify')
       if (options.json) {
         console.log(JSON.stringify({ ...result, autofix: fixResult }, null, 2));
       } else {
+        printPluginLoadWarnings();
+
         // Display warnings and errors first
         if (result.warnings && result.warnings.length > 0) {
           console.log(chalk.yellow.bold('\nWarnings:'));
@@ -171,6 +174,20 @@ export const verifyCommand = new Command('verify')
       throw error;
     }
   });
+
+function printPluginLoadWarnings(): void {
+  const loadErrors = getPluginLoader().getLoadErrors();
+  if (loadErrors.length === 0) {
+    return;
+  }
+
+  console.log(chalk.yellow('\nPlugin load warnings:'));
+  for (const { file, error } of loadErrors) {
+    console.log(chalk.yellow(`  ! ${file}`));
+    console.log(chalk.dim(`    ${error}`));
+  }
+  console.log('');
+}
 
 function printResult(result: VerificationRunResult, level: VerificationLevel): void {
   console.log('');

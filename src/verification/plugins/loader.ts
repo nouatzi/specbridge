@@ -131,7 +131,7 @@ export class PluginLoader {
       verifier = plugin.createVerifier();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`createVerifier() threw an error: ${message}`);
+      throw new Error(`createVerifier() threw an error: ${message}`, { cause: error });
     }
 
     // Validate verifier interface

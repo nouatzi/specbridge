@@ -34,7 +34,7 @@ Project vision: [French](./docs/VISION.md) | [English summary](./docs/VISION.en.
 
 ## Installation
 
-Requires Node.js `20.19.0` or later.
+Requires Node.js `22.18.0` or later.
 
 ```bash
 npm install -g @ipation/specbridge

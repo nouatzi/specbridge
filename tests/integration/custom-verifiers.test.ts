@@ -144,6 +144,92 @@ describe('Custom Verifiers Integration', () => {
     expect(result.violations[0].message).toContain('console.log');
   });
 
+  it('should load a TypeScript custom verifier through native Node type stripping', async () => {
+    const verifiersDir = join(testDir, '.specbridge', 'verifiers');
+    mkdirSync(verifiersDir, { recursive: true });
+
+    const typescriptVerifier = `
+      interface VerificationContextLike {
+        decisionId: string;
+        constraint: {
+          id: string;
+          type: 'invariant' | 'convention' | 'guideline';
+          severity: 'critical' | 'high' | 'medium' | 'low';
+        };
+        filePath: string;
+        sourceFile: { getFullText(): string };
+      }
+
+      class NativeTsVerifier {
+        readonly id = 'native-ts';
+        readonly name = 'Native TS';
+        readonly description = 'Runs from a .ts plugin file';
+
+        async verify(ctx: VerificationContextLike) {
+          if (!ctx.sourceFile.getFullText().includes('nativeTsMarker')) {
+            return [];
+          }
+
+          return [{
+            decisionId: ctx.decisionId,
+            constraintId: ctx.constraint.id,
+            type: ctx.constraint.type,
+            severity: ctx.constraint.severity,
+            message: 'native TypeScript verifier ran',
+            file: ctx.filePath,
+            line: 1,
+          }];
+        }
+      }
+
+      export default {
+        metadata: {
+          id: 'native-ts',
+          version: '1.0.0'
+        },
+        createVerifier: () => new NativeTsVerifier()
+      };
+    `;
+
+    writeFileSync(join(verifiersDir, 'native-ts.ts'), typescriptVerifier);
+
+    const srcDir = join(testDir, 'src');
+    mkdirSync(srcDir, { recursive: true });
+    writeFileSync(join(srcDir, 'test.ts'), 'export const nativeTsMarker = true;');
+
+    await setupTestProject(testDir, {
+      decisions: [
+        {
+          id: 'native-ts-rule',
+          content: createDecisionYaml('native-ts-rule', {
+            title: 'Native TS Plugin',
+            constraints: [
+              {
+                id: 'c-1',
+                type: 'convention',
+                rule: 'TypeScript custom verifier should run',
+                severity: 'medium',
+                scope: 'src/**/*.ts',
+                check: {
+                  verifier: 'native-ts',
+                },
+              },
+            ],
+          }),
+        },
+      ],
+    });
+
+    const registry = createRegistry({ basePath: testDir });
+    await registry.load();
+
+    const engine = createVerificationEngine(registry);
+    const result = await engine.verify(config, { cwd: testDir });
+
+    expect(result.violations).toHaveLength(1);
+    expect(result.violations[0].message).toBe('native TypeScript verifier ran');
+  });
+
   it('should work with parameters passed from constraint', async () => {
     const verifiersDir = join(testDir, '.specbridge', 'verifiers');
     mkdirSync(verifiersDir, { recursive: true });

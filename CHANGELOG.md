@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-07-10
+
+### Breaking
+
+- Raised the minimum supported runtime to Node.js 22.18.0 for native TypeScript verifier plugin loading.
+- Updated CI and publishing workflows to use Node 22.x, with unit coverage also validated on Node 24.x.
+
+### Security
+
+- Updated runtime and development dependencies to patched minor/patch releases, including `yaml`, `vitest`, `@modelcontextprotocol/sdk`, `zod`, and ESLint 10.
+- Hardened `npm run health:check` with a runtime dependency audit gate: `npm audit --omit=dev --audit-level=moderate`.
+- Documented the custom verifier plugin execution trust model and switched vulnerability reporting to GitHub Private Vulnerability Reporting.
+
+### Changed
+
+- `specbridge verify` now prints visible plugin load warnings in console output instead of leaving failures only in structured logs.
+- Documented Node native type-stripping constraints for `.ts` custom verifier plugins.
+
+### Quality
+
+- Added integration coverage for native `.ts` verifier plugins.
+- Expanded agent template, GitHub integration, and plugin loader tests.
+- Raised targeted module coverage thresholds for `src/verification/**` branches and `src/integrations/**` lines/branches.
+
 ## [2.4.9] - 2026-02-08
 
 ### Added
@@ -1148,7 +1172,8 @@ This release adopts a **pragmatic testing approach**:
 - Vitest for testing
 - tsup for building
 
-[Unreleased]: https://github.com/nouatzi/specbridge/compare/v2.4.9...HEAD
+[Unreleased]: https://github.com/nouatzi/specbridge/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/nouatzi/specbridge/compare/v2.4.9...v3.0.0
 [2.4.9]: https://github.com/nouatzi/specbridge/compare/v2.4.8...v2.4.9
 [2.4.8]: https://github.com/nouatzi/specbridge/compare/v2.4.7...v2.4.8
 [2.4.7]: https://github.com/nouatzi/specbridge/compare/v2.4.6...v2.4.7

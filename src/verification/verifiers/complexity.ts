@@ -155,10 +155,7 @@ export class ComplexityVerifier implements Verifier {
     }
 
     type FunctionLikeNode =
-      | FunctionDeclaration
-      | FunctionExpression
-      | ArrowFunction
-      | MethodDeclaration;
+      FunctionDeclaration | FunctionExpression | ArrowFunction | MethodDeclaration;
     const functionLikes: FunctionLikeNode[] = [
       ...sourceFile.getDescendantsOfKind(SyntaxKind.FunctionDeclaration),
       ...sourceFile.getDescendantsOfKind(SyntaxKind.FunctionExpression),

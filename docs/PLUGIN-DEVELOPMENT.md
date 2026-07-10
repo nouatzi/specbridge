@@ -2,6 +2,16 @@
 
 SpecBridge v2.0 introduces a powerful plugin system that allows you to create custom verifiers without modifying the core codebase.
 
+Custom verifier plugins are trusted code. Files in `.specbridge/verifiers/` are imported and
+executed with the same privileges as the `specbridge verify` process, so review them before
+running verification on repositories you do not trust. See [Security Policy](../SECURITY.md) for
+the plugin execution model.
+
+TypeScript plugin files (`.ts`) require Node.js 22.18.0 or later, which is the minimum supported
+runtime for SpecBridge. They rely on Node's native type stripping: use erasable TypeScript syntax
+and type-only imports, and avoid runtime TypeScript constructs such as enums and namespaces in
+plugins.
+
 ## Table of Contents
 
 - [Quick Start](#quick-start)

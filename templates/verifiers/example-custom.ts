@@ -9,6 +9,9 @@
  * 2. Implement your verification logic
  * 3. Reference in decisions: check.verifier: 'my-custom'
  * 4. Run: specbridge verify
+ *
+ * .ts verifier plugins require Node.js 22.18.0 or later and must use
+ * erasable TypeScript syntax supported by Node's native type stripping.
  */
 
 import {

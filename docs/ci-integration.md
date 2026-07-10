@@ -26,7 +26,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '22.x'
           cache: 'npm'
 
       - name: Install dependencies
@@ -126,7 +126,7 @@ Create `.gitlab-ci.yml`:
 ```yaml
 specbridge:verify:
   stage: test
-  image: node:20
+  image: node:22
   script:
     - npm ci
     - npx specbridge verify --level pr
@@ -141,7 +141,7 @@ specbridge:verify:
 
 specbridge:report:
   stage: test
-  image: node:20
+  image: node:22
   script:
     - npm ci
     - npx specbridge report --format markdown --output specbridge-report.md
@@ -213,7 +213,7 @@ version: 2.1
 jobs:
   verify:
     docker:
-      - image: cimg/node:20.19
+      - image: cimg/node:22.18
     steps:
       - checkout
       - restore_cache:
@@ -266,7 +266,7 @@ pool:
 steps:
   - task: NodeTool@0
     inputs:
-      versionSpec: '20.x'
+      versionSpec: '22.x'
     displayName: 'Install Node.js'
 
   - script: npm ci
@@ -340,7 +340,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '22.x'
 
       - run: npm ci
 
@@ -378,7 +378,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '22.x'
 
       - run: npm ci
 

@@ -200,7 +200,7 @@ export class PropagationEngine {
 
     // Step 3: Verification
     steps.push({
-      order: order++,
+      order,
       description: 'Run verification to confirm all violations resolved',
       files: [],
       automated: true,

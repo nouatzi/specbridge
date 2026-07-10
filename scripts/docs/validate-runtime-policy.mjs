@@ -31,8 +31,17 @@ const policyChecks = [
   },
   {
     file: 'docs/ci-integration.md',
-    required: [/node-version:\s*'20\.x'/, /image:\s*node:20/, /cimg\/node:20/, /versionSpec:\s*'20\.x'/],
-    forbidden: [/\bnode-version:\s*'18'/, /\bimage:\s*node:18\b/, /\bcimg\/node:18/, /\bversionSpec:\s*'18\.x'/],
+    required: [/node-version:\s*'22\.x'/, /image:\s*node:22/, /cimg\/node:22\.18/, /versionSpec:\s*'22\.x'/],
+    forbidden: [
+      /\bnode-version:\s*'18'/,
+      /\bnode-version:\s*'20\.x'/,
+      /\bimage:\s*node:18\b/,
+      /\bimage:\s*node:20\b/,
+      /\bcimg\/node:18/,
+      /\bcimg\/node:20/,
+      /\bversionSpec:\s*'18\.x'/,
+      /\bversionSpec:\s*'20\.x'/,
+    ],
   },
   {
     file: 'docs/maintenance/project-health.md',

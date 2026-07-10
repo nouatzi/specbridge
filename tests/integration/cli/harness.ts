@@ -100,7 +100,7 @@ export function createCliHarness(suiteName: string, options: HarnessOptions = {}
         return stdout || stderr || childError.message || details;
       }
 
-      throw new Error(details);
+      throw new Error(details, { cause: error });
     }
   };
 

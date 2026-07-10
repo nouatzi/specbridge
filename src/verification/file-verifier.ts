@@ -66,7 +66,7 @@ export async function verifySingleFile(
     const content = await readFile(filePath, 'utf-8');
     fileHash = createHash('sha256').update(content).digest('hex');
   } catch {
-    fileHash = null;
+    // Continue without result caching if the source file cannot be read.
   }
 
   for (const decision of decisions) {

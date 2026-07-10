@@ -4,7 +4,8 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 2.x     | :white_check_mark: |
+| 3.x     | :white_check_mark: |
+| 2.x     | :x:                |
 | 1.x     | :x:                |
 | 0.x     | :x:                |
 
@@ -30,6 +31,22 @@ When using SpecBridge:
 4. Restrict write access to `.specbridge/decisions/` in production
 5. Run `npm audit` regularly to check dependencies
 
+## Plugin Execution Model
+
+Custom verifier files under `.specbridge/verifiers/` are imported and executed by the
+`specbridge verify` process. They run with the full privileges of that process: file-system
+access, environment variables, network access available to the process, and any credentials
+present in the execution environment.
+
+Treat verifier plugins like ESLint plugins or build scripts. Cloning an untrusted repository
+and running `specbridge verify` can execute code from that repository if it contains custom
+verifiers. Review `.specbridge/verifiers/` before running verification on third-party or
+untrusted code, protect changes to that directory with code review, and run verification in a
+restricted CI/container environment when repository trust is unclear.
+
+Advanced sandboxing for custom verifiers is planned, but current releases do not isolate plugin
+execution.
+
 ## Disclosure Policy
 
 When we receive a security report, we will:
@@ -41,4 +58,5 @@ When we receive a security report, we will:
 
 ## Contact
 
-For security concerns, contact: [INSERT SECURITY EMAIL]
+For security concerns, use GitHub Private Vulnerability Reporting:
+https://github.com/nouatzi/specbridge/security/advisories

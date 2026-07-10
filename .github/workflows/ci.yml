@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x, 22.x]
+        node-version: [22.x, 24.x]
     env:
       HUSKY: 0
 
@@ -30,8 +30,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Run tests (Node 20 runtime guardrail)
-        if: matrix.node-version == '20.x'
+      - name: Run tests (Node 22 runtime guardrail)
+        if: matrix.node-version == '22.x'
         shell: bash
         run: |
           set -euo pipefail
@@ -59,7 +59,7 @@ jobs:
           {"track":"unit","suite":"unit","duration_seconds":${duration_seconds},"warn_seconds":${warn_seconds},"fail_seconds":${fail_seconds},"status":"${runtime_status}"}
           EOF
 
-          echo "### Unit tests (Node 20)" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Unit tests (Node 22)" >> "$GITHUB_STEP_SUMMARY"
           echo "- duration: ${duration_seconds}s (warn ${warn_seconds}s / fail ${fail_seconds}s)" >> "$GITHUB_STEP_SUMMARY"
           echo "- status: ${runtime_status}" >> "$GITHUB_STEP_SUMMARY"
 
@@ -68,20 +68,20 @@ jobs:
             exit 1
           fi
 
-      - name: Run tests (Node 22)
-        if: matrix.node-version != '20.x'
+      - name: Run tests (Node 24)
+        if: matrix.node-version != '22.x'
         run: npm test
 
       - name: Generate coverage
-        if: matrix.node-version == '20.x'
+        if: matrix.node-version == '22.x'
         run: npm run test:coverage
 
       - name: Check module-level coverage thresholds
-        if: matrix.node-version == '20.x'
+        if: matrix.node-version == '22.x'
         run: npm run coverage:check-modules
 
       - name: Upload coverage to Codecov
-        if: matrix.node-version == '20.x'
+        if: matrix.node-version == '22.x'
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage/lcov.info
@@ -89,7 +89,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Upload unit metrics
-        if: matrix.node-version == '20.x' && always()
+        if: matrix.node-version == '22.x' && always()
         uses: actions/upload-artifact@v4
         with:
           name: unit-metrics
@@ -98,7 +98,7 @@ jobs:
           retention-days: 14
 
       - name: Upload module coverage metrics
-        if: matrix.node-version == '20.x' && always()
+        if: matrix.node-version == '22.x' && always()
         uses: actions/upload-artifact@v4
         with:
           name: module-coverage-metrics
@@ -117,7 +117,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
           cache: 'npm'
 
       - name: Install dependencies
@@ -224,7 +224,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
           cache: 'npm'
 
       - name: Install dependencies
@@ -338,7 +338,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
           cache: 'npm'
 
       - name: Validate docs/runtime policy alignment
@@ -355,7 +355,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
           cache: 'npm'
 
       - name: Validate package/changelog version alignment
@@ -372,7 +372,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
           cache: 'npm'
 
       - name: Install dependencies
@@ -398,7 +398,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
           cache: 'npm'
 
       - name: Install dependencies
@@ -422,7 +422,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
           cache: 'npm'
 
       - name: Install dependencies
@@ -442,7 +442,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
           cache: 'npm'
 
       - name: Install dependencies
